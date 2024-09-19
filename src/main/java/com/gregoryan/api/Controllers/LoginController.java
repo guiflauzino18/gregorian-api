@@ -1,18 +1,15 @@
 package com.gregoryan.api.Controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.gregoryan.api.DTO.LoginRequestDTO;
 import com.gregoryan.api.DTO.LoginResponseDTO;
-import com.gregoryan.api.Models.UserRole;
 import com.gregoryan.api.Models.Usuario;
 import com.gregoryan.api.Repositorys.UsuarioRepository;
 import com.gregoryan.api.Services.Security.TokenService;
@@ -42,14 +39,4 @@ public class LoginController {
         return ResponseEntity.ok(new LoginResponseDTO(token));
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<String> register (@RequestBody Usuario usuario){
-        
-        String encryptedPassword = new BCryptPasswordEncoder().encode(usuario.getSenha());
-        usuario.setSenha(encryptedPassword);
-        usuario.setRole(UserRole.GESTOR);
-        usuarioRepository.save(usuario);
-
-        return new ResponseEntity<String>("Ok", HttpStatus.OK);
-    }
 }

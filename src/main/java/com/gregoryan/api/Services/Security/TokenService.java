@@ -12,6 +12,8 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.gregoryan.api.Models.Usuario;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @Service
 public class TokenService {
 
@@ -45,5 +47,11 @@ public class TokenService {
 
         private Instant genExpirationDate(){
         return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+    }
+
+        public String recoverToken(HttpServletRequest request){
+        var authHeader = request.getHeader("Authorization");
+        if(authHeader == null) return null;
+        return authHeader.replace("Bearer ", "");
     }
 }
