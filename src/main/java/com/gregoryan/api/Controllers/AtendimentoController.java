@@ -38,8 +38,7 @@ public class AtendimentoController {
     private UsuarioService usuarioService;
     
     
-    // ================================= Paciente ==========================
-        //================================== PACIENTE =======================================
+    //================================== PACIENTE =======================================
 
     @GetMapping("/paciente/list")
     public ResponseEntity<Page<Paciente>> findAll(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){

@@ -1,7 +1,5 @@
 package com.gregoryan.api.Models;
 
-import java.util.Calendar;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,44 +12,56 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.util.Calendar;
 
 @Entity
-@Table(name = "tbl_plano_paciente")
+@Table(name = "tbl_faturamento")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class PlanoPaciente {
-
-    public static final int PLANO_STATUS_ATIVO = 1;
-    public static final int PLANO_STATUS_INATIVO = 0;
-
+public class Faturamento {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     @Column(nullable = false)
-    private String nome;
-
-    @Column(nullable = false)
     private float valor;
 
+    @Column(nullable = false)
     private float desconto;
 
-    private int sessoes;
-
-    @Column(nullable = false, length = 2)
-    private int status;
-
     @Column(nullable = false)
-    private Calendar dataRegistro;
+    private float pago;
 
     @ManyToOne
-    @JoinColumn(name = "empresa_fk")
+    @JoinColumn(name = "paciente_fk")
+    private Paciente paciente;
+
+    @Column(nullable = false)
+    private Calendar data;
+
+    @ManyToOne
+    @JoinColumn(name = "forma_pagamento_fk")
+    private FormaPagamento formaPagamento;
+
+    @ManyToOne
+    @JoinColumn(name =  "empresa_fk")
     private Empresa empresa;
+
+
+    public float getDebito(){
+        return getTotal() - pago;
+    }
 
     public float getTotal(){
         return valor - desconto;
     }
-    
+
+    public boolean idDebit(){
+        if (pago >= getTotal()) return true; else return false;
+    }
+
+
 }

@@ -16,42 +16,36 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "tbl_plano_paciente")
+@Table(name = "tbl_agendamento")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class PlanoPaciente {
-
-    public static final int PLANO_STATUS_ATIVO = 1;
-    public static final int PLANO_STATUS_INATIVO = 0;
-
+public class Agendamento {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(nullable = false)
-    private String nome;
+    @ManyToOne
+    @JoinColumn(name = "profissional_fk")
+    private Profissional profissional;
+
+    @ManyToOne
+    @JoinColumn(name = "paciente_fk")
+    private Paciente paciente;
 
     @Column(nullable = false)
-    private float valor;
-
-    private float desconto;
-
-    private int sessoes;
-
-    @Column(nullable = false, length = 2)
-    private int status;
-
-    @Column(nullable = false)
-    private Calendar dataRegistro;
+    private Calendar data;
 
     @ManyToOne
     @JoinColumn(name = "empresa_fk")
     private Empresa empresa;
 
-    public float getTotal(){
-        return valor - desconto;
-    }
-    
+    @Column(nullable = false)
+    private Calendar dataRegistro;
+
+    @ManyToOne
+    @JoinColumn(name = "status_agendamento_fk")
+    private StatusAgendamento statusAgendamento;
 }

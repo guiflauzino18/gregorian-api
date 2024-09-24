@@ -1,0 +1,37 @@
+package com.gregoryan.api.Services.Crud;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import java.util.Optional;
+import com.gregoryan.api.Models.Profissional;
+import com.gregoryan.api.Repositorys.ProfissionalRepository;
+
+import jakarta.transaction.Transactional;
+
+@Service
+public class ProfissionalService {
+    
+    @Autowired
+    private ProfissionalRepository repository;
+
+    @Transactional
+    public Profissional save(Profissional profissional){
+        return repository.save(profissional);
+    }
+
+    @Transactional
+    public void delete(Profissional profissional){
+        repository.delete(profissional);
+    }
+
+    public Optional<Profissional> findById(long id){
+        return repository.findById(id);
+    }
+
+    public Page<Profissional> findAll(Pageable pageable){
+        return repository.findAll(pageable);
+    }
+    
+}
