@@ -6,7 +6,8 @@ public enum UserRole {
     ADMIN("admin"),
     FATURAMENTO("faturamento"),
     AGENDAMENTO("agendamento"),
-    ATENDIMENTO("atendimento");
+    ATENDIMENTO("atendimento"),
+    PROFISSIONAL("profissional");
 
     private String role;
 

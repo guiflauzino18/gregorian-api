@@ -37,8 +37,8 @@ public class StatusHoraService {
         return repository.findById(id);
     }
 
-
-
-
+    public boolean existsByNome(String nome){
+        return repository.existsByNome(nome);
+    }
     
 }

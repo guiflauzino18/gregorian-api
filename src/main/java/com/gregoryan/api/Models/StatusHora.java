@@ -1,5 +1,7 @@
 package com.gregoryan.api.Models;
 
+import java.io.Serializable;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -17,7 +19,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class StatusHora {
+public class StatusHora implements Serializable {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

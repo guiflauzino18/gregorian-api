@@ -26,6 +26,11 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Usuario implements UserDetails {
+
+    public static final int STATUS_ATIVO = 1;
+    public static final int STATUS_INATIVO = 0;
+    public static final int ALTERA_NEXT_LOGON = 1;
+    public static final int NAO_ALTERA_NEXT_LOGON = 0;
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,8 +54,12 @@ public class Usuario implements UserDetails {
     @Column(nullable = false, length = 255)
     private String senha;
 
+    private String endereco;
 
-    private Endereco endereco;
+    @Column(nullable = false, length = 2)
+    private int status;
+
+    private boolean alteraNextLogon;
 
     @Column(nullable = false)
     private UserRole role;
@@ -69,13 +78,15 @@ public class Usuario implements UserDetails {
                             new SimpleGrantedAuthority("ROLE_ADMIN"),
                             new SimpleGrantedAuthority("ROLE_FATURAMENTO"),
                             new SimpleGrantedAuthority("ROLE_AGENDAMENTO"),
-                            new SimpleGrantedAuthority("ROLE_ATENDIMENTO") );
+                            new SimpleGrantedAuthority("ROLE_ATENDIMENTO"),
+                            new SimpleGrantedAuthority("ROLE_PROFISSIONAL"));
         
         } else if (this.role == UserRole.ADMIN){
             return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"),
                             new SimpleGrantedAuthority("ROLE_FATURAMENTO"),
                             new SimpleGrantedAuthority("ROLE_AGENDAMENTO"),
-                            new SimpleGrantedAuthority("ROLE_ATENDIMENTO") );
+                            new SimpleGrantedAuthority("ROLE_ATENDIMENTO"),
+                            new SimpleGrantedAuthority("ROLE_PROFISSIONAL"));
 
         } else if(this.role == UserRole.FATURAMENTO){
             return List.of(new SimpleGrantedAuthority("ROLE_FATURAMENTO"),
@@ -85,6 +96,9 @@ public class Usuario implements UserDetails {
         } else if (this.role == UserRole.AGENDAMENTO){
             return List.of(new SimpleGrantedAuthority("ROLE_AGENDAMENTO"),
                             new SimpleGrantedAuthority("ROLE_ATENDIMENTO") );
+
+        } else if (this.role == UserRole.PROFISSIONAL){
+            return List.of(new SimpleGrantedAuthority("ROLE_PROFISSIONAL"));
 
         } else return List.of(new SimpleGrantedAuthority("ROLE_ATENDIMENTO"));
     }

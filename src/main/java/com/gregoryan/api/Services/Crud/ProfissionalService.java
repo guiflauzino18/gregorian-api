@@ -33,5 +33,9 @@ public class ProfissionalService {
     public Page<Profissional> findAll(Pageable pageable){
         return repository.findAll(pageable);
     }
+
+    public boolean existsByRegistro(String Registro){
+        return repository.existsByRegistro(Registro);
+    }
     
 }
