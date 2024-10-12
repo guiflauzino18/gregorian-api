@@ -50,10 +50,10 @@ public class DBinit {
         statusAgendaAtivo();
 
         //Cria Status do Dia para Ativo
-        statusDiaAtivo();
+        statusDiaAtivoEBloqueado();
 
         //Cria Status da Hora para Ativo
-        statusHoraAtivo();
+        statusHoraAtivoEBloqueado();
 
         //Cria Usuario Sysadmin se não existir
         usuarioSysAdmin();
@@ -75,20 +75,34 @@ public class DBinit {
         }
     }
 
-    private void statusDiaAtivo(){
+    private void statusDiaAtivoEBloqueado(){
         //Cria Status Ativo para Dia na Inicialização;
         if (!statusDiaService.existsByNome("Ativo")){
             StatusDia statusDia = new StatusDia();
             statusDia.setNome("Ativo");
             statusDiaService.save(statusDia);
         }
+
+        //Cria Status Bloqueado para Dia na Inicialização;
+        if (!statusDiaService.existsByNome("Bloqueado")){
+            StatusDia statusDia = new StatusDia();
+            statusDia.setNome("Bloqueado");
+            statusDiaService.save(statusDia);
+        }
     }
 
-    private void statusHoraAtivo(){
+    private void statusHoraAtivoEBloqueado(){
         //cria status Ativo para Hora na Incialização
         if (!statusHoraService.existsByNome("Ativo")){
             StatusHora statusHora = new StatusHora();
             statusHora.setNome("Ativo");
+            statusHoraService.save(statusHora);
+        }
+
+        //cria status Ativo para Hora na Incialização
+        if (!statusHoraService.existsByNome("Bloqueado")){
+            StatusHora statusHora = new StatusHora();
+            statusHora.setNome("Bloqueado");
             statusHoraService.save(statusHora);
         }
     }

@@ -37,4 +37,8 @@ public class HorasService {
     public Page<Horas> findAll(Pageable pageable){
         return repository.findAll(pageable);
     }
+
+    public void deleteById(long id){
+        repository.deleteById(id);
+    }
 }

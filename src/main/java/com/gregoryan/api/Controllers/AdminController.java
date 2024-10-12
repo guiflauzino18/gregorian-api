@@ -29,14 +29,20 @@ import com.gregoryan.api.DTO.AgendaConfigDTO;
 import com.gregoryan.api.DTO.AgendaEditDTO;
 import com.gregoryan.api.DTO.DiaCadastroDTO;
 import com.gregoryan.api.DTO.DiaEditDTO;
+import com.gregoryan.api.DTO.FeriadoCadastroDTO;
+import com.gregoryan.api.DTO.FeriadoEditDTO;
 import com.gregoryan.api.DTO.HorasEditDTO;
+import com.gregoryan.api.DTO.ProfissionalCadastroDTO;
+import com.gregoryan.api.DTO.ProfissionalEditDTO;
 import com.gregoryan.api.DTO.StatusAgendaCadastroDTO;
 import com.gregoryan.api.DTO.UsuarioCadastroDTO;
 import com.gregoryan.api.DTO.UsuarioEditDTO;
 import com.gregoryan.api.DTO.planoPacienteCadastroDTO;
 import com.gregoryan.api.DTO.usuarioResetSenhaDTO;
 import com.gregoryan.api.Models.Agenda;
+import com.gregoryan.api.Models.DiaBloqueado;
 import com.gregoryan.api.Models.Dias;
+import com.gregoryan.api.Models.Feriado;
 import com.gregoryan.api.Models.Horas;
 import com.gregoryan.api.Models.PlanoPaciente;
 import com.gregoryan.api.Models.Profissional;
@@ -45,7 +51,9 @@ import com.gregoryan.api.Models.StatusDia;
 import com.gregoryan.api.Models.StatusHora;
 import com.gregoryan.api.Models.Usuario;
 import com.gregoryan.api.Services.Crud.AgendaService;
+import com.gregoryan.api.Services.Crud.DiaBloqueadoService;
 import com.gregoryan.api.Services.Crud.DiasService;
+import com.gregoryan.api.Services.Crud.FeriadoService;
 import com.gregoryan.api.Services.Crud.HorasService;
 import com.gregoryan.api.Services.Crud.PlanoPacienteService;
 import com.gregoryan.api.Services.Crud.ProfissionalService;
@@ -80,6 +88,11 @@ public class AdminController {
     private DiasService diasService;
     @Autowired
     private HorasService horasService;
+    @Autowired
+    private FeriadoService feriadoService;
+    @Autowired
+    private DiaBloqueadoService diaBloqueadoService;
+
     
 
     // ================================= PLANO PACIENTE ==================================
@@ -295,46 +308,74 @@ public class AdminController {
         if (statusAgendaService.findById(agendaDTO.idStatusAgenda()).isPresent()) 
             agenda.setStatusAgenda(statusAgendaService.findById(agendaDTO.idStatusAgenda()).get());
 
-        for (DiaEditDTO diaDTO : agendaDTO.diaDTO()) {
-            Optional<Dias> dia = diasService.findById(diaDTO.idDia());
-            if (dia.isPresent()) {
-                long duracaoSessaoBeforeEdit = dia.get().getDuracaoSessaoInMinutes();
-                long intervaloSessaoBeforeEdit = dia.get().getIntervaloSesssaoInMinutes();
-                LocalTime inicioBeforeEdit = dia.get().getInicio();
-                LocalTime fimBeforeEdit = dia.get().getFim();
-
-                dia.get().setDuracaoSessaoInMinutes(diaDTO.duracaoSessaoInMinutes());
-                dia.get().setIntervaloSesssaoInMinutes(diaDTO.intervaloSessaoInMinutes());
-                Optional<StatusDia> statusDia = statusDiaService.findById(diaDTO.idStatusDIa());
-                if (statusDia.isPresent()) dia.get().setStatusDia(statusDia.get());
-                LocalTime inicio = LocalTime.of(Integer.parseInt(diaDTO.inicio().split(":")[0]), Integer.parseInt(diaDTO.inicio().split(":")[0]));
-                LocalTime fim = LocalTime.of(Integer.parseInt(diaDTO.inicio().split(":")[1]), Integer.parseInt(diaDTO.inicio().split(":")[1]));
-                dia.get().setInicio(inicio);
-                dia.get().setFim(fim);
-
-                if (duracaoSessaoBeforeEdit != dia.get().getDuracaoSessaoInMinutes() ||
-                    intervaloSessaoBeforeEdit != dia.get().getIntervaloSesssaoInMinutes()||
-                    !inicio.equals(inicioBeforeEdit) || !fim.equals(fimBeforeEdit)) {
-                        
-                        StatusHora statusHora = statusHoraService.findByNome("Ativo").get();
-                        dia.get().createHoras(statusHora, horasService);
-                }
-
-                diasService.save(dia.get());
-
-                for (HorasEditDTO horaDTO : diaDTO.horaDTO()) {
-                    Optional<Horas> hora = horasService.findById(horaDTO.idHora());
-                    if (hora.isPresent()){
-                        Optional<StatusHora> statusHora = statusHoraService.findById(horaDTO.idHora());
-                        if (statusHora.isPresent()) hora.get().setStatusHora(statusHora.get());
-
-                        horasService.save(hora.get());
-                    }
-                }
-            }
-        }
+        Optional<Profissional> profissional = profissionalService.findById(agendaDTO.idProfissional());
+        if (profissional.isPresent())
+            agenda.setProfissional(profissional.get());
 
         return new ResponseEntity<>(agendaService.save(agenda),HttpStatus.OK);
+    }
+
+    //Edita Dias da Agenda
+    @PutMapping("/agenda/edit/dia")
+    public ResponseEntity<Object> agendaEditDia(@RequestBody @Valid DiaEditDTO diaDTO){
+
+        Optional<Dias> dia = diasService.findById(diaDTO.idDia());
+
+        if (dia.isPresent()) {
+            long duracaoSessaoBeforeEdit = dia.get().getDuracaoSessaoInMinutes();
+            long intervaloSessaoBeforeEdit = dia.get().getIntervaloSesssaoInMinutes();
+            LocalTime inicioBeforeEdit = dia.get().getInicio();
+            LocalTime fimBeforeEdit = dia.get().getFim();
+
+            dia.get().setDuracaoSessaoInMinutes(diaDTO.duracaoSessaoInMinutes());
+            dia.get().setIntervaloSesssaoInMinutes(diaDTO.intervaloSessaoInMinutes());
+            Optional<StatusDia> statusDia = statusDiaService.findById(diaDTO.idStatusDia());
+            if (statusDia.isPresent()) dia.get().setStatusDia(statusDia.get());
+            LocalTime inicio = LocalTime.of(Integer.parseInt(diaDTO.inicio().split(":")[0]), Integer.parseInt(diaDTO.inicio().split(":")[1]));
+            LocalTime fim = LocalTime.of(Integer.parseInt(diaDTO.fim().split(":")[0]), Integer.parseInt(diaDTO.fim().split(":")[1]));
+            dia.get().setInicio(inicio);
+            dia.get().setFim(fim);
+
+            
+            if (duracaoSessaoBeforeEdit != dia.get().getDuracaoSessaoInMinutes() ||
+                intervaloSessaoBeforeEdit != dia.get().getIntervaloSesssaoInMinutes()||
+                !inicio.equals(inicioBeforeEdit) || !fim.equals(fimBeforeEdit)) {
+                    
+                StatusHora statusHora = statusHoraService.findByNome("Ativo").get();
+
+                dia.get().createHoras(statusHora, horasService);
+            }
+            
+            return new ResponseEntity<>(diasService.save(dia.get()), HttpStatus.OK);
+
+        } else return new ResponseEntity<>("Dia não encontrado!", HttpStatus.NOT_FOUND);
+    
+    }
+
+    //Edit Horas do dia da Agenda
+    @PutMapping("/agenda/edit/horas")
+    public ResponseEntity<Object> agendaEditHoras(@RequestBody @Valid HorasEditDTO horaDTO){
+        
+        Optional<Horas> hora = horasService.findById(horaDTO.idHora());
+        if (hora.isPresent()){
+            Optional<StatusHora> statusHora = statusHoraService.findById(horaDTO.idStatusHora());
+
+            if (statusHora.isPresent()) hora.get().setStatusHora(statusHora.get());
+
+            return new ResponseEntity<>(horasService.save(hora.get()), HttpStatus.OK);
+
+        } else return new ResponseEntity<>("Hora não encontrada!", HttpStatus.NOT_FOUND);
+                
+
+    }
+
+    @DeleteMapping("/agenda/horas/delete/{id}")
+    public ResponseEntity<Object> agendaHorasDelete(@PathVariable long id){
+        Optional<Horas> hora = horasService.findById(id);
+        if(!hora.isPresent()) return new ResponseEntity<>("Hora não encontrada!", HttpStatus.NOT_FOUND);
+        
+        horasService.delete(hora.get());
+        return new ResponseEntity<>("Hora deletada da Agenda", HttpStatus.OK);
     }
 
     //Cadastro de Status Agenda
@@ -351,4 +392,160 @@ public class AdminController {
     }
     
 
+
+    //=============================================== PROFISSIONAL =======================================================
+
+    //Cadastro de Profissional
+    @PostMapping("/profissional/cadastro")
+    public ResponseEntity<Object> profissionalCadastro(@RequestBody @Valid ProfissionalCadastroDTO profissionalDTO){
+        Optional<Usuario> usuario = usuarioService.findById(profissionalDTO.idUsuario());
+        if (!usuario.isPresent()) return new ResponseEntity<>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
+
+        Profissional profissional = new Profissional();
+        BeanUtils.copyProperties(profissionalDTO, profissional);
+        profissional.setUsuario(usuario.get());
+
+        return new ResponseEntity<>(profissionalService.save(profissional), HttpStatus.CREATED);
+    }
+
+    //Editar Profissional
+    @PutMapping("/profissional/edit")
+    public ResponseEntity<Object> profissionalEditar(@RequestBody @Valid ProfissionalEditDTO profissionalDTO) throws Exception{
+        Optional<Profissional> profissional = profissionalService.findById(profissionalDTO.id());
+        if (!profissional.isPresent()) return new ResponseEntity<>("Profissional não encontrado!", HttpStatus.NOT_FOUND);
+
+        profissional.get().setTitulo(profissionalDTO.titulo());
+        profissional.get().setRegistro(profissionalDTO.titulo());
+        if (usuarioService.findById(profissionalDTO.idUsuario()).isPresent())
+            profissional.get().setUsuario(usuarioService.findById(profissionalDTO.idUsuario()).get());
+
+        Optional<Agenda> agenda = agendaService.findById(profissionalDTO.idAgenda());
+        if (agenda.isPresent()) profissional.get().setAgenda(agenda.get());
+
+        if (profissionalDTO.idAgenda() == -1) profissional.get().setAgenda(null);
+
+        return new ResponseEntity<>(profissionalService.save(profissional.get()), HttpStatus.OK);
+    }
+
+    //Excluir Profissional
+    @DeleteMapping("/profissional/delete/{id}")
+    public ResponseEntity<Object> profissionalDelete(@PathVariable long id){
+        Optional<Profissional> profissional = profissionalService.findById(id);
+
+        if (profissional.isPresent()) {
+            profissionalService.delete(profissional.get());
+            return new ResponseEntity<>("Profissional excluído do sistema!", HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>("Profissional não encontrado!", HttpStatus.NOT_FOUND);
+    }
+
+    //Lista Profissoinal por empresa
+    @GetMapping("/profissional/list")
+    public ResponseEntity<Page<Profissional>> profissionalListByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
+        Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+        return new ResponseEntity<>(profissionalService.findByEmpresa(usuario.getEmpresa().getId(), pageable), HttpStatus.OK);
+    }
+
+
+    // ========================================== FERIADOS =============================================================
+    @PostMapping("/feriado/cadastro")
+    public ResponseEntity<Object> feriadoCadastro(@RequestBody @Valid FeriadoCadastroDTO feriadoDTO, HttpServletRequest request){
+        
+        Feriado feriado = new Feriado();
+        BeanUtils.copyProperties(feriadoDTO, feriado);
+
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT-3:00"), new Locale("pt-BR"));
+        String ano = feriadoDTO.dia().split("-")[0];
+        String mes = feriadoDTO.dia().split("-")[1];
+        String dia = feriadoDTO.dia().split("-")[2];
+        calendar.set(Integer.parseInt(ano), Integer.parseInt(mes), Integer.parseInt(dia));
+        feriado.setDia(calendar);
+
+        Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+        feriado.setEmpresa(usuario.getEmpresa());
+        return new ResponseEntity<>(feriadoService.save(feriado), HttpStatus.CREATED);
+    }
+
+    @PutMapping("/feriado/edit")
+    public ResponseEntity<Object> feriadoEdit(@RequestBody @Valid FeriadoEditDTO feriadoDTO){
+
+        Optional<Feriado> feriado = feriadoService.findById(feriadoDTO.id());
+
+        if (feriado.isPresent()){
+            Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT-3:00"), new Locale("pt-BR"));
+            int ano = Integer.parseInt(feriadoDTO.data().split("-")[0]);
+            int mes = Integer.parseInt(feriadoDTO.data().split("-")[1]);
+            int dia = Integer.parseInt(feriadoDTO.data().split("-")[2]); 
+            calendar.set(ano, mes, dia);
+
+            feriado.get().setNome(feriadoDTO.nome());
+            feriado.get().setDia(calendar);
+
+            return new ResponseEntity<>(feriadoService.save(feriado.get()), HttpStatus.OK);
+        
+        } else return new ResponseEntity<>("Feriado não encontrado!", HttpStatus.NOT_FOUND);
+        
+    }
+
+    @DeleteMapping("/feriado/delete/{id}")
+    public ResponseEntity<Object> feriadoDelete(@PathVariable (name = "id") long id){
+        Optional<Feriado> feriado = feriadoService.findById(id);
+        if (feriado.isPresent()) {
+            feriadoService.delete(feriado.get());
+            return new ResponseEntity<>("Feriado deletado do sistema!", HttpStatus.NOT_FOUND);
+
+        }    else return new ResponseEntity<>("Feriado não encontrado!", HttpStatus.NOT_FOUND);
+    }
+
+
+    @GetMapping("/feriado/list")
+    public ResponseEntity<Page<Feriado>> feriadoListByEmpresa(
+            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) 
+            Pageable pageable, HttpServletRequest request){
+                Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+                Page<Feriado> feriado = feriadoService.findByEmpresa(usuario.getEmpresa(), pageable);
+
+                return new ResponseEntity<>(feriado, HttpStatus.OK);
+            }
+
+
+    // ======================================================= DIAS BLOQUEADOS ==============================================
+    @PostMapping("diabloqueado/cadastro")
+    public ResponseEntity<Object> diaBloqueadoCadastro(@RequestBody @Valid DiaBloqueado diaBloqueado, HttpServletRequest request){
+        Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+        diaBloqueado.setEmpresa(usuario.getEmpresa());
+        return new ResponseEntity<>(diaBloqueadoService.save(diaBloqueado), HttpStatus.CREATED);
+    }
+
+    @PutMapping("/diabloqueado/edit")
+    public ResponseEntity<Object> diaBloqueadoEdit(@RequestBody @Valid DiaBloqueado diaBloqueado){
+
+        return new ResponseEntity<>(diaBloqueadoService.save(diaBloqueado), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/diabloqueado/delete/{id}")
+    public ResponseEntity<Object> diaBloqueadoDelete(@PathVariable(name = "id") long id){
+        Optional<DiaBloqueado> diaBloqueado = diaBloqueadoService.findById(id);
+
+        if (diaBloqueado.isPresent()){
+            diaBloqueadoService.delete(diaBloqueado.get());
+            return new ResponseEntity<>("Dia Bloqueado deletado do sistema!", HttpStatus.OK);
+
+        } else return new ResponseEntity<>("Dia Bloqueado não encontrado!", HttpStatus.NOT_FOUND);
+    }
+
+    @GetMapping("/diabloqueado/list")
+    public ResponseEntity<Object> diaBloqueadoListByEmpresa(
+            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
+            HttpServletRequest request){
+
+        Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+        return new ResponseEntity<>(diaBloqueadoService.findByEmpresa(usuario.getEmpresa(), pageable), HttpStatus.OK);
+    
+    }
+        
+
 }
+
+ 

@@ -9,12 +9,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "tbl_agenda")
@@ -38,6 +41,10 @@ public class Agenda {
     @ManyToOne
     @JoinColumn(name = "empresa_fk")
     private Empresa empresa;
+
+    @JsonIgnoreProperties("agenda")
+    @OneToOne(mappedBy = "agenda")
+    private Profissional profissional;
  
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "agenda_fk")

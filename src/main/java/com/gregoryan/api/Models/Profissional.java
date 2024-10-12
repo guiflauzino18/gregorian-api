@@ -1,5 +1,7 @@
 package com.gregoryan.api.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -32,6 +34,7 @@ public class Profissional {
     @JoinColumn(name = "usuario_fk")
     private Usuario usuario;
 
+    @JsonIgnoreProperties("profissional")
     @OneToOne
     @JoinColumn(name = "agenda_fk")
     private Agenda agenda;

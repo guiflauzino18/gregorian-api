@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.Feriado;
 import com.gregoryan.api.Repositorys.FeriadoRepository;
 
@@ -38,6 +39,10 @@ public class FeriadoService {
 
     public Page<Feriado> findAll(Pageable pageable){
         return repository.findAll(pageable);
+    }
+
+    public Page<Feriado> findByEmpresa(Empresa empresa, Pageable pageable){
+        return repository.findByEmpresa(empresa, pageable);
     }
 
     

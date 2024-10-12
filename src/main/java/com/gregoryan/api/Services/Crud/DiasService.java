@@ -17,6 +17,7 @@ public class DiasService {
 
     @Transactional
     public Dias save(Dias dias){
+        System.out.println("Salvou o dia");
         return repository.save(dias);
     }
 

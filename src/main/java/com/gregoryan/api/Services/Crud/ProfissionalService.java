@@ -37,5 +37,9 @@ public class ProfissionalService {
     public boolean existsByRegistro(String Registro){
         return repository.existsByRegistro(Registro);
     }
+
+    public Page<Profissional> findByEmpresa(long id, Pageable pageable){
+        return repository.findByEmpresa(id, pageable);
+    }
     
 }

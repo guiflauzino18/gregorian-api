@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.gregoryan.api.Models.DiaBloqueado;
+import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Repositorys.DiaBloqueadoRepository;
 
 import jakarta.transaction.Transactional;
@@ -38,5 +39,9 @@ public class DiaBloqueadoService {
 
     public Page<DiaBloqueado> findAll(Pageable pageable){
         return repository.findAll(pageable);
+    }
+
+    public Page<DiaBloqueado> findByEmpresa(Empresa empresa, Pageable pageable){
+        return repository.findByEmpresa(empresa, pageable);
     }
 }

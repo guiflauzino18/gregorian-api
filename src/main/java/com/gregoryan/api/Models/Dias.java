@@ -61,13 +61,15 @@ public class Dias implements Serializable{
 
     public void createHoras(StatusHora statusHora, HorasService horasService){
 
-        
-        for (Horas horas2 : horas) {
-            horasService.delete(horas2);
+        if (this.getHoras() != null) {
+            this.getHoras().forEach(hora -> {
+                horasService.delete(hora);
+            });
+            this.getHoras().clear();
         }
         
         LocalTime incremento = inicio;
-        List<Horas> horaP = new ArrayList<Horas>();
+        List<Horas> horasP = new ArrayList<>();
 
         while (incremento.isBefore(fim)) {
             Horas hora = new Horas();
@@ -75,13 +77,12 @@ public class Dias implements Serializable{
             hora.setInicio(incremento);
             hora.setFim(incremento.plusMinutes(duracaoSessaoInMinutes));
             hora.setStatusHora(statusHora);
-            horaP.add(hora);
+            horasP.add(hora);
 
             incremento = incremento.plusMinutes(duracaoSessaoInMinutes).plusMinutes(intervaloSesssaoInMinutes);
-            
         }
 
-        this.setHoras(horaP);
+        this.setHoras(horasP);
     }
 
 }
