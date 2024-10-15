@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
 import com.gregoryan.api.Models.Profissional;
+import com.gregoryan.api.Models.Usuario;
 import com.gregoryan.api.Repositorys.ProfissionalRepository;
 
 import jakarta.transaction.Transactional;
@@ -40,6 +41,10 @@ public class ProfissionalService {
 
     public Page<Profissional> findByEmpresa(long id, Pageable pageable){
         return repository.findByEmpresa(id, pageable);
+    }
+
+    public Optional<Profissional> findByUsuario(Usuario Usuario){
+        return repository.findByUsuario(Usuario);
     }
     
 }

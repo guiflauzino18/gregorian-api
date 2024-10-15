@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gregoryan.api.DTO.AgendamentoCadastroDTO;
+import com.gregoryan.api.DTO.AgendamentoEditDTO;
 import com.gregoryan.api.Models.Agendamento;
 import com.gregoryan.api.Models.Paciente;
 import com.gregoryan.api.Models.Profissional;
@@ -87,7 +88,33 @@ public class AgendamentoController {
 
     @PutMapping("/agendamento/edit")
     public ResponseEntity<Object> agendamentoEdit(@RequestBody @Valid AgendamentoEditDTO agendamentoDTO){
-        
+        Optional<Agendamento> agendamento = agendamentoService.findById(agendamentoDTO.id());
+        if (agendamento.isPresent()){
+            Optional<Profissional> profissional = profissionalService.findById(agendamentoDTO.idProfissional());
+            if (profissional.isPresent()) agendamento.get().setProfissional(profissional.get());
+                else return new ResponseEntity<>("Profissional não encontrado!", HttpStatus.NOT_FOUND);
+
+            Optional<Paciente> paciente = pacienteService.findById(agendamentoDTO.idPaciente());
+            if (paciente.isPresent()) agendamento.get().setPaciente(paciente.get());
+                else return new ResponseEntity<>("Paciente não encontrado!", HttpStatus.NOT_FOUND);
+
+            Optional<StatusAgendamento> statusAgendamento = statusAgendamentoService.findById(agendamentoDTO.idStatus());
+            if (statusAgendamento.isPresent()) agendamento.get().setStatusAgendamento(statusAgendamento.get());
+                else return new ResponseEntity<>("Status de Agendamento não encontrado!", HttpStatus.NOT_FOUND);
+
+            Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT-3:00"), new Locale("pt-BR"));
+            int ano = Integer.parseInt(agendamentoDTO.data().split("-")[0]);
+            int mes = Integer.parseInt(agendamentoDTO.data().split("-")[1]);
+            int dia = Integer.parseInt(agendamentoDTO.data().split("-")[2]);
+            int hora = Integer.parseInt(agendamentoDTO.hora().split(":")[0]);
+            int minuto = Integer.parseInt(agendamentoDTO.hora().split(":")[1]);
+
+            calendar.set(ano, mes, dia, hora, minuto);
+            agendamento.get().setData(calendar);
+
+            return new ResponseEntity<>(agendamentoService.save(agendamento.get()), HttpStatus.OK);
+
+        } else return new ResponseEntity<>("Agendamento não encontrado!", HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("/delete/{id}")

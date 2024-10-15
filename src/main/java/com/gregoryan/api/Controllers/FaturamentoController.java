@@ -61,7 +61,7 @@ public class FaturamentoController {
 
         //set paciente
         Optional<Paciente> paciente = pacienteService.findById(faturamentoDTO.idPaciente());
-        if (paciente.isPresent()) faturamento.setPaciente(paciente.get())
+        if (paciente.isPresent()) faturamento.setPaciente(paciente.get());
             else return new ResponseEntity<>("Paciente não encontrado!", HttpStatus.NOT_FOUND);
 
         Optional<FormaPagamento> formaPagamento = formaPagamentoService.findById(faturamentoDTO.idFormaPagamento());

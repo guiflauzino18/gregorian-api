@@ -10,4 +10,5 @@ public interface StatusAtendimentoRepository extends JpaRepository<StatusAtendim
     
     boolean existsByNome(String nome);
     Optional<StatusAtendimento> findByNome(String nome);
+    Optional<StatusAtendimento> findById(long id);
 }

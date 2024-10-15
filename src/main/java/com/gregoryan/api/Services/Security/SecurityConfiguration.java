@@ -34,6 +34,7 @@ public class SecurityConfiguration{
                 .requestMatchers("/api/faturamento/**").hasRole("FATURAMENTO")
                 .requestMatchers("/api/agendamento/**").hasRole("AGENDAMENTO")
                 .requestMatchers("/api/atendimento/**").hasRole("ATENDIMENTO")
+                .requestMatchers("/api/profissional/**").hasRole("PROFISSIONAL")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

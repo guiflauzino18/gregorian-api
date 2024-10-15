@@ -33,5 +33,9 @@ public class StatusAtendimentoService {
         return repository.existsByNome(nome);
     }
 
+    public Optional<StatusAtendimento> findById(long id){
+        return repository.findById(id);
+    } 
+
     
 }

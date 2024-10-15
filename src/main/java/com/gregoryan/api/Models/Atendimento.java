@@ -12,6 +12,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.time.LocalTime;
+
 
 @Entity
 @Table(name = "tbl_atendimento")
@@ -35,4 +37,24 @@ public class Atendimento {
     @OneToOne
     @JoinColumn(name = "status_atendimento_fk")
     private StatusAtendimento StatusAtendimento;
+
+    private LocalTime horainicio;
+
+    private LocalTime horaatual;
+
+    private LocalTime horafim;
+
+
+    public long tempoSessaoRestanteInminutes(){
+        long horaInicio = horainicio.toSecondOfDay();
+        long horaAtual = horaatual.toSecondOfDay();
+
+        long tempoDecorrido = horaAtual - horaInicio;
+
+        return agendamento.getDia().getDuracaoSessaoInMinutes() - tempoDecorrido*60;
+    }
+
+    public LocalTime horaPrevistaparaFim(){
+        return horainicio.plusMinutes(agendamento.getDia().getDuracaoSessaoInMinutes());
+    }
 }

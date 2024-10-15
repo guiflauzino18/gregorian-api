@@ -48,4 +48,8 @@ public class Agendamento {
     @ManyToOne
     @JoinColumn(name = "status_agendamento_fk")
     private StatusAgendamento statusAgendamento;
+
+    @ManyToOne
+    @JoinColumn(name = "dia_fk")
+    private Dias dia;
 }

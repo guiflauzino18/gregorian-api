@@ -100,6 +100,9 @@ public class Usuario implements UserDetails {
         } else if (this.role == UserRole.PROFISSIONAL){
             return List.of(new SimpleGrantedAuthority("ROLE_PROFISSIONAL"));
 
+        } else if (this.role == UserRole.PROFISSIONAL){
+            return List.of(new SimpleGrantedAuthority("ROLE_PROFISSIONAL"));
+
         } else return List.of(new SimpleGrantedAuthority("ROLE_ATENDIMENTO"));
     }
 
