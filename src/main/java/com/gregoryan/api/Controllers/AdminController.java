@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -188,6 +189,7 @@ public class AdminController {
             usuario.get().setStatus(usuarioDTO.status());
             usuario.get().setEndereco(usuarioDTO.endereco());
             usuario.get().setRole(usuarioDTO.role());
+            usuario.get().setAlteraNextLogon(usuarioDTO.alteraNextLogon());
             
             return new ResponseEntity<>(usuarioService.save(usuario.get()), HttpStatus.OK);
         } else return new ResponseEntity<Object>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
@@ -201,12 +203,19 @@ public class AdminController {
             Usuario usuario = usuarioService.findById(usuarioDTO.id()).get();
             String encryptedPassword = new BCryptPasswordEncoder().encode(usuarioDTO.senha());
             usuario.setSenha(encryptedPassword);
-            usuario.setAlteraNextLogon(usuarioDTO.alteraNextLogon() == 1 ? true : false);
+            usuario.setAlteraNextLogon(usuarioDTO.alteraNextLogon());
 
             return new ResponseEntity<>(usuarioService.save(usuario), HttpStatus.OK);
         } else return new ResponseEntity<>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
     }
 
+    //Find By ID
+    @GetMapping("/usuario")
+    public ResponseEntity<Object> usuarioById(@RequestParam long id){
+        Optional<Usuario> usuario = usuarioService.findById(id);
+        if (usuario.isPresent()) return new ResponseEntity<>(usuario.get(), HttpStatus.OK);
+            else return new ResponseEntity<>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
+    }
 
 
     // =============================================== AGENDA ======================================

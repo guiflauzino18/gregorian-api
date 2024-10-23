@@ -29,8 +29,6 @@ public class Usuario implements UserDetails {
 
     public static final int STATUS_ATIVO = 1;
     public static final int STATUS_INATIVO = 0;
-    public static final int ALTERA_NEXT_LOGON = 1;
-    public static final int NAO_ALTERA_NEXT_LOGON = 0;
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
