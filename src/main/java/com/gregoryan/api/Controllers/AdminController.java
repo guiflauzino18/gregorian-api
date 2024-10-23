@@ -5,6 +5,9 @@ import java.util.Calendar;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.TimeZone;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -121,7 +124,7 @@ public class AdminController {
 
     //Cadastro de Usuário
     @PostMapping("/usuario/cadastro")
-    public ResponseEntity<Object> saveUsuario(@RequestBody @Valid UsuarioCadastroDTO usuarioDTO, HttpServletRequest request) {
+    public ResponseEntity<Object> saveUsuario(@RequestBody @Valid UsuarioCadastroDTO usuarioDTO, HttpServletRequest request) throws ParseException {
         
         if (usuarioService.existByLogin(usuarioDTO.login())){
             return new ResponseEntity<>("Conflito: Usuário já existe!", HttpStatus.CONFLICT);
@@ -130,7 +133,7 @@ public class AdminController {
         Usuario usuario = new Usuario();
         BeanUtils.copyProperties(usuarioDTO, usuario);
 
-        Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT"), new Locale("pt-BR"));
+        Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT-3:00"), new Locale("pt-BR"));
         usuario.setDataRegistro(now);
 
         String encryptedPassword = new BCryptPasswordEncoder().encode(usuarioDTO.senha());
@@ -142,12 +145,9 @@ public class AdminController {
         usuario.setStatus(Usuario.STATUS_ATIVO);
 
         Calendar nascimento = Calendar.getInstance();
-        int ano = Integer.parseInt(usuarioDTO.nascimento().split("-")[0]);
-        int mes = Integer.parseInt(usuarioDTO.nascimento().split("-")[1]);
-        int dia = Integer.parseInt(usuarioDTO.nascimento().split("-")[2]);
-        nascimento.set(ano,mes,dia);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        nascimento.setTime(dateFormat.parse(usuarioDTO.nascimento()));
         usuario.setNascimento(nascimento);
-
 
         return new ResponseEntity<>(usuarioService.save(usuario), HttpStatus.CREATED);
         
@@ -172,15 +172,14 @@ public class AdminController {
 
     //Edição de Usuário
     @PutMapping("/usuario/edit")
-    public ResponseEntity<Object> editUsuario(@RequestBody @Valid UsuarioEditDTO usuarioDTO){
+    public ResponseEntity<Object> editUsuario(@RequestBody @Valid UsuarioEditDTO usuarioDTO) throws ParseException{
         Optional<Usuario> usuario = usuarioService.findById(usuarioDTO.id());
         if (usuario.isPresent()){
 
-            Calendar nascimento = Calendar.getInstance(TimeZone.getTimeZone("GMT"), new Locale("pt-BR"));
-            int ano = Integer.parseInt(usuarioDTO.nascimento().split("-")[0]);
-            int mes = Integer.parseInt(usuarioDTO.nascimento().split("-")[1]);
-            int dia = Integer.parseInt(usuarioDTO.nascimento().split("-")[2]);
-            nascimento.set(ano, mes, dia);
+            Calendar nascimento = Calendar.getInstance();
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            nascimento.setTime(dateFormat.parse(usuarioDTO.nascimento()));
+
             usuario.get().setNome(usuarioDTO.nome());
             usuario.get().setSobrenome(usuarioDTO.sobrenome());
             usuario.get().setNascimento(nascimento);
