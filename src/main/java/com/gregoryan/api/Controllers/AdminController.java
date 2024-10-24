@@ -406,7 +406,7 @@ public class AdminController {
     //Cadastro de Profissional
     @PostMapping("/profissional/cadastro")
     public ResponseEntity<Object> profissionalCadastro(@RequestBody @Valid ProfissionalCadastroDTO profissionalDTO){
-        Optional<Usuario> usuario = usuarioService.findById(profissionalDTO.idUsuario());
+        Optional<Usuario> usuario = usuarioService.findByLogin(profissionalDTO.login());
         if (!usuario.isPresent()) return new ResponseEntity<>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
 
         Profissional profissional = new Profissional();
@@ -423,9 +423,7 @@ public class AdminController {
         if (!profissional.isPresent()) return new ResponseEntity<>("Profissional não encontrado!", HttpStatus.NOT_FOUND);
 
         profissional.get().setTitulo(profissionalDTO.titulo());
-        profissional.get().setRegistro(profissionalDTO.titulo());
-        if (usuarioService.findById(profissionalDTO.idUsuario()).isPresent())
-            profissional.get().setUsuario(usuarioService.findById(profissionalDTO.idUsuario()).get());
+        profissional.get().setRegistro(profissionalDTO.registro());
 
         Optional<Agenda> agenda = agendaService.findById(profissionalDTO.idAgenda());
         if (agenda.isPresent()) profissional.get().setAgenda(agenda.get());
@@ -453,6 +451,14 @@ public class AdminController {
     public ResponseEntity<Page<Profissional>> profissionalListByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
         Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
         return new ResponseEntity<>(profissionalService.findByEmpresa(usuario.getEmpresa().getId(), pageable), HttpStatus.OK);
+    }
+
+    @GetMapping("/profissional/findbyId")
+    public ResponseEntity<Object> profissionalFindById(@RequestParam long id){
+        Optional<Profissional> profissional = profissionalService.findById(id);
+        if (profissional.isPresent()) return new ResponseEntity<>(profissional.get(), HttpStatus.OK);
+            else return new ResponseEntity<>("Profissional não encontrado!", HttpStatus.NOT_FOUND);
+        
     }
 
 
