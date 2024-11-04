@@ -5,3 +5,8 @@ Gregorian é um projeto pessoal de prática e aprefeiçoamento de desenvolviment
 Aplicação será executada em Docker e será implantada na AWS utilizandos os serviços de EC2 com Load Balancer e Autoscaling. Para fins de testes será implantada também utilizando o serviço de ECS, mas por questões de custos será utilizado majoritariamente o EC2.
 
 Para banco de dados será utilizado o MySQL na versão 8.0 utilizando o serviço de RDS.
+
+Deploy da aplicação, assim como a construção do ambiente, será implementando o recurso CI/CD utilizando a ferramenta GitHub Actions.
+
+<h3>Sobre este Reposítório</h3>
+Gregorian-api é o projeto da construção da API, utilizando Spring Framework e Banco de Dados MySQL.
