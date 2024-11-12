@@ -34,8 +34,8 @@ jobs:
 
             - name: Build e Push da Imagem para o ECR
               run: |
-                cd deploy/
-                docker build -t gregorian-api:latest .
+                #cd deploy/
+                docker build -t gregorian-api:latest deploy/.
                 docker tag gregorian-api:latest ${{secrets.AWS_ACCOUNT_ID}}dkr.ecr.${{secrets.AWS_REGION}}.amazonaws.com/gregorian-api:latest
                 docker push ${{secrets.AWS_ACCOUNT_ID}}dkr.ecr.${{secrets.AWS_REGION}}.amazonaws.com/gregorian-api:latest
 
