@@ -3,7 +3,6 @@ services:
  gregorian-api:
   image: 719836617769.dkr.ecr.us-east-2.amazonaws.com/gregorian-api:latest
   build:
-   context: ../
    dockerfile: deploy/Dockerfile
   environment:
    - MYSQL_IP=127.0.0.1
