@@ -34,10 +34,13 @@ jobs:
 
             - name: Build e Push da Imagem para o ECR
               run: |
-                #cd deploy/
                 docker build -f deploy/Dockerfile -t gregorian-api:latest .
                 docker tag gregorian-api:latest ${{secrets.AWS_ACCOUNT_ID}}dkr.ecr.${{secrets.AWS_REGION}}.amazonaws.com/gregorian-api:latest
                 docker push ${{secrets.AWS_ACCOUNT_ID}}dkr.ecr.${{secrets.AWS_REGION}}.amazonaws.com/gregorian-api:latest
+
+            - name: Test DNS resolution
+              run: |
+                nslookup dkr.ecr.sua-regiao.amazonaws.com || echo "DNS resolution failed"
 
             - name: Encerra instâncias em execução.
               run: |
