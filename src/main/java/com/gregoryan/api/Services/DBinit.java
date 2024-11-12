@@ -20,6 +20,7 @@ import com.gregoryan.api.Services.Crud.StatusHoraService;
 import com.gregoryan.api.Services.Crud.UsuarioService;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.TimeZone;
 
 import jakarta.annotation.PostConstruct;
@@ -55,11 +56,11 @@ public class DBinit {
         //Cria Status da Hora para Ativo
         statusHoraAtivoEBloqueado();
 
+        //Cria empresa Gregorian
+        empresaGregorian();
+
         //Cria Usuario Sysadmin se não existir
         usuarioSysAdmin();
-
-        //Cria empresa Gregorian
-        empresaGregorian();;
 
         //Cria Profissional Greg
         profissionalGreg();
@@ -137,7 +138,8 @@ public class DBinit {
             Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT"), new Locale("pt-BR"));
             usuario.setDataRegistro(now);
             usuario.setNascimento(now);
-            usuario.setEmpresa(empresaService.findByCnpj(12346789).get());
+            Optional<Empresa> empresa = empresaService.findByCnpj(12346789);
+            if (empresa.isPresent()) usuario.setEmpresa(empresa.get());
 
             usuarioService.save(usuario);
         }
