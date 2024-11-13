@@ -1,5 +1,7 @@
 package com.gregoryan.api.Controllers;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,10 +40,16 @@ public class LoginController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginRequest){
+    public ResponseEntity<Object> login(@RequestBody LoginRequestDTO loginRequest){
 
         var usernamePassword = new UsernamePasswordAuthenticationToken(loginRequest.login(), loginRequest.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
+
+        Usuario usuario = (Usuario) auth.getPrincipal();
+
+        if (usuario.getStatus() == Usuario.STATUS_INATIVO) {
+            return new ResponseEntity<>("Usuário Bloqueado!", HttpStatus.FORBIDDEN);
+        }
 
         var token = tokenService.generateToken((Usuario) auth.getPrincipal());
 
