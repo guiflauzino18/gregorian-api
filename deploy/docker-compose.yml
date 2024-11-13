@@ -1,7 +1,7 @@
 version: '3'
 services:
  gregorian-api:
-  image: 719836617769.dkr.ecr.us-east-2.amazonaws.com/gregorian-api:latest
+  image: gregorian-api:beta
   build:
    context: ../
    dockerfile: deploy/Dockerfile

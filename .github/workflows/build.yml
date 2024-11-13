@@ -33,7 +33,7 @@ jobs:
               run: |
                 cd deploy
                 docker compose build
-                docker tag gregorian-api:latest ${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${{secrets.AWS_REGION}}.amazonaws.com/gregorian-api:beta
+                docker tag gregorian-api:beta ${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${{secrets.AWS_REGION}}.amazonaws.com/gregorian-api:beta
                 docker push ${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${{secrets.AWS_REGION}}.amazonaws.com/gregorian-api:beta
 
 
