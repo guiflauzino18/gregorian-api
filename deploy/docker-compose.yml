@@ -18,5 +18,7 @@ services:
   volumes:
    - vol-gregorian:/gregorian
 
+  restart: unless-stopped
+
 volumes:
  vol-gregorian:
