@@ -18,8 +18,8 @@ jobs:
 
       - name: Build da imagem Docker
         run: |
-          cd deploy/Staging/Build/ 
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/gregorian-api:alfa .
+          #cd deploy/Staging/Build/ 
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/gregorian-api:alfa -f deploy/Staging/Build/Dockerfile
 
       - name: Push da imagem para o Docker Hub
         run: |
