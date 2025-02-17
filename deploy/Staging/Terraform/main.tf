@@ -86,6 +86,7 @@ resource "aws_vpc_security_group_ingress_rule" "Allow8080" {
   ip_protocol = "tcp"
   from_port = 8080
   to_port = 8080
+  cidr_ipv4 = "0.0.0.0/0"
   
 }
 
@@ -95,6 +96,7 @@ resource "aws_vpc_security_group_ingress_rule" "AllowSSH" {
   from_port = 22
   to_port = 22
   ip_protocol = "tcp"
+  cidr_ipv4 = "0.0.0.0/0"
 }
 
 #Permite todo tráfego de saída
