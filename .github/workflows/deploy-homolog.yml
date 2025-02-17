@@ -66,7 +66,8 @@ jobs:
         id: terraform-output
         run: |
           cd deploy/Staging/Terraform
-          echo "ec2_dns=$(terraform output -raw ec2_dns)" >> $GITHUB_ENV
+          EC2_DNS=$(terraform output -raw ec2_dns | tr -d '[:space:]')
+          echo "ec2_dns=$EC2_DNS" >> $GITHUB_ENV
 
   deploy:
     runs-on: ubuntu-latest
