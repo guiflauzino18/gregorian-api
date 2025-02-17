@@ -4,6 +4,7 @@ resource "aws_instance" "gregorian-api" {
   instance_type = "t2.micro"
   key_name = var.key_name
   vpc_security_group_ids = [aws_security_group.SGForEC2.id]
+  availability_zone = var.sub_a_az
   user_data = <<-EOF
 #!/bin/bash
 sudo yum update
