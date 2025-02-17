@@ -4,7 +4,7 @@ WORKDIR /gregorian
 RUN ls -lah
 
 COPY ../../../pom.xml .
-COPY src ../../../src
+COPY ../../../src src
 
 RUN mvn clean package -DskipTests
 
