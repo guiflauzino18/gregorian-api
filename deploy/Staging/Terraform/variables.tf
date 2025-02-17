@@ -46,9 +46,5 @@ variable "public_key" {
   type = string
 }
 
-variable "user_data" {
-  type = string
-}
-
 
 
