@@ -5,6 +5,7 @@ resource "aws_instance" "gregorian-api" {
   key_name = var.key_name
   vpc_security_group_ids = [aws_security_group.SGForEC2.id]
   availability_zone = var.sub_a_az
+  subnet_id = aws_subnet.subnet_a.id
   user_data = <<-EOF
 #!/bin/bash
 sudo yum update
