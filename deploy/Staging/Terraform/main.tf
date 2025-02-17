@@ -3,7 +3,7 @@ resource "aws_instance" "gregorian-api" {
   ami = "ami-0c55b159cbfafe1f0"
   instance_type = "t2.micro"
   key_name = var.key_name
-  security_groups = [ aws_security_group.SGForEC2.name ]
+  vpc_security_group_ids = [aws_security_group.SGForEC2.id]
   user_data = <<-EOF
 #!/bin/bash
 sudo yum update
