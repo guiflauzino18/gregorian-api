@@ -70,19 +70,19 @@ jobs:
           cd deploy/Staging/Terraform
           echo "ec2_dns=$(terraform output -raw ec2_dns)" >> $GITHUB_ENV
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: terraform
+  # deploy:
+  #   runs-on: ubuntu-latest
+  #   needs: terraform
 
-    steps:
-      - name: Deploy na EC2 via SSH
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ env.ec2_dns }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/gregorian-api:latest
-            docker stop gregorian-api || true
-            docker rm gregorian-api || true
-            docker run -d --name gregorian-api -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/gregorian-api:alfa
+  #   steps:
+  #     - name: Deploy na EC2 via SSH
+  #       uses: appleboy/ssh-action@v0.1.10
+  #       with:
+  #         host: ${{ env.ec2_dns }}
+  #         username: ${{ secrets.EC2_USER }}
+  #         key: ${{ secrets.EC2_SSH_KEY }}
+  #         script: |
+  #           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/gregorian-api:latest
+  #           docker stop gregorian-api || true
+  #           docker rm gregorian-api || true
+  #           docker run -d --name gregorian-api -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/gregorian-api:alfa
