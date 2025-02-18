@@ -102,6 +102,45 @@ resource "aws_key_pair" "this" {
   public_key = var.public_key
 }
 
+#Política Permite EC2 assumir uma role
+resource "aws_iam_role" "ec2accesss3" {
+  name = "ec3-access-s3"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement=[
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+# Política para EC2 acessar ao s3
+resource "aws_iam_policy" "policy-ec2-access-s3" {
+  name = "policy-ec2-access-s3"
+  description = "Ec2 com permissão para acessar o S3"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = ["s3:GetObject"]
+        Effect = "Allow"
+        resource = "arn:aws:s3:::s3.gregorian/*"
+      }
+    ]
+  })
+}
+
+#Anexar Política à Role
+resource "aws_iam_role_policy_attachment" "s3_access_attach" {
+  role = aws_iam_role.ec2accesss3.name
+  policy_arn = aws_iam_policy.policy-ec2-access-s3.arn
+}
+
 #EC2
 resource "aws_instance" "gregorian-api" {
   ami = "ami-0cb91c7de36eed2cb"
@@ -111,8 +150,7 @@ resource "aws_instance" "gregorian-api" {
   availability_zone = var.sub_a_az
   subnet_id = aws_subnet.subnet_a.id
   depends_on = [ aws_s3_object.docker-compose ]
-  user_data = base64decode(
-<<-EOF
+  user_data = base64encode(<<-EOF
 #!/bin/bash
 
 #Instala Docker
