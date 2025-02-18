@@ -49,7 +49,7 @@ resource "aws_route_table_association" "rt_suba_a" {
 #SECURITY GROUPS
 resource "aws_security_group" "SGForEC2" {
   name = "for-instances"
-  description = "Security Groups para Instâncias EC2"
+  description = "Security Groups para Instancias EC2"
   vpc_id = aws_vpc.this.id
   tags = var.tags
 }
