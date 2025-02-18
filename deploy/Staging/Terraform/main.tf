@@ -111,7 +111,7 @@ resource "aws_instance" "gregorian-api" {
   availability_zone = var.sub_a_az
   subnet_id = aws_subnet.subnet_a.id
   depends_on = [ aws_s3_object.docker-compose ]
-  user_data = <<-EOF
+  user_data = base64decode(<<-EOF
 #!/bin/bash
 sudo yum update
 sudo yum install -y docker
@@ -122,6 +122,7 @@ aws s3 cp s3://s3.gregorian/terraform/gregorian-api/staging/docker-compose.yml /
 cd /gregorian
 docker-compose up -d
 EOF
+  )
 
 tags = var.tags
 }
