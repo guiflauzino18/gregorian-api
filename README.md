@@ -14,7 +14,7 @@ Gregorian-api é o projeto da construção da API, utilizando Spring Framework e
 # Como testar
 
 Clone este repositório e configure as credenciais de acesso da AWS. Aqui está sendo usado uma role atribuída a um provedor de identidade do GitHub.
-Alternativamente pode-se executar o docker-compose.yml dentro da pasta deploy/Build/docker-compose. Ex.: docker compose up -d.
+Alternativamente pode-se executar o docker-compose.yml dentro da pasta deploy/Staging/Build/docker-compose. Ex.: docker compose up -d.
 
 Em seguida crie um dns cliente.gregorian.com e api.gregorian.com apontando para o servidor na AWS ou na máquina que for executado o docker. Ex.: edite o arquivo c:\Windows\System32\Drivers\etc\hosts no windows a adicione a linha: `127.0.0.1 cliente.gregorian.com` <br>
 Faça o mesmo para api.gregorian.com <br>
