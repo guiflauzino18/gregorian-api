@@ -1,0 +1,59 @@
+#Arquivo Docker Composer para infra em ambiente de homologação
+services:
+  gregorian-traefik:
+    image: traefik:v3.3
+    ports:
+      - 80:80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: 
+      - --providers.docker
+    networks:
+      - gregorian-net
+
+  gregorian-db:
+    image: mysql:8.0-oracle
+    container_name: gregorian-db
+    restart: always
+    networks:
+      - gregorian-net
+    environment:
+      - MYSQL_ROOT_PASSWORD=pass123
+      - MYSQL_DATABASE=gregorian
+      - MYSQL_USER=gregorian
+      - MYSQL_PASSWORD=pass123
+
+  gregorian-api:
+    image: guiflauzino18/gregorian-api:alfa
+    container_name: gregorian-api
+    restart: always
+    depends_on:
+      - gregorian-db
+    networks:
+      - gregorian-net
+    environment:
+      - MYSQL_IP=gregorian-db
+      - MYSQL_USERNAME=gregorian
+      - MYSQL_PASSWORD=pass123
+      - JWT_SECRET=sysadmin
+
+    labels:
+      - "traefik.http.routers.gregorian-api.rule=Host(`api.gregorian.com`)"
+      - "traefik.http.services.gregorian-api.loadbalancer.server.port=8080"
+  
+  gregorian-app:
+    image: guiflauzino18/gregorian-app:beta
+    container_name: gregorian-app
+    restart: always
+    environment:
+      - API_URL=http://api.gregorian.com
+
+    labels:
+      - "traefik.http.routers.gregorian-app.rule=Host(`cliente.gregorian.com`)"
+      - "traefik.http.services.gregorian-app.loadbalancer.server.port=80"
+
+    networks:
+      - gregorian-net
+    
+networks:
+  gregorian-net:

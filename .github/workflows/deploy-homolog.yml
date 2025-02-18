@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - staging
+       
 
 
 permissions:
@@ -56,9 +57,7 @@ jobs:
         run: |
           cd deploy/Staging/Terraform
           terraform init
-          -backend-config="bucket=s3.gregorian"
-          -backend-config="key=gregorian-api/terraform"
-          -backend-config="region=us-east-2"
+       
 
       - name: Aplicar Terraform (Criar EC2)
         run: |
