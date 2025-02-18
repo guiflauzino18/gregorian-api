@@ -104,25 +104,51 @@ resource "aws_key_pair" "this" {
 
 #EC2
 resource "aws_instance" "gregorian-api" {
-  ami = "ami-0c55b159cbfafe1f0"
+  ami = "ami-0cb91c7de36eed2cb"
   instance_type = "t2.micro"
   key_name = var.key_name
   vpc_security_group_ids = [aws_security_group.SGForEC2.id]
   availability_zone = var.sub_a_az
   subnet_id = aws_subnet.subnet_a.id
   depends_on = [ aws_s3_object.docker-compose ]
-  user_data = base64decode(<<-EOF
+  user_data = base64decode(
+<<-EOF
 #!/bin/bash
-sudo yum update
-sudo yum install -y docker
-sudo systemctl enable --now docker
-sudo usermod -aG docker ec2-user
+
+#Instala Docker
+# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+#Instala Mysql Client
+sudo apt install -y mysql-client-core-8.0
+
+#instala aws cli
+cd /tmp
+apt install -y unzip
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+
+#Configura Docker Compose
 mkdir /gregorian
-aws s3 cp s3://s3.gregorian/terraform/gregorian-api/staging/docker-compose.yml /gregorian
 cd /gregorian
-docker-compose up -d
+aws s3 cp s3://s3.gregorian/terraform/gregorian-api/staging/docker-compose.yml .
+docker compose pull
+docker compose up -d
 EOF
   )
-
 tags = var.tags
 }
