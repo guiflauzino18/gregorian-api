@@ -66,8 +66,8 @@ resource "aws_vpc_security_group_ingress_rule" "alowAllFromVPCCidr" {
 resource "aws_vpc_security_group_ingress_rule" "Allow8080" {
   security_group_id = aws_security_group.SGForEC2.id
   ip_protocol = "tcp"
-  from_port = 8080
-  to_port = 8080
+  from_port = 80
+  to_port = 80
   cidr_ipv4 = "0.0.0.0/0"
 }
 
@@ -129,7 +129,7 @@ resource "aws_iam_policy" "policy-ec2-access-s3" {
       {
         Action = ["s3:GetObject"]
         Effect = "Allow"
-        resource = "arn:aws:s3:::s3.gregorian/*"
+        Resource = "arn:aws:s3:::s3.gregorian/*"
       }
     ]
   })
@@ -141,14 +141,21 @@ resource "aws_iam_role_policy_attachment" "s3_access_attach" {
   policy_arn = aws_iam_policy.policy-ec2-access-s3.arn
 }
 
+# Instance Profile com a role de acesso ao S3 que será anexado à EC2
+resource "aws_iam_instance_profile" "this" {
+  name = "gregorian_ec2_instance_profile"
+  role = aws_iam_role.ec2accesss3.name
+}
+
 #EC2
 resource "aws_instance" "gregorian-api" {
   ami = "ami-0cb91c7de36eed2cb"
-  instance_type = "t2.micro"
+  instance_type = "t3.medium"
   key_name = var.key_name
   vpc_security_group_ids = [aws_security_group.SGForEC2.id]
   availability_zone = var.sub_a_az
   subnet_id = aws_subnet.subnet_a.id
+  iam_instance_profile = aws_iam_instance_profile.this.name
   depends_on = [ aws_s3_object.docker-compose ]
   user_data = base64encode(<<-EOF
 #!/bin/bash
@@ -175,17 +182,17 @@ sudo apt install -y mysql-client-core-8.0
 
 #instala aws cli
 cd /tmp
-apt install -y unzip
+sudo apt install -y unzip
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 sudo ./aws/install
 
 #Configura Docker Compose
-mkdir /gregorian
-cd /gregorian
-aws s3 cp s3://s3.gregorian/terraform/gregorian-api/staging/docker-compose.yml .
-docker compose pull
-docker compose up -d
+sudo mkdir /gregorian
+sudo cd /gregorian
+sudo aws s3 cp s3://s3.gregorian/terraform/gregorian-api/staging/docker-compose.yml .
+sudo docker compose pull
+sudo docker compose up -d
 EOF
   )
 tags = var.tags
