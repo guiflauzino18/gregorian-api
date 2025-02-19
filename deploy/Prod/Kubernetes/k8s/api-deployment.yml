@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gregorian-api 
+  namespace: gregorian
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gregorian-api
+  template:
+    metadata:
+      labels:
+        app: gregorian-api
+    spec:
+      containers:
+      - name: gregorian-api
+        image: guiflauzino18/gregorian-api:alfa
+        env:
+          - name: MYSQL_IP
+            value: "mysql"
+        envFrom:
+          - configMapRef:
+              name: gregorian-config
+          - secretRef:
+              name: gregorian-secret
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8080

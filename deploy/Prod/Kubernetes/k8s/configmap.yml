@@ -1,0 +1,13 @@
+# Configurado variáveis de ambiente que serão passados aos containers
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gregorian-config
+  namespace: gregorian
+data:
+  MYSQL_DATABASE: gregorian
+  MYSQL_USER: gregorian
+  API_URL: "http://api.gregorian.com"
+
+

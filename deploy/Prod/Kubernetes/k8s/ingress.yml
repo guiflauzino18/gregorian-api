@@ -1,0 +1,34 @@
+# Expoe os services para serem acessados.
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gregorian-ingress
+  namespace: gregorian
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+  labels:
+    name: gregorian-ingress
+spec:
+  rules:
+    - host: api.gregorian.com
+      http:
+        paths:
+        - pathType: Prefix
+          path: "/"
+          backend:
+            service:
+              name: gregorian-api
+              port: 
+                number: 8080
+
+    - host: cliente.gregorian.com
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: gregorian-app
+                port: 
+                  number: 80
