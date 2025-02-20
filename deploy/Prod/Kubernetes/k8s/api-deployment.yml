@@ -25,8 +25,8 @@ spec:
           - secretRef:
               name: gregorian-secret
         resources:
-          limits:
-            memory: "256Mi"
-            cpu: "500m"
+          limits: #Limits são o máximo de recursos que um pod pode ter. Outra opção é requests que define o mínimo de recursos
+            memory: "1Gi" #1 GB de memória ram. Se o container tentar usar mais memória ele será emcerrado com status de OOMKilled - Out Of Memory Killed
+            cpu: "500m" #500 milicore de cpu. 1000 milicore equivale a 1 núcleo. 500m equivale a 0.5 núcleos. Se o container tentar usar mais cpus dará um erro de throttled (limitado), mas não será termiando.
         ports:
         - containerPort: 8080

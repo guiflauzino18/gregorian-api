@@ -1,28 +1,32 @@
-# Expoe os services para serem acessados.
+# Define regras para rotear o tráfego de entrada HTTP/HTTPS externo para os services (Semelhante a um reverse proxy). Atua como um ponto de entrada para o tráfego externo.
+# Define-se regras para rotear o tráfego para diferentes serviços com base no host, caminho ou outras condições.
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: gregorian-ingress
+  name: gregorian-ingress # Deve ser único dentro do namespace
   namespace: gregorian
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
+  annotations: # Configuração do Ingress Controller
+    kubernetes.io/ingress.class: "nginx" #Define qual Ingress Controller vai gerenciar o Ingress. Outras opções: AWS ALB, Traefik, HAProxy
+    #nginx.ingress.kubernetes.io/rewrite-target: /$2 #Reescreve o caminho da URL antes de encaminhar o tráfego
+    #nginx.ingress.kubernetes.io/ssl-redirect: true | false #Redireciona o tráfego HTTP para HTTPS
+    #Lista de Annotations completa: https://github.com/kubernetes/ingress-nginx/blob/main/docs/user-guide/nginx-configuration/annotations.md
   labels:
     name: gregorian-ingress
 spec:
-  rules:
-    - host: api.gregorian.com
-      http:
-        paths:
-        - pathType: Prefix
+  rules: #Lista de regras de roteamento
+    - host: api.gregorian.com #Roteamento 1
+      http: #configura tráfego http/https
+        paths: #Lista de caminhos e quais services vincular
+        - pathType: Prefix #Tipo de correspondência do caminho. (Prefix=url que começa com o caminho especficiado, Exact=corresponde exatamente ao caminho ou ImplementationSpecific=Depende da implementação do IngressController)
           path: "/"
-          backend:
+          backend: #Service para onde o tráfego será roteador
             service:
               name: gregorian-api
               port: 
                 number: 8080
 
-    - host: cliente.gregorian.com
+    - host: cliente.gregorian.com #Roteamento 2
       http:
         paths:
           - path: "/"
@@ -32,3 +36,8 @@ spec:
                 name: gregorian-app
                 port: 
                   number: 80
+                  
+  #tls: #Configura certificado tls para uma lista de services
+  #- hosts: #1
+  #  - cliente.gregorian.com
+  #  secretName: gregorian-secret #Nome do secret onde será armazenado o certificado TLS e a chave privada
