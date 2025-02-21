@@ -8,6 +8,7 @@ metadata:
 data:
   MYSQL_DATABASE: gregorian
   MYSQL_USER: gregorian
-  API_URL: "http://api.gregorian.com"
+  MYSQL_USERNAME: gregorian
+  API_URL: "http://api.gregorian.com" 
 
 

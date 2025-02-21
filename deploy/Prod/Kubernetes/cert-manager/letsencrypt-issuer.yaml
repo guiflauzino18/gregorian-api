@@ -1,0 +1,18 @@
+# Issuer que gerencia os certificados. Não cria, somente é responsável pela conexão com letsencrypt
+
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-tests
+  namespace: gregorian
+spec:
+  acme:
+    email: gui-gf@live.com  # Substitua pelo seu e-mail
+    #server: https://acme-v02.api.letsencrypt.org/directory  # Produção
+    server: https://acme-staging-v02.api.letsencrypt.org/directory # Staging
+    privateKeySecretRef:
+      name: letsencrypt-tests-account-key
+    solvers:
+    - http01:
+        ingress:
+          class: nginx  # Substitua pelo seu Ingress Controller (ex: traefik, istio)

@@ -26,10 +26,10 @@ spec:
           volumeMounts:
             - name: mysql-storage
               mountPath: /var/lib/mysql
-          resources:
-            limits: #Limits são o máximo de recursos que um pod pode ter. Outra opção é requests que define o mínimo de recursos
-              cpu: 1000m # 1000 milicore equivale a 1 núcleo de CPU. Se o container tentar usar mais cpus dará um aviso de throttled (limitado), mas não será termiando.
-              memory: 2Gi #2GB de ram. Se o container tentar usar mais memória ele será emcerrado com status de OOMKilled - Out Of Memory Killed
+          # resources:
+          #   limits: #Limits são o máximo de recursos que um pod pode ter. Outra opção é requests que define o mínimo de recursos
+          #     cpu: 1000m # 1000 milicore equivale a 1 núcleo de CPU. Se o container tentar usar mais cpus dará um aviso de throttled (limitado), mas não será termiando.
+          #     memory: 1Gi #2GB de ram. Se o container tentar usar mais memória ele será emcerrado com status de OOMKilled - Out Of Memory Killed
       volumes:
         - name: mysql-storage
           emptyDir: {}

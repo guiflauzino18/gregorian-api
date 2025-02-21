@@ -9,7 +9,7 @@ metadata:
   annotations: # Configuração do Ingress Controller
     kubernetes.io/ingress.class: "nginx" #Define qual Ingress Controller vai gerenciar o Ingress. Outras opções: AWS ALB, Traefik, HAProxy
     #nginx.ingress.kubernetes.io/rewrite-target: /$2 #Reescreve o caminho da URL antes de encaminhar o tráfego
-    #nginx.ingress.kubernetes.io/ssl-redirect: true | false #Redireciona o tráfego HTTP para HTTPS
+    nginx.ingress.kubernetes.io/ssl-redirect: true | false #Redireciona o tráfego HTTP para HTTPS
     #Lista de Annotations completa: https://github.com/kubernetes/ingress-nginx/blob/main/docs/user-guide/nginx-configuration/annotations.md
   labels:
     name: gregorian-ingress
@@ -37,7 +37,10 @@ spec:
                 port: 
                   number: 80
                   
-  #tls: #Configura certificado tls para uma lista de services
-  #- hosts: #1
-  #  - cliente.gregorian.com
-  #  secretName: gregorian-secret #Nome do secret onde será armazenado o certificado TLS e a chave privada
+  # tls: #Configura certificado tls para uma lista de services
+  # - hosts: #1
+  #   - cliente.gregorian.com
+  #   secretName: secret-certificate #Nome do secret onde será armazenado o certificado TLS e a chave privada. Criado pelo certificate.yml
+  # - hosts:
+  #   - api.gregorian.com
+  #   secretName: secret-certificate-api

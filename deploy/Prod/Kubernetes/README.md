@@ -25,11 +25,32 @@
   * aws eks describe-cluster --name gregorian-cluster --query "cluster.status"
    . Deve retornar ACTIVE
 
+- Instalar o Ingress Controller (Ex.: Nginx)
+  * kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml --namespace=ingress-nginx
+
 - Criar o namespace, secrets e configMap, deployments, services e ingress em arquivo yaml
 
+- Configurar certificado tls
+  - OBS: para o letsencrypt passar no desafio de verificação de dominio, deve haver um registro DNS que aponte para o IP do ingress
+
+  - Instalar cert-manager
+    * helm repo add jetstack https://charts.jetstack.io
+    * helm repo update
+    * helm install cert-manager jetstack/cert-manager --namespace gregorian --set installCRDs=true
+  - Verficar se foi instalado
+    * kubectl get pods -n cert-manager
+  - Configurar CluesterIssuer responsável por definir como os certificados serão emitidos. Possui duas opções: Staging e Production.
+    * criar arquivo yml chamado letsencrypt-issuer.yml e aplicar no cluster
+  - Solicitar um certificado
+    * Criar um arquivo yml para gerar o certificado. Ex.: certificate.yml
+  - Aplicar o tls no ingress
+    * Conferir arquivo ingress.yml
+
+
 - Aplicar os arquivos yml no cluster
-  * kubectl apply -f k8s/namespace.yml
+  * kubectl apply -f k8s/namespace.yml # Aplicar este primeiro para os demais não dar erro de namespace
    . Fazer para todos os arquivos yml
+   . Fazer também para os yml do cert-manager
 
 - Verificar se pods subiram
   * kubectl get pods -n gregorian
@@ -43,3 +64,22 @@
   * kubectl get ingress -n gregorian
    . -n = namespace
 
+
+#Comandos úteis
+- Ver pods e execução
+  * kubectl get pods -n gregorian
+
+- Acessar terminal do pod
+  * kubectl exec mysql-6c78c795db-4rfrs -i -t -n gregorian -- bash
+
+- Ver Ingress
+  * kubectl get ingress -n gregorian
+
+- Ver logs
+  * kubectl logs -l app=mysql -n gregorian
+
+- Ver recursos dos Nodes
+  * kubectl top node
+
+- Ver recursos dos Pods
+  * kubectl top pod -n gregorian

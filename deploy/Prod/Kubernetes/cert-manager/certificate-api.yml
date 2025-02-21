@@ -1,0 +1,15 @@
+# Cria o certificado para a url e armazena em um secret que será criado automaticamente
+# Um arquivo desse para cada certificado que for necessário.
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: certificate-api
+  namespace: gregorian  # Substitua pelo namespace do seu Ingress
+spec:
+  secretName: secret-certificate-api  # Nome do Secret que armazenará o certificado
+  dnsNames:
+  - api.gregorian.com  # domínio
+  issuerRef:
+    name: letsencrypt-tests  # Nome do ClusterIssuer
+    kind: ClusterIssuer

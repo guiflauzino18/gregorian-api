@@ -1,0 +1,6 @@
+# Configurado informações da aplicação
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gregorian
