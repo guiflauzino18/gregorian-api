@@ -1,3 +1,17 @@
+# Dados para acesso à aplicação:
+- Nome do banco: gregorian
+- usuário do banco: gregorian
+- Senha do usuário do banco: pass123
+
+Ao subir o ambiente criar um dns cliente.gregorian.com e api.gregorian.com que aponte para o External IP do Ingress.
+Ex.: Edite o arquivo C:\Windows\System32\Drivers\etc\hosts no windows e adicione  dns e o ip do ingress. No linux: /etc/hosts
+
+- Acesse cliente.gregorian.com no navegador e insira os dados de acesso abaixo
+
+- Para logar no frontend:
+  * usuário: sysadmin
+  * senha: sysadmin!
+
 # Instruções para deploy da aplicação no EKS
 
 - Instalação eksctl
