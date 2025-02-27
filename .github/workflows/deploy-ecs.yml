@@ -47,5 +47,5 @@ jobs:
             - name: Terraform apply
               run: |
                 cd deploy/Prod/ECS/Terraform
-                terraform apply plan.out -auto-approve
+                terraform apply plan.out
             
