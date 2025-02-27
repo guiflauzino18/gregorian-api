@@ -1,0 +1,51 @@
+name: Deploy Amazon ECS
+
+on:
+    push:
+        branches:
+            - ecs
+
+permissions:
+    id-token: write
+    contents: write
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Check Código
+              uses: actions/checkout@v3
+
+            - name: Login na AWS
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                role-to-assume: ${{secrets.AWS_ROLE_ARN}}
+                role-session-name: GithubActions_Deploy_ECS
+                aws-region: ${{secrets.AWS_REGION}}
+
+            - name: Setup Terraform
+              uses: hashicorp/setup-terraform@v2
+              with:
+                terraform_version: latest
+
+            - name: Terraform Init
+              run: |
+                cd deploy/Prod/ECS/Terraform
+                terraform init
+              
+            - name: Terraform validate
+              run: |
+                cd deploy/Prod/ECS/Terraform
+                terraform validate
+              
+            - name: Terraform plan
+              run: |
+                cd deploy/Prod/ECS/Terraform
+                terraform plan -var="mysql-password=${{secrets.MYSQL_PASSWORD}}" -var="mysql-user=${{secrets.MYSQL_USERNAME}}" -out=plan.out
+              
+            - name: Terraform apply
+              run: |
+                cd deploy/Prod/ECS/Terraform
+                terraform apply plan.out -auto-approve
+            
