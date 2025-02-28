@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: gregorian-api
-        image: guiflauzino18/gregorian-api:alfa
+        image: guiflauzino18/gregorian-api:latest
         env:
           - name: MYSQL_IP
             value: "mysql"

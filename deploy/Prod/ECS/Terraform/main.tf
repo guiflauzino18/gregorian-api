@@ -249,7 +249,7 @@ resource "aws_ecs_task_definition" "task-api" {
   container_definitions = jsonencode([
     {
         name  = "gregorian-api"
-        image = "guiflauzino18/gregorian-api:alfa"
+        image = "guiflauzino18/gregorian-api:latest"
         cpu =    256
         memory = 512
         essential = true
