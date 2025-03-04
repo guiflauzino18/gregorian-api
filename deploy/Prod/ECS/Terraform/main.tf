@@ -413,12 +413,12 @@ resource "aws_ecs_task_definition" "elasticsearch" {
 
 resource "aws_ecs_service" "elasticsearch" {
   name            = "elasticsearch"
-  cluster         = aws_ecs_cluster.main.id
+  cluster         = aws_ecs_cluster.gregorian-cluster.id
   task_definition = aws_ecs_task_definition.elasticsearch.arn
   desired_count   = 1
   launch_type     = "FARGATE"
   network_configuration {
-    subnets         = [var.sub-a-cidr.cidr_block]
+    subnets         = [aws_subnet.public-a.id, aws_subnet.private-b.id]
     security_groups = [aws_security_group.elasticsearch.id]
     assign_public_ip = true
   }
@@ -457,12 +457,12 @@ resource "aws_ecs_task_definition" "logstash" {
 
 resource "aws_ecs_service" "logstash" {
   name            = "logstash"
-  cluster         = aws_ecs_cluster.main.id
+  cluster         = aws_ecs_cluster.gregorian-cluster.id
   task_definition = aws_ecs_task_definition.logstash.arn
   desired_count   = 1
   launch_type     = "FARGATE"
   network_configuration {
-    subnets         = [var.sub-a-cidr.cidr_block]
+    subnets         = [aws_subnet.public-a.id, aws_subnet.private-b.id]
     security_groups = [aws_security_group.logstash.id]
     assign_public_ip = true
   }
@@ -508,17 +508,17 @@ resource "aws_ecs_task_definition" "kibana" {
 
 resource "aws_ecs_service" "kibana" {
   name            = "kibana"
-  cluster         = aws_ecs_cluster.main.id
+  cluster         = aws_ecs_cluster.gregorian-cluster.id
   task_definition = aws_ecs_task_definition.kibana.arn
   desired_count   = 1
   launch_type     = "FARGATE"
   network_configuration {
-    subnets         = [var.sub-a-cidr.cidr_block]
+    subnets         = [aws_subnet.public-a.id, aws_subnet.private-b.id]
     security_groups = [aws_security_group.kibana.id]
     assign_public_ip = true
   }
   load_balancer {
-    target_group_arn = aws_lb_target_group.kibana.arn
+    target_group_arn = aws_alb_target_group.kibana-target.arn
     container_name   = "kibana"
     container_port   = 5601
   }
@@ -534,7 +534,7 @@ resource "aws_security_group" "elasticsearch" {
     from_port   = 9200
     to_port     = 9200
     protocol    = "tcp"
-    cidr_blocks = [var.vpc-cidr.cidr_block]
+    cidr_blocks = [aws_vpc.main.cidr_block]
   }
 
   egress {
