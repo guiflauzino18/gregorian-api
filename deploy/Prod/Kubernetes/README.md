@@ -79,7 +79,7 @@ Ex.: Edite o arquivo C:\Windows\System32\Drivers\etc\hosts no windows e adicione
    . -n = namespace
 
 
-#Comandos úteis
+# Comandos úteis
 - Ver pods e execução
   * kubectl get pods -n gregorian
 

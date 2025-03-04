@@ -4,7 +4,7 @@
 
 - Criar Security Group
   * para o ECS permitindo tráfego na porta 80 ou 443 de qualquer origem
-  * Para o RDS permitindo tráfego da porta 3603 com origem o cidr da VPC
+  * Para o RDS permitindo tráfego da porta 3306 com origem o cidr da VPC
   * Para os Services permitindo todo tráfego da rede da VPC
 
 - Criar ALB
