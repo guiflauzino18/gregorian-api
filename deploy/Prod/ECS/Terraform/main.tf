@@ -399,14 +399,14 @@ resource "aws_ecs_task_definition" "elasticsearch" {
           value = "single-node"
         }
       ]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = "/ecs/elasticsearch"
-          awslogs-region        = var.region
-          awslogs-stream-prefix = "ecs"
-        }
-      }
+      # logConfiguration = {
+      #   logDriver = "awslogs"
+      #   options = {
+      #     awslogs-group         = "/ecs/elasticsearch"
+      #     awslogs-region        = var.region
+      #     awslogs-stream-prefix = "ecs"
+      #   }
+      # }
     }
   ])
 }
@@ -443,14 +443,14 @@ resource "aws_ecs_task_definition" "logstash" {
           hostPort      = 5044
         }
       ]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = "/ecs/logstash"
-          awslogs-region        = var.region
-          awslogs-stream-prefix = "ecs"
-        }
-      }
+      # logConfiguration = {
+      #   logDriver = "awslogs"
+      #   options = {
+      #     awslogs-group         = "/ecs/logstash"
+      #     awslogs-region        = var.region
+      #     awslogs-stream-prefix = "ecs"
+      #   }
+      # }
     }
   ])
 }
@@ -494,14 +494,14 @@ resource "aws_ecs_task_definition" "kibana" {
           value = "http://elasticsearch:9200"
         }
       ]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = "/ecs/kibana"
-          awslogs-region        = var.region
-          awslogs-stream-prefix = "ecs"
-        }
-      }
+      # logConfiguration = {
+      #   logDriver = "awslogs"
+      #   options = {
+      #     awslogs-group         = "/ecs/kibana"
+      #     awslogs-region        = var.region
+      #     awslogs-stream-prefix = "ecs"
+      #   }
+      # }
     }
   ])
 }
