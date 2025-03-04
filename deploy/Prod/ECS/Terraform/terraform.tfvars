@@ -16,3 +16,6 @@ mysql-database = "gregorian"
 #mysql-password = passado via parametro
 #mysql-user = passado via parâmetro
 
+elasticsearch-port = 9200
+logstash-port = 5044
+kibana-port = 5601

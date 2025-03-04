@@ -46,3 +46,14 @@ variable "mysql-database" {
   type = string
 }
 
+variable "elasticsearch-port" {
+  type = number  
+}
+
+variable "logstash-port" {
+  type = number  
+}
+
+variable "kibana-port" {
+  type = number  
+}

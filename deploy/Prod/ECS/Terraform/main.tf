@@ -179,6 +179,23 @@ resource "aws_alb_target_group" "app-target" {
   }
 }
 
+#Target group do Kibana
+resource "aws_alb_target_group" "kibana-target" {
+  name = "kibana-target"
+  port = var.kibana-port
+  protocol = "HTTP"
+  vpc_id = aws_vpc.main.id
+  target_type = "ip"
+  health_check {
+    path = "/"
+    interval = 30
+    timeout = 5
+    healthy_threshold = 2
+    unhealthy_threshold = 2 
+  }
+  
+}
+
 # Listener na porta 80 com regras que encaminha para o target group correspondente
 resource "aws_alb_listener" "app-listener" {
   load_balancer_arn = aws_alb.this.arn
@@ -224,15 +241,22 @@ resource "aws_alb_listener_rule" "rule-app" {
   
 }
 
-# resource "aws_alb_listener" "api-listener" {
-#   load_balancer_arn = aws_alb.this.arn
-#   port = var.api-port
-#   protocol = "HTTP"
-#   default_action {
-#     type = "forward"
-#     target_group_arn = aws_alb_target_group.api-target.arn
-#   }
-# }
+#Rule Kibana
+resource "aws_alb_listener_rule" "kibana-rule" {
+  listener_arn = aws_alb_listener.app-listener.arn
+  priority = 30
+  condition {
+    host_header {
+      values = [ "kibana.gregorian.com" ]
+    }
+  }
+  action {
+    type = "forward"
+    target_group_arn = aws_alb_target_group.kibana-target.arn
+  }
+  
+}
+
 
 #Cluster ECS 
 resource "aws_ecs_cluster" "gregorian-cluster" {
@@ -347,3 +371,221 @@ resource "aws_db_subnet_group" "db-subnet-group" {
     subnet_ids = [aws_subnet.private-b.id, aws_subnet.public-a.id]
   
 }
+
+
+##############################################################################
+#Elastic Search
+resource "aws_ecs_task_definition" "elasticsearch" {
+  family                   = "elasticsearch"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "1024"  # 1 vCPU
+  memory                   = "2048"  # 2 GB RAM
+  execution_role_arn       = aws_iam_role.ecs_role.arn
+  container_definitions    = jsonencode([
+    {
+      name      = "elasticsearch"
+      image     = "docker.elastic.co/elasticsearch/elasticsearch:7.10.1"
+      essential = true
+      portMappings = [
+        {
+          containerPort = 9200
+          hostPort      = 9200
+        }
+      ]
+      environment = [
+        {
+          name  = "discovery.type"
+          value = "single-node"
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = "/ecs/elasticsearch"
+          awslogs-region        = var.region
+          awslogs-stream-prefix = "ecs"
+        }
+      }
+    }
+  ])
+}
+
+resource "aws_ecs_service" "elasticsearch" {
+  name            = "elasticsearch"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.elasticsearch.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+  network_configuration {
+    subnets         = [var.sub-a-cidr.cidr_block]
+    security_groups = [aws_security_group.elasticsearch.id]
+    assign_public_ip = true
+  }
+}
+
+#LogStash
+resource "aws_ecs_task_definition" "logstash" {
+  family                   = "logstash"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "512"  # 0.5 vCPU
+  memory                   = "1024" # 1 GB RAM
+  execution_role_arn       = aws_iam_role.ecs_role.arn
+  container_definitions    = jsonencode([
+    {
+      name      = "logstash"
+      image     = "docker.elastic.co/logstash/logstash:7.10.1"
+      essential = true
+      portMappings = [
+        {
+          containerPort = 5044
+          hostPort      = 5044
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = "/ecs/logstash"
+          awslogs-region        = var.region
+          awslogs-stream-prefix = "ecs"
+        }
+      }
+    }
+  ])
+}
+
+resource "aws_ecs_service" "logstash" {
+  name            = "logstash"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.logstash.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+  network_configuration {
+    subnets         = [var.sub-a-cidr.cidr_block]
+    security_groups = [aws_security_group.logstash.id]
+    assign_public_ip = true
+  }
+}
+
+
+#KIBANA
+resource "aws_ecs_task_definition" "kibana" {
+  family                   = "kibana"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "512"  # 0.5 vCPU
+  memory                   = "1024" # 1 GB RAM
+  execution_role_arn       = aws_iam_role.ecs_role.arn
+  container_definitions    = jsonencode([
+    {
+      name      = "kibana"
+      image     = "docker.elastic.co/kibana/kibana:7.10.1"
+      essential = true
+      portMappings = [
+        {
+          containerPort = 5601
+          hostPort      = 5601
+        }
+      ]
+      environment = [
+        {
+          name  = "ELASTICSEARCH_HOSTS"
+          value = "http://elasticsearch:9200"
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = "/ecs/kibana"
+          awslogs-region        = var.region
+          awslogs-stream-prefix = "ecs"
+        }
+      }
+    }
+  ])
+}
+
+resource "aws_ecs_service" "kibana" {
+  name            = "kibana"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.kibana.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+  network_configuration {
+    subnets         = [var.sub-a-cidr.cidr_block]
+    security_groups = [aws_security_group.kibana.id]
+    assign_public_ip = true
+  }
+  load_balancer {
+    target_group_arn = aws_lb_target_group.kibana.arn
+    container_name   = "kibana"
+    container_port   = 5601
+  }
+}
+
+#Security Group
+resource "aws_security_group" "elasticsearch" {
+  name        = "elasticsearch-sg"
+  vpc_id      = aws_vpc.main.id
+  description = "Allow traffic to Elasticsearch"
+
+  ingress {
+    from_port   = 9200
+    to_port     = 9200
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc-cidr.cidr_block]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "logstash" {
+  name        = "logstash-sg"
+  vpc_id      = aws_vpc.main.id
+  description = "Allow traffic to Logstash"
+
+  ingress {
+    from_port  = 5044
+    to_port = 5044
+    protocol = "tcp"
+    cidr_blocks = [ aws_vpc.main.cidr_block ]
+
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+}
+
+resource "aws_security_group" "kibana" {
+  name        = "kibana-sg"
+  vpc_id      = aws_vpc.main.id
+  description = "Allow traffic to Kibana"
+
+  ingress {
+    from_port  = 5601
+    to_port = 5601
+    protocol = "tcp"
+    cidr_blocks = [ aws_vpc.main.cidr_block ]
+
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+}
+
