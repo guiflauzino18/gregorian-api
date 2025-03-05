@@ -58,3 +58,12 @@ Os services expõem as tasks definitions para os target group e permitem o acess
 
 - Aplicar
   * terraform apply plan.out
+
+# Acessar shel do container
+- Usando AWS Session Manager. A política AmazonSSMManagedInstanceCore adicionada à Role do ECS permite acessar o container via Session Manager. 
+  * Listar tarefas em execução e pegar o taskArn
+    `aws ecs list-tasks --cluster gregorian-cluster`
+  * Acessar Container
+    `aws ecs execute-command --cluster gregorian-cluster --task <TASK_ARN> --container <NOME_DO_CONTAINER> --command "/bin/bash" --interactive`
+
+  * Se container tiver /bin/bash tentar /bin/sh

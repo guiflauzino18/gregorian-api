@@ -139,6 +139,13 @@ resource "aws_iam_policy_attachment" "ecs_execution_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+#Política que permite acessar container com AWS Session Manager
+resource "aws_iam_policy_attachment" "ecs_execution_policy" {
+  name       = "ecsTaskExecutionPolicyAttachment"
+  roles      = [aws_iam_role.ecs_role.name]
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 
 #Load Ballancing
 resource "aws_alb" "this" {
@@ -151,7 +158,7 @@ resource "aws_alb" "this" {
 
 resource "aws_alb_target_group" "api-target" {
   name = "api-target"
-  port = var.app-port #api tambem irá escutar na porta 80. Por isso está sendo usado a memma porta da app
+  port = var.app-port #api tambem irá escutar na porta 80. Por isso está sendo usado a mesma porta da app
   protocol = "HTTP"
   vpc_id = aws_vpc.main.id
   target_type = "ip" #para fargate essa opção é IP para EC2 é instance.
@@ -270,6 +277,7 @@ resource "aws_ecs_task_definition" "task-api" {
   cpu = 256
   memory = 512
   execution_role_arn = aws_iam_role.ecs_role.arn
+  depends_on = [ aws_db_instance.mysql ]
   container_definitions = jsonencode([
     {
         name  = "gregorian-api"
@@ -283,8 +291,17 @@ resource "aws_ecs_task_definition" "task-api" {
             {name = "MYSQL_USERNAME", value = "${var.mysql-user}"},
             {name = "MYSQL_PASSWORD", value = "${var.mysql-password}"}
         ]
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group = aws_cloudwatch_log_group.api_logs.name
+            awslogs-region = var.region
+            awslogs-stream-prefix = "ecs"
+          }
+        }
     }
   ])
+  
 }
 
 resource "aws_ecs_task_definition" "task-app" {
@@ -294,6 +311,7 @@ resource "aws_ecs_task_definition" "task-app" {
   cpu = 256
   memory = 512
   execution_role_arn = aws_iam_role.ecs_role.arn
+  depends_on = [ aws_alb_target_group.api-target]
   container_definitions = jsonencode([
     {
         name  = "gregorian-app"
@@ -305,6 +323,14 @@ resource "aws_ecs_task_definition" "task-app" {
         environment = [
             {name = "API_URL", value = "${var.api-url}"}
         ]
+                logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group = aws_cloudwatch_log_group.frontend_logs.name
+            awslogs-region = var.region
+            awslogs-stream-prefix = "ecs"
+          }
+        }
     }
   ])
 }
@@ -589,3 +615,19 @@ resource "aws_security_group" "kibana" {
 
 }
 
+###################################################
+# CloudWatch
+resource "aws_cloudwatch_log_group" "api_logs" {
+  name              = "/ecs/gregorian-api"
+  retention_in_days = 7
+}
+
+resource "aws_cloudwatch_log_group" "frontend_logs" {
+  name              = "/ecs/gregorian-app"
+  retention_in_days = 7
+}
+
+resource "aws_cloudwatch_log_group" "mysql_logs" {
+  name              = "/ecs/gregorian-mysql"
+  retention_in_days = 7
+}
