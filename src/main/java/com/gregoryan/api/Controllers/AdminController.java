@@ -295,12 +295,15 @@ public class AdminController {
 
     //Configura Agenda
     @PutMapping("/agenda/config")
-    public ResponseEntity<Object> agendaConfig(@RequestBody @Valid AgendaConfigDTO agendaDTO){
+    public ResponseEntity<Object> agendaConfig(@RequestBody @Valid AgendaConfigDTO agendaDTO, HttpServletRequest request){
         Optional<StatusHora> statusHora = statusHoraService.findByNome("Ativo");
         Optional<StatusDia> statusDia = statusDiaService.findByNome("Ativo");
         Optional<Agenda> agenda = agendaService.findById(agendaDTO.idAgenda());
 
-        if (!agenda.isPresent()) return new ResponseEntity<>("Agenda não encontrada!", HttpStatus.OK);
+        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+
+        //Se agenda não existe ou empresa da agenda é diferente da empresa do usuário logado retorno 404
+        if (!agenda.isPresent() && agenda.get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) return new ResponseEntity<>("Agenda não encontrada!", HttpStatus.OK);
 
         for (DiaCadastroDTO diaDTO : agendaDTO.dias()) {
             Dias dia = new Dias();
