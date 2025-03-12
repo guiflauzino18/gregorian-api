@@ -5,7 +5,7 @@
 
 	<groupId>com.gregorian</groupId>
 	<artifactId>api</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2</version>
 	<name>api</name>
 	<description>API do Projeto Gregorian de Agenda Terapeuta</description>
 	<url/>
