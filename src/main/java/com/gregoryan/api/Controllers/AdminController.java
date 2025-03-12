@@ -225,7 +225,7 @@ public class AdminController {
             usuario.get().setSenha(encryptedPassword);
             usuario.get().setAlteraNextLogon(usuarioDTO.alteraNextLogon());
 
-            return new ResponseEntity<>(usuarioService.save(usuario), HttpStatus.OK);
+            return new ResponseEntity<>(usuarioService.save(usuario.get()), HttpStatus.OK);
         } else return new ResponseEntity<>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
     }
 
@@ -274,9 +274,14 @@ public class AdminController {
 
     //Exclui Agenda
     @DeleteMapping("/agenda/delete/{id}")
-    public ResponseEntity<String> agendaDelete(@PathVariable long id){
+    public ResponseEntity<String> agendaDelete(@PathVariable long id, HttpServletRequest request){
+
+        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+
         Optional<Agenda> agenda = agendaService.findById(id);
-        if (agenda.isPresent()) {
+
+        //Somente deleta agenda se Empresa da Agenda for a mesma do Usuário logado.
+        if (agenda.isPresent() && agenda.get().getEmpresa().getId() == usuarioLogado.getEmpresa().getId()) {
             try {
                 agendaService.delete(agenda.get());
                 return new ResponseEntity<String> ("Agenda excluída do sistema!", HttpStatus.OK);
