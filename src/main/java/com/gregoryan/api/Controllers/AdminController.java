@@ -336,8 +336,12 @@ public class AdminController {
 
     //Edita Agenda
     @PutMapping("/agenda/edit")
-    public ResponseEntity<Object> agendaEdit(@RequestBody @Valid AgendaEditDTO agendaDTO){
-        if(!agendaService.findById(agendaDTO.idAgenda()).isPresent()) 
+    public ResponseEntity<Object> agendaEdit(@RequestBody @Valid AgendaEditDTO agendaDTO, HttpServletRequest request){
+
+        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+
+        //Se Agenda Não existe e empresa da Agenda é diferente da Empresa do usuário logado retorna 404
+        if(!agendaService.findById(agendaDTO.idAgenda()).isPresent() && agendaService.findById(agendaDTO.idAgenda()).get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) 
             return new ResponseEntity<>("Agenda não encontrada!", HttpStatus.NOT_FOUND);
 
         Agenda agenda = agendaService.findById(agendaDTO.idAgenda()).get();
