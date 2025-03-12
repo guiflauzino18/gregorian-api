@@ -160,21 +160,15 @@ public class AdminController {
 
         //REcupera Usuário logado e empresa
         Optional<Usuario> usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request)));
-        Empresa empresa = usuarioLogado.get().getEmpresa();
 
         //Cria usuário com ID recebido da Request
         Optional<Usuario> usuario = usuarioService.findById(id);
 
+        //Exclui somente se usuário existir e se Empresa for a mesma empresa do usário logado
+        if(usuario.isPresent() && usuario.get().getEmpresa().getId() == usuarioLogado.get().getEmpresa().getId()){
 
-        if(usuario.isPresent()){
-            //Se Usuário pertencer a empresa então é removido, senão ele não é encontrado mesmo que exista no banco, pois pode pertencer a outra empresa
-            if (empresa.getUsuarios().contains(usuario.get())){
-                usuarioService.delete(usuario.get());
-                return new ResponseEntity<>("Usuário "+usuario.get().getNome()+" excluído do sistema!", HttpStatus.OK);
-            }else {
-                return new ResponseEntity<>("Usuário não Encontrado!", HttpStatus.NOT_FOUND);
-            }
-
+            usuarioService.delete(usuario.get());
+            return new ResponseEntity<>("Usuário "+usuario.get().getNome()+" excluído do sistema!", HttpStatus.OK);
 
         } else return new ResponseEntity<>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
     }
@@ -188,9 +182,14 @@ public class AdminController {
 
     //Edição de Usuário
     @PutMapping("/usuario/edit")
-    public ResponseEntity<Object> editUsuario(@RequestBody @Valid UsuarioEditDTO usuarioDTO) throws ParseException{
+    public ResponseEntity<Object> editUsuario(@RequestBody @Valid UsuarioEditDTO usuarioDTO, HttpServletRequest request) throws ParseException{
+        //Recupera Usuário logado e Empresa
+        Optional<Usuario> usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request)));
+
         Optional<Usuario> usuario = usuarioService.findById(usuarioDTO.id());
-        if (usuario.isPresent()){
+
+        //SOmente edita se usuário existir e se pertencer a mesma empresa do usuário logado
+        if (usuario.isPresent() && usuario.get().getEmpresa().getId() == usuarioLogado.get().getEmpresa().getId()){
 
             Calendar nascimento = Calendar.getInstance();
             DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -207,6 +206,7 @@ public class AdminController {
             usuario.get().setAlteraNextLogon(usuarioDTO.alteraNextLogon());
             
             return new ResponseEntity<>(usuarioService.save(usuario.get()), HttpStatus.OK);
+
         } else return new ResponseEntity<Object>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
         
     }
