@@ -303,7 +303,8 @@ public class AdminController {
         Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
 
         //Se agenda não existe ou empresa da agenda é diferente da empresa do usuário logado retorno 404
-        if (!agenda.isPresent() && agenda.get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) return new ResponseEntity<>("Agenda não encontrada!", HttpStatus.OK);
+        if (!agenda.isPresent() || agenda.get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) 
+            return new ResponseEntity<>("Agenda não encontrada!", HttpStatus.OK);
 
         for (DiaCadastroDTO diaDTO : agendaDTO.dias()) {
             Dias dia = new Dias();
@@ -341,7 +342,7 @@ public class AdminController {
         Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
 
         //Se Agenda Não existe e empresa da Agenda é diferente da Empresa do usuário logado retorna 404
-        if(!agendaService.findById(agendaDTO.idAgenda()).isPresent() && agendaService.findById(agendaDTO.idAgenda()).get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) 
+        if(!agendaService.findById(agendaDTO.idAgenda()).isPresent() || agendaService.findById(agendaDTO.idAgenda()).get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) 
             return new ResponseEntity<>("Agenda não encontrada!", HttpStatus.NOT_FOUND);
 
         Agenda agenda = agendaService.findById(agendaDTO.idAgenda()).get();
@@ -444,7 +445,7 @@ public class AdminController {
         Optional<Usuario> usuario = usuarioService.findByLogin(profissionalDTO.login());
 
         //Se usuario não existe a empresa do usuario do profissional for diferente da empresa do usuario logado retorn 404
-        if (!usuario.isPresent() && usuario.get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) return new ResponseEntity<>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
+        if (!usuario.isPresent() || usuario.get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) return new ResponseEntity<>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
 
         Profissional profissional = new Profissional();
         BeanUtils.copyProperties(profissionalDTO, profissional);
@@ -457,7 +458,12 @@ public class AdminController {
     @PutMapping("/profissional/edit")
     public ResponseEntity<Object> profissionalEditar(@RequestBody @Valid ProfissionalEditDTO profissionalDTO) throws Exception{
         Optional<Profissional> profissional = profissionalService.findById(profissionalDTO.id());
-        if (!profissional.isPresent()) return new ResponseEntity<>("Profissional não encontrado!", HttpStatus.NOT_FOUND);
+
+        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(null))).get();
+
+        //Se profissional não existir ou empresa do usuario do profissional for diferente da empresa do usuario logado retorna 404
+        if (!profissional.isPresent() || profissional.get().getUsuario().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) 
+            return new ResponseEntity<>("Profissional não encontrado!", HttpStatus.NOT_FOUND);
 
         profissional.get().setTitulo(profissionalDTO.titulo());
         profissional.get().setRegistro(profissionalDTO.registro());
@@ -472,10 +478,12 @@ public class AdminController {
 
     //Excluir Profissional
     @DeleteMapping("/profissional/delete/{id}")
-    public ResponseEntity<Object> profissionalDelete(@PathVariable long id){
+    public ResponseEntity<Object> profissionalDelete(@PathVariable long id, HttpServletRequest request){
         Optional<Profissional> profissional = profissionalService.findById(id);
 
-        if (profissional.isPresent()) {
+        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+
+        if (profissional.isPresent() && profissional.get().getUsuario().getEmpresa().getId() == usuarioLogado.getEmpresa().getId()) {
             profissionalService.delete(profissional.get());
             return new ResponseEntity<>("Profissional excluído do sistema!", HttpStatus.OK);
         }
