@@ -438,9 +438,13 @@ public class AdminController {
 
     //Cadastro de Profissional
     @PostMapping("/profissional/cadastro")
-    public ResponseEntity<Object> profissionalCadastro(@RequestBody @Valid ProfissionalCadastroDTO profissionalDTO){
+    public ResponseEntity<Object> profissionalCadastro(@RequestBody @Valid ProfissionalCadastroDTO profissionalDTO, HttpServletRequest request){
+        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+
         Optional<Usuario> usuario = usuarioService.findByLogin(profissionalDTO.login());
-        if (!usuario.isPresent()) return new ResponseEntity<>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
+
+        //Se usuario não existe a empresa do usuario do profissional for diferente da empresa do usuario logado retorn 404
+        if (!usuario.isPresent() && usuario.get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) return new ResponseEntity<>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
 
         Profissional profissional = new Profissional();
         BeanUtils.copyProperties(profissionalDTO, profissional);
