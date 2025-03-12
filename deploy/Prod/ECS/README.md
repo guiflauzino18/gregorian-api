@@ -61,8 +61,13 @@ Os services expõem as tasks definitions para os target group e permitem o acess
 
 # Acessar shel do container
 - Usando AWS Session Manager. A política AmazonSSMManagedInstanceCore adicionada à Role do ECS permite acessar o container via Session Manager. 
+  * Instalar plugin do Session Manager na máquina
+    `curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o "session-manager-plugin.deb"`
+    `sudo dpkg -i session-manager-plugin.deb`
+
   * Listar tarefas em execução e pegar o taskArn
     `aws ecs list-tasks --cluster gregorian-cluster`
+    
   * Acessar Container
     `aws ecs execute-command --cluster gregorian-cluster --task <TASK_ARN> --container <NOME_DO_CONTAINER> --command "/bin/bash" --interactive`
 

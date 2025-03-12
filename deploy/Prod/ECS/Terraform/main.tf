@@ -140,8 +140,8 @@ resource "aws_iam_policy_attachment" "ecs_execution_policy" {
 }
 
 #Política que permite acessar container com AWS Session Manager
-resource "aws_iam_policy_attachment" "ecs_execution_policy" {
-  name       = "ecsTaskExecutionPolicyAttachment"
+resource "aws_iam_policy_attachment" "ecs_session-manager_policy" {
+  name       = "ecsSessionManagerPolicyAttachment"
   roles      = [aws_iam_role.ecs_role.name]
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
@@ -268,6 +268,13 @@ resource "aws_alb_listener_rule" "kibana-rule" {
 #Cluster ECS 
 resource "aws_ecs_cluster" "gregorian-cluster" {
   name = "gregorian-cluster"
+
+  # Habilita Execute Command para acessar container via Session Manager
+  configuration {
+    execute_command_configuration {
+      logging = "DEFAULT"
+    }
+  }
 }
 
 resource "aws_ecs_task_definition" "task-api" {

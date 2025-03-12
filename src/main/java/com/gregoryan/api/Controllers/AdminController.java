@@ -46,6 +46,7 @@ import com.gregoryan.api.DTO.usuarioResetSenhaDTO;
 import com.gregoryan.api.Models.Agenda;
 import com.gregoryan.api.Models.DiaBloqueado;
 import com.gregoryan.api.Models.Dias;
+import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.Feriado;
 import com.gregoryan.api.Models.Horas;
 import com.gregoryan.api.Models.PlanoPaciente;
@@ -155,11 +156,26 @@ public class AdminController {
 
     //Exclusão de usuário
     @DeleteMapping("/usuario/exclui/{id}")
-    public ResponseEntity<Object> deleteUsuario(@PathVariable long id){
+    public ResponseEntity<Object> deleteUsuario(@PathVariable long id, HttpServletRequest request){
+
+        //REcupera Usuário logado e empresa
+        Optional<Usuario> usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request)));
+        Empresa empresa = usuarioLogado.get().getEmpresa();
+
+        //Cria usuário com ID recebido da Request
         Optional<Usuario> usuario = usuarioService.findById(id);
+
+
         if(usuario.isPresent()){
-            usuarioService.delete(usuario.get());
-            return new ResponseEntity<>("Usuário "+usuario.get().getNome()+" excluído do sistema!", HttpStatus.OK);
+            //Se Usuário pertencer a empresa então é removido, senão ele não é encontrado mesmo que exista no banco, pois pode pertencer a outra empresa
+            if (empresa.getUsuarios().contains(usuario.get())){
+                usuarioService.delete(usuario.get());
+                return new ResponseEntity<>("Usuário "+usuario.get().getNome()+" excluído do sistema!", HttpStatus.OK);
+            }else {
+                return new ResponseEntity<>("Usuário não Encontrado!", HttpStatus.NOT_FOUND);
+            }
+
+
         } else return new ResponseEntity<>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
     }
 
