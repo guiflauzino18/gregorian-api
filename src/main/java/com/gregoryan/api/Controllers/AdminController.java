@@ -529,9 +529,12 @@ public class AdminController {
     @PutMapping("/feriado/edit")
     public ResponseEntity<Object> feriadoEdit(@RequestBody @Valid FeriadoEditDTO feriadoDTO){
 
+        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(null))).get();
+
         Optional<Feriado> feriado = feriadoService.findById(feriadoDTO.id());
 
-        if (feriado.isPresent()){
+        //SOmente edita feriado se Empresa do feriado for a memsa do usuario logado.
+        if (feriado.isPresent() && feriado.get().getEmpresa().getId() == usuarioLogado.getEmpresa().getId()){
             Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT-3:00"), new Locale("pt-BR"));
             int ano = Integer.parseInt(feriadoDTO.data().split("-")[0]);
             int mes = Integer.parseInt(feriadoDTO.data().split("-")[1]);
@@ -548,9 +551,13 @@ public class AdminController {
     }
 
     @DeleteMapping("/feriado/delete/{id}")
-    public ResponseEntity<Object> feriadoDelete(@PathVariable (name = "id") long id){
+    public ResponseEntity<Object> feriadoDelete(@PathVariable (name = "id") long id, HttpServletRequest request){
+        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+
         Optional<Feriado> feriado = feriadoService.findById(id);
-        if (feriado.isPresent()) {
+
+        if (feriado.isPresent() && feriado.get().getEmpresa().getId() == usuarioLogado.getEmpresa().getId()) {
+            
             feriadoService.delete(feriado.get());
             return new ResponseEntity<>("Feriado deletado do sistema!", HttpStatus.NOT_FOUND);
 
