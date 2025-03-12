@@ -213,12 +213,17 @@ public class AdminController {
 
     //Reset de Senha
     @PutMapping("/usuario/resetsenha")
-    public ResponseEntity<Object> usuarioResetPass(@RequestBody @Valid usuarioResetSenhaDTO usuarioDTO){
-        if(usuarioService.findById(usuarioDTO.id()).isPresent()){
-            Usuario usuario = usuarioService.findById(usuarioDTO.id()).get();
+    public ResponseEntity<Object> usuarioResetPass(@RequestBody @Valid usuarioResetSenhaDTO usuarioDTO, HttpServletRequest request){
+        Optional<Usuario> usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request)));
+
+        Optional<Usuario> usuario = usuarioService.findById(usuarioDTO.id());
+
+        //Somente reseta senha se Empresa do Usuário for a mesma empresa do Usuário logado
+        if(usuario.isPresent() && usuario.get().getEmpresa().getId() == usuarioLogado.get().getEmpresa().getId()){
+            
             String encryptedPassword = new BCryptPasswordEncoder().encode(usuarioDTO.senha());
-            usuario.setSenha(encryptedPassword);
-            usuario.setAlteraNextLogon(usuarioDTO.alteraNextLogon());
+            usuario.get().setSenha(encryptedPassword);
+            usuario.get().setAlteraNextLogon(usuarioDTO.alteraNextLogon());
 
             return new ResponseEntity<>(usuarioService.save(usuario), HttpStatus.OK);
         } else return new ResponseEntity<>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
