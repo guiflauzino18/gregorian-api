@@ -138,7 +138,7 @@ public class DBinit {
             Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT"), new Locale("pt-BR"));
             usuario.setDataRegistro(now);
             usuario.setNascimento(now);
-            Optional<Empresa> empresa = empresaService.findByCnpj(12346789);
+            Optional<Empresa> empresa = empresaService.findById(1);
             if (empresa.isPresent()) usuario.setEmpresa(empresa.get());
 
             usuarioService.save(usuario);
