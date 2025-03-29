@@ -1,13 +1,17 @@
 package com.gregoryan.api.Controllers;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.TimeZone;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -26,8 +30,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+
 import com.gregoryan.api.DTO.AgendaCadastroDTO;
 import com.gregoryan.api.DTO.AgendaConfigDTO;
 import com.gregoryan.api.DTO.AgendaEditDTO;
@@ -38,6 +44,7 @@ import com.gregoryan.api.DTO.FeriadoEditDTO;
 import com.gregoryan.api.DTO.HorasEditDTO;
 import com.gregoryan.api.DTO.ProfissionalCadastroDTO;
 import com.gregoryan.api.DTO.ProfissionalEditDTO;
+import com.gregoryan.api.DTO.ProfissionalListDTO;
 import com.gregoryan.api.DTO.StatusAgendaCadastroDTO;
 import com.gregoryan.api.DTO.UsuarioCadastroDTO;
 import com.gregoryan.api.DTO.UsuarioEditDTO;
@@ -67,6 +74,8 @@ import com.gregoryan.api.Services.Crud.StatusDiaService;
 import com.gregoryan.api.Services.Crud.StatusHoraService;
 import com.gregoryan.api.Services.Crud.UsuarioService;
 import com.gregoryan.api.Services.Security.TokenService;
+
+import ch.qos.logback.core.joran.util.beans.BeanUtil;
 
 
 @RestController
@@ -270,6 +279,20 @@ public class AdminController {
         
         Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
         return new ResponseEntity<>(agendaService.findByEmpresa(usuario.getEmpresa(), pageable), HttpStatus.OK);
+    }
+
+    //Busca Agenda por ID
+    @GetMapping("/agenda/{id}")
+    public ResponseEntity<Object> agendaById(@PathVariable long id , HttpServletRequest request){
+        System.out.println(id);
+        Optional<Agenda> agenda = agendaService.findById(id);
+        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+
+        //Somente busca agenda se agenda pertencer à empresa do usuário
+        if (!agenda.isPresent() || agenda.get().getEmpresa().getId() == usuarioLogado.getEmpresa().getId() )
+            return new ResponseEntity<> ("Agenda não encontrada!", HttpStatus.NOT_FOUND);
+
+        return new ResponseEntity<>(agenda.get(), HttpStatus.OK);
     }
 
     //Exclui Agenda
@@ -497,6 +520,23 @@ public class AdminController {
         Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
         return new ResponseEntity<>(profissionalService.findByEmpresa(usuario.getEmpresa().getId(), pageable), HttpStatus.OK);
     }
+
+        //Lista Profissoinal por empresa
+        @GetMapping("/profissionais")
+        public ResponseEntity<List<ProfissionalListDTO>> profissionalList(@PageableDefault(page = 0, size = 1000, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
+            Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+
+            Page<Profissional> page = profissionalService.findByEmpresa(usuario.getEmpresa().getId(), pageable);
+
+            List<ProfissionalListDTO> profissionais = page.getContent().stream().map(profissional -> {
+                ProfissionalListDTO dto = new ProfissionalListDTO(profissional.getUsuario().getNome(), profissional.getId());
+                return dto;
+
+            }).collect(Collectors.toList());
+
+            return new ResponseEntity<>(profissionais, HttpStatus.OK);
+        }
+
 
     @GetMapping("/profissional/findbyId")
     public ResponseEntity<Object> profissionalFindById(@RequestParam long id){

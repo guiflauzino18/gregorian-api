@@ -1,6 +1,6 @@
 package com.gregoryan.api.DTO;
 
 
-public record AgendaCadastroDTO(String nome) {
+public record AgendaCadastroDTO(String nome, long idProfissional) {
     
 }
