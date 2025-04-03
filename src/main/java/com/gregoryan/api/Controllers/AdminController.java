@@ -479,10 +479,10 @@ public class AdminController {
 
     //Editar Profissional
     @PutMapping("/profissional/edit")
-    public ResponseEntity<Object> profissionalEditar(@RequestBody @Valid ProfissionalEditDTO profissionalDTO) throws Exception{
+    public ResponseEntity<Object> profissionalEditar(@RequestBody @Valid ProfissionalEditDTO profissionalDTO, HttpServletRequest request) throws Exception{
         Optional<Profissional> profissional = profissionalService.findById(profissionalDTO.id());
 
-        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(null))).get();
+        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
 
         //Se profissional não existir ou empresa do usuario do profissional for diferente da empresa do usuario logado retorna 404
         if (!profissional.isPresent() || profissional.get().getUsuario().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) 
