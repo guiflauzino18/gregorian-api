@@ -37,6 +37,7 @@ import jakarta.validation.Valid;
 import com.gregoryan.api.DTO.AgendaCadastroDTO;
 import com.gregoryan.api.DTO.AgendaConfigDTO;
 import com.gregoryan.api.DTO.AgendaEditDTO;
+import com.gregoryan.api.DTO.AgendaResponseDTO;
 import com.gregoryan.api.DTO.DiaCadastroDTO;
 import com.gregoryan.api.DTO.DiaEditDTO;
 import com.gregoryan.api.DTO.FeriadoCadastroDTO;
@@ -45,9 +46,11 @@ import com.gregoryan.api.DTO.HorasEditDTO;
 import com.gregoryan.api.DTO.ProfissionalCadastroDTO;
 import com.gregoryan.api.DTO.ProfissionalEditDTO;
 import com.gregoryan.api.DTO.ProfissionalListDTO;
+import com.gregoryan.api.DTO.ProfissionalResponseDTO;
 import com.gregoryan.api.DTO.StatusAgendaCadastroDTO;
 import com.gregoryan.api.DTO.UsuarioCadastroDTO;
 import com.gregoryan.api.DTO.UsuarioEditDTO;
+import com.gregoryan.api.DTO.UsuarioResponseDTO;
 import com.gregoryan.api.DTO.planoPacienteCadastroDTO;
 import com.gregoryan.api.DTO.usuarioResetSenhaDTO;
 import com.gregoryan.api.Models.Agenda;
@@ -184,9 +187,23 @@ public class AdminController {
 
     //List Usuario por Empresa
     @GetMapping("/usuario/list")
-    public ResponseEntity<Page<Usuario>> usuarioListByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
+    public ResponseEntity<Page<UsuarioResponseDTO>> usuarioListByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
         Usuario logado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-        return new ResponseEntity<>(usuarioService.findByEmpresa(logado.getEmpresa(), pageable), HttpStatus.OK);
+
+        Page<Usuario> page = usuarioService.findByEmpresa(logado.getEmpresa(), pageable);
+
+        Page<UsuarioResponseDTO> usuarios = page.map(usuario -> {
+
+            UsuarioResponseDTO dto = new UsuarioResponseDTO(usuario.getId(),
+             usuario.getNome(), usuario.getSobrenome(), usuario.getNascimento(), usuario.getTelefone(), usuario.getEmail(), usuario.getLogin(),
+             usuario.getEndereco(), usuario.getStatus(), usuario.isAlteraNextLogon(), usuario.getRole(), usuario.getDataRegistro(), 
+             usuario.getEmpresa().getNome());
+
+            return dto;
+        });
+
+
+        return new ResponseEntity<>(usuarios, HttpStatus.OK);
     }
 
     //Edição de Usuário
@@ -240,10 +257,23 @@ public class AdminController {
 
     //Find By ID
     @GetMapping("/usuario")
-    public ResponseEntity<Object> usuarioById(@RequestParam long id){
+    public ResponseEntity<Object> usuarioById(@RequestParam long id, HttpServletRequest request){
+        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+
         Optional<Usuario> usuario = usuarioService.findById(id);
-        if (usuario.isPresent()) return new ResponseEntity<>(usuario.get(), HttpStatus.OK);
-            else return new ResponseEntity<>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
+
+
+        //Se usuário não existe ou usuario não pertence a mesma empresa do usuario logado retorna 404
+        if (!usuario.isPresent() || usuario.get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) 
+            return new ResponseEntity<>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
+
+        UsuarioResponseDTO dto = new UsuarioResponseDTO(usuario.get().getId(), usuario.get().getNome(), usuario.get().getSobrenome(),
+        usuario.get().getNascimento(), usuario.get().getTelefone(), usuario.get().getEmail(),usuario.get().getLogin(), usuario.get().getEndereco(),
+        usuario.get().getStatus(), usuario.get().isAlteraNextLogon(), usuario.get().getRole(), usuario.get().getDataRegistro(),usuario.get().getEmpresa().getNome());
+
+
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+            
     }
 
 
@@ -262,6 +292,14 @@ public class AdminController {
         if (statusAgendaService.findByNome("Ativo").isPresent()) 
             agenda.setStatusAgenda(statusAgendaService.findByNome("Ativo").get());
 
+        
+        Optional<Profissional> profissional = profissionalService.findById(agendaDTO.idProfissional());
+
+        if (!profissional.isPresent())
+            return new ResponseEntity<>("Profissional não encontrado!", HttpStatus.NOT_FOUND);
+
+        agenda.setProfissional(profissional.get());
+
         Usuario logado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
         agenda.setEmpresa(logado.getEmpresa());
 
@@ -273,12 +311,24 @@ public class AdminController {
 
     //List Agendas
     @GetMapping("/agenda/list")
-    public ResponseEntity<Page<Agenda>> agendaList(
+    public ResponseEntity<Page<AgendaResponseDTO>> agendaList(
         @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
         HttpServletRequest request){
         
         Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-        return new ResponseEntity<>(agendaService.findByEmpresa(usuario.getEmpresa(), pageable), HttpStatus.OK);
+
+        Page<Agenda> page = agendaService.findByEmpresa(usuario.getEmpresa(), pageable);
+
+        Page<AgendaResponseDTO> agendas = page.map(agenda -> {
+
+            AgendaResponseDTO dto = new AgendaResponseDTO(agenda.getId(), agenda.getNome(), agenda.getStatusAgenda(), agenda.getEmpresa().getNome(),
+            agenda.getProfissional().getId(), agenda.getProfissional().getUsuario().getNome(), agenda.getDias());
+
+            return dto;
+        });
+
+
+        return new ResponseEntity<>(agendas, HttpStatus.OK);
     }
 
     //Busca Agenda por ID
@@ -327,10 +377,18 @@ public class AdminController {
 
         //Se agenda não existe ou empresa da agenda é diferente da empresa do usuário logado retorno 404
         if (!agenda.isPresent() || agenda.get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) 
-            return new ResponseEntity<>("Agenda não encontrada!", HttpStatus.OK);
+            return new ResponseEntity<>("Agenda não encontrada!", HttpStatus.NOT_FOUND);
 
         for (DiaCadastroDTO diaDTO : agendaDTO.dias()) {
-            Dias dia = new Dias();
+
+            Dias dia;
+
+            if (diaDTO.id() != 0){
+                dia = diasService.findById(diaDTO.id()).get();
+            }else {
+                dia = new Dias();
+            }
+
             dia.setNome(diaDTO.nome());
             
             dia.setDuracaoSessaoInMinutes(diaDTO.duracaoSessaoInMinutes());
@@ -341,7 +399,9 @@ public class AdminController {
             dia.setInicio(inicio);
             dia.setFim(fim);
 
-            if (statusDia.isPresent()) dia.setStatusDia(statusDia.get());      
+            if (statusDia.isPresent()) dia.setStatusDia(statusDia.get());     
+
+            
             
             if (statusHora.isPresent()) dia.createHoras(statusHora.get(), horasService);
             
@@ -468,13 +528,17 @@ public class AdminController {
         Optional<Usuario> usuario = usuarioService.findByLogin(profissionalDTO.login());
 
         //Se usuario não existe a empresa do usuario do profissional for diferente da empresa do usuario logado retorn 404
-        if (!usuario.isPresent() || usuario.get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) return new ResponseEntity<>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
+        if (!usuario.isPresent() || usuario.get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) 
+            return new ResponseEntity<>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
+
 
         Profissional profissional = new Profissional();
         BeanUtils.copyProperties(profissionalDTO, profissional);
         profissional.setUsuario(usuario.get());
 
-        return new ResponseEntity<>(profissionalService.save(profissional), HttpStatus.CREATED);
+        profissionalService.save(profissional);
+
+        return new ResponseEntity<>("Profissional Cadastrado com sucesso", HttpStatus.CREATED);
     }
 
     //Editar Profissional
@@ -516,33 +580,53 @@ public class AdminController {
 
     //Lista Profissoinal por empresa
     @GetMapping("/profissional/list")
-    public ResponseEntity<Page<Profissional>> profissionalListByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
+    public ResponseEntity<Page<ProfissionalResponseDTO>> profissionalListByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
         Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-        return new ResponseEntity<>(profissionalService.findByEmpresa(usuario.getEmpresa().getId(), pageable), HttpStatus.OK);
+
+        Page<Profissional> page = profissionalService.findByEmpresa(usuario.getEmpresa().getId(), pageable);
+
+        Page<ProfissionalResponseDTO> profissionais = page.map(profissional -> {
+            ProfissionalResponseDTO dto = new ProfissionalResponseDTO(profissional.getId(),profissional.getTitulo(),profissional.getRegistro(),
+            profissional.getUsuario().getNome(), profissional.getUsuario().getSobrenome(), profissional.getUsuario().getLogin(), profissional.getUsuario().getEmpresa().getNome(), null);
+
+            return dto;
+        });
+
+        return new ResponseEntity<>(profissionais, HttpStatus.OK);
     }
 
-        //Lista Profissoinal por empresa
-        @GetMapping("/profissionais")
-        public ResponseEntity<List<ProfissionalListDTO>> profissionalList(@PageableDefault(page = 0, size = 1000, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
-            Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+    //Lista Profissoinal por empresa
+    @GetMapping("/profissionais")
+    public ResponseEntity<List<ProfissionalListDTO>> profissionalList(@PageableDefault(page = 0, size = 1000, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
+        Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
 
-            Page<Profissional> page = profissionalService.findByEmpresa(usuario.getEmpresa().getId(), pageable);
+        Page<Profissional> page = profissionalService.findByEmpresa(usuario.getEmpresa().getId(), pageable);
 
-            List<ProfissionalListDTO> profissionais = page.getContent().stream().map(profissional -> {
-                ProfissionalListDTO dto = new ProfissionalListDTO(profissional.getUsuario().getNome(), profissional.getId());
-                return dto;
+        List<ProfissionalListDTO> profissionais = page.getContent().stream().map(profissional -> {
+            ProfissionalListDTO dto = new ProfissionalListDTO(profissional.getUsuario().getNome(), profissional.getId());
+            return dto;
 
-            }).collect(Collectors.toList());
+        }).collect(Collectors.toList());
 
-            return new ResponseEntity<>(profissionais, HttpStatus.OK);
-        }
+        return new ResponseEntity<>(profissionais, HttpStatus.OK);
+    }
 
 
-    @GetMapping("/profissional/findbyId")
+    @GetMapping("/profissional/findbyid")
     public ResponseEntity<Object> profissionalFindById(@RequestParam long id){
+
         Optional<Profissional> profissional = profissionalService.findById(id);
-        if (profissional.isPresent()) return new ResponseEntity<>(profissional.get(), HttpStatus.OK);
-            else return new ResponseEntity<>("Profissional não encontrado!", HttpStatus.NOT_FOUND);
+
+        if (!profissional.isPresent()) 
+            return new ResponseEntity<>("Prosfissional não encontrado!", HttpStatus.NOT_FOUND);
+
+        ProfissionalResponseDTO dto = new ProfissionalResponseDTO(
+            profissional.get().getId(), profissional.get().getTitulo(), profissional.get().getRegistro(), profissional.get().getUsuario().getNome(),
+            profissional.get().getUsuario().getSobrenome(), profissional.get().getUsuario().getLogin(), profissional.get().getUsuario().getEmpresa().getNome(),
+            profissional.get().getAgenda());
+
+        
+        return new ResponseEntity<>(dto, HttpStatus.OK);
         
     }
 

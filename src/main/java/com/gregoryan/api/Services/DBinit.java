@@ -1,5 +1,10 @@
 package com.gregoryan.api.Services;
 
+import java.util.Calendar;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.TimeZone;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,10 +23,6 @@ import com.gregoryan.api.Services.Crud.StatusAgendaService;
 import com.gregoryan.api.Services.Crud.StatusDiaService;
 import com.gregoryan.api.Services.Crud.StatusHoraService;
 import com.gregoryan.api.Services.Crud.UsuarioService;
-import java.util.Calendar;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.TimeZone;
 
 import jakarta.annotation.PostConstruct;
 
@@ -135,10 +136,10 @@ public class DBinit {
             usuario.setLogin("sysadmin");
             String encryptedPassword = new BCryptPasswordEncoder().encode(sysadminpass);
             usuario.setSenha(encryptedPassword);
-            Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT"), new Locale("pt-BR"));
+            Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
             usuario.setDataRegistro(now);
             usuario.setNascimento(now);
-            Optional<Empresa> empresa = empresaService.findById(1);
+            Optional<Empresa> empresa = empresaService.findByCnpj(123456789);
             if (empresa.isPresent()) usuario.setEmpresa(empresa.get());
 
             usuarioService.save(usuario);
