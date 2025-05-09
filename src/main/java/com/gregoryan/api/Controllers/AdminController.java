@@ -339,10 +339,16 @@ public class AdminController {
         Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
 
         //Somente busca agenda se agenda pertencer à empresa do usuário
-        if (!agenda.isPresent() || agenda.get().getEmpresa().getId() == usuarioLogado.getEmpresa().getId() )
+        if (!agenda.isPresent() || agenda.get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId() )
             return new ResponseEntity<> ("Agenda não encontrada!", HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity<>(agenda.get(), HttpStatus.OK);
+        //Cria DTO e passa valores de agenda para o DTO
+        AgendaResponseDTO dto = new AgendaResponseDTO(agenda.get().getId(), agenda.get().getNome(), agenda.get().getStatusAgenda(),
+            agenda.get().getEmpresa().getNome(), agenda.get().getProfissional().getId(), agenda.get().getProfissional().getUsuario().getNome(),
+            agenda.get().getDias());
+        //Retorna DTO
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+
     }
 
     //Exclui Agenda
@@ -383,6 +389,8 @@ public class AdminController {
 
             Dias dia;
 
+            System.out.println("################"+diaDTO.id());
+
             if (diaDTO.id() != 0){
                 dia = diasService.findById(diaDTO.id()).get();
             }else {
@@ -392,7 +400,7 @@ public class AdminController {
             dia.setNome(diaDTO.nome());
             
             dia.setDuracaoSessaoInMinutes(diaDTO.duracaoSessaoInMinutes());
-            dia.setIntervaloSesssaoInMinutes(diaDTO.intervaloSessaoInMinutes());
+            dia.setIntervaloSessaoInMinutes(diaDTO.intervaloSessaoInMinutes());
 
             LocalTime inicio = LocalTime.of(Integer.parseInt(diaDTO.inicio().split(":")[0]), Integer.parseInt(diaDTO.inicio().split(":")[1]));
             LocalTime fim = LocalTime.of(Integer.parseInt(diaDTO.fim().split(":")[0]), Integer.parseInt(diaDTO.fim().split(":")[1]));
@@ -448,12 +456,12 @@ public class AdminController {
 
         if (dia.isPresent()) {
             long duracaoSessaoBeforeEdit = dia.get().getDuracaoSessaoInMinutes();
-            long intervaloSessaoBeforeEdit = dia.get().getIntervaloSesssaoInMinutes();
+            long intervaloSessaoBeforeEdit = dia.get().getIntervaloSessaoInMinutes();
             LocalTime inicioBeforeEdit = dia.get().getInicio();
             LocalTime fimBeforeEdit = dia.get().getFim();
 
             dia.get().setDuracaoSessaoInMinutes(diaDTO.duracaoSessaoInMinutes());
-            dia.get().setIntervaloSesssaoInMinutes(diaDTO.intervaloSessaoInMinutes());
+            dia.get().setIntervaloSessaoInMinutes(diaDTO.intervaloSessaoInMinutes());
             Optional<StatusDia> statusDia = statusDiaService.findById(diaDTO.idStatusDia());
             if (statusDia.isPresent()) dia.get().setStatusDia(statusDia.get());
             LocalTime inicio = LocalTime.of(Integer.parseInt(diaDTO.inicio().split(":")[0]), Integer.parseInt(diaDTO.inicio().split(":")[1]));
@@ -463,7 +471,7 @@ public class AdminController {
 
             
             if (duracaoSessaoBeforeEdit != dia.get().getDuracaoSessaoInMinutes() ||
-                intervaloSessaoBeforeEdit != dia.get().getIntervaloSesssaoInMinutes()||
+                intervaloSessaoBeforeEdit != dia.get().getIntervaloSessaoInMinutes()||
                 !inicio.equals(inicioBeforeEdit) || !fim.equals(fimBeforeEdit)) {
                     
                 StatusHora statusHora = statusHoraService.findByNome("Ativo").get();
