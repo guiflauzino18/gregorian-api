@@ -30,6 +30,8 @@ import jakarta.annotation.PostConstruct;
 public class DBinit {
     
     @Autowired
+    private EmpresaService empresaService;
+    @Autowired
     private StatusAgendaService statusAgendaService;
     @Autowired
     private StatusDiaService statusDiaService;
@@ -37,8 +39,6 @@ public class DBinit {
     private StatusHoraService statusHoraService;
     @Autowired
     private UsuarioService usuarioService;
-    @Autowired
-    private EmpresaService empresaService;
     @Autowired
     private ProfissionalService profissionalService;
 

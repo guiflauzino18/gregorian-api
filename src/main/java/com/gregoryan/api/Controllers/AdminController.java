@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
@@ -48,6 +50,8 @@ import com.gregoryan.api.DTO.ProfissionalEditDTO;
 import com.gregoryan.api.DTO.ProfissionalListDTO;
 import com.gregoryan.api.DTO.ProfissionalResponseDTO;
 import com.gregoryan.api.DTO.StatusAgendaCadastroDTO;
+import com.gregoryan.api.DTO.StatusHoraCadastroDTO;
+import com.gregoryan.api.DTO.StatusHoraResponseDTO;
 import com.gregoryan.api.DTO.UsuarioCadastroDTO;
 import com.gregoryan.api.DTO.UsuarioEditDTO;
 import com.gregoryan.api.DTO.UsuarioResponseDTO;
@@ -502,6 +506,7 @@ public class AdminController {
 
     }
 
+    //Deleta horas da agenda
     @DeleteMapping("/agenda/horas/delete/{id}")
     public ResponseEntity<Object> agendaHorasDelete(@PathVariable long id){
         Optional<Horas> hora = horasService.findById(id);
@@ -525,7 +530,97 @@ public class AdminController {
     }
     
 
+    //Lista horas por ID do dia
+    @GetMapping("/agenda/horas")
+    public ResponseEntity<Object> listHorasByDia(@RequestParam long id, HttpServletRequest request){
+        Optional<Dias> dia = diasService.findById(id);
 
+        if (!dia.isPresent()){
+            return new ResponseEntity<>("Dia não encontrado", HttpStatus.NOT_FOUND);
+        }
+
+        List<Horas> horas = dia.get().getHoras();
+
+        return new ResponseEntity<>(horas, HttpStatus.OK);
+    }
+
+
+    //Lista Status da Hora
+    @GetMapping("/agenda/horas/status")
+    public ResponseEntity<Object> listaStatusHora(HttpServletRequest request){
+        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+
+        Optional<List<StatusHora>> status = statusHoraService.findByEmpresa(usuarioLogado.getEmpresa());
+
+        if (!status.isPresent()){
+            return new ResponseEntity<>("Nenhum status encontrado", HttpStatus.NOT_FOUND);
+        }
+
+        //Além de buscar os status cadastrados pelo cliente, trás tambem os status padrão.
+        Optional<StatusHora> ativo = statusHoraService.findByNome("Ativo");
+        Optional<StatusHora> bloqueado = statusHoraService.findByNome("Bloqueado");
+
+        if (ativo.isPresent() || bloqueado.isPresent()) {
+            status.get().add(ativo.get());
+            status.get().add(bloqueado.get());
+        }
+
+        //Passa os dados do model para o DTO
+        List<StatusHoraResponseDTO> statusDTO = status.get().stream().map(item -> {
+            StatusHoraResponseDTO dto = new StatusHoraResponseDTO(item.getId(), item.getNome());
+            return dto;
+
+        }).collect(Collectors.toList());
+
+        return new ResponseEntity<>(statusDTO, HttpStatus.OK);
+    }
+
+    //Cadastra Status Hora
+    @PostMapping("/agenda/horas/status")
+    public ResponseEntity<Object> cadastraStatusHora(@RequestBody @Valid StatusHoraCadastroDTO statusHoraDTO, HttpServletRequest request){
+
+        if (statusHoraService.existsByNome(statusHoraDTO.nome()))
+            return new ResponseEntity<>("Status ja existe", HttpStatus.CONFLICT);
+
+        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+        Empresa empresa = usuarioLogado.getEmpresa();
+
+        StatusHora status = new StatusHora();
+        BeanUtils.copyProperties(statusHoraDTO, status);
+
+        status.setEmpresa(empresa);
+        statusHoraService.save(status);
+
+        return new ResponseEntity<>("Cadastro realizado com sucesso!", HttpStatus.CREATED);
+    }
+   
+   
+    @DeleteMapping("/agenda/horas/status/{id}")
+    public ResponseEntity<String> deletaStatusHora(@PathVariable long id, HttpServletRequest request){
+
+        // Nâo permite deletar status com ID 1 Ativo ou 2 Bloqueado.
+        if (id == 1 || id == 2){
+            return new ResponseEntity<>("Status não pode ser excluído", HttpStatus.FORBIDDEN);
+        }
+
+        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+
+        Optional<StatusHora> status = statusHoraService.findById(id);
+
+        // Se status não existe retorn erro
+        if (!status.isPresent()){
+            return new ResponseEntity<>("Status não encontrado", HttpStatus.NOT_FOUND);
+        }
+
+        // Se empresa do status for diferente da empresa do usuario logado retorna erro - Evita usuario excluir ID que não pertence a sua empresa
+        if (status.get().getEmpresa() != usuarioLogado.getEmpresa())
+            return new ResponseEntity<>("Status não encontrado", HttpStatus.NOT_FOUND);
+
+        statusHoraService.delete(status.get());
+
+        return new ResponseEntity<>("Status deletado", HttpStatus.OK);
+    }
+   
     //=============================================== PROFISSIONAL =======================================================
 
     //Cadastro de Profissional
