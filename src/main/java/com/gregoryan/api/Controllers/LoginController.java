@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gregoryan.api.DTO.LoginRequestDTO;
 import com.gregoryan.api.DTO.LoginResponseDTO;
-import com.gregoryan.api.DTO.usuarioResetSenhaDTO;
+import com.gregoryan.api.DTO.UsuarioResetSenhaDTO;
 import com.gregoryan.api.Models.Usuario;
 import com.gregoryan.api.Repositorys.UsuarioRepository;
 import com.gregoryan.api.Services.Crud.UsuarioService;
@@ -46,7 +46,7 @@ public class LoginController {
 
         Usuario usuario = (Usuario) auth.getPrincipal();
 
-        if (usuario.getStatus() == Usuario.STATUS_INATIVO) {
+        if (usuario.getStatus() != Usuario.StatusUsuario.ATIVO ) {
             return new ResponseEntity<>("Usuário Bloqueado!", HttpStatus.FORBIDDEN);
         }
 
@@ -56,7 +56,7 @@ public class LoginController {
     }
 
     @PutMapping("/login/usuario/alterasenha")
-    public ResponseEntity<Object> usuarioAlteraPass(@RequestBody @Valid usuarioResetSenhaDTO usuarioDTO){
+    public ResponseEntity<Object> usuarioAlteraPass(@RequestBody @Valid UsuarioResetSenhaDTO usuarioDTO){
         if(usuarioService.findById(usuarioDTO.id()).isPresent()){
             Usuario usuario = usuarioService.findById(usuarioDTO.id()).get();
             String encryptedPassword = new BCryptPasswordEncoder().encode(usuarioDTO.senha());

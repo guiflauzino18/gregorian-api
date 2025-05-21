@@ -10,7 +10,9 @@ import org.springframework.stereotype.Service;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.Usuario;
+import com.gregoryan.api.Services.Crud.UsuarioService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -53,5 +55,10 @@ public class TokenService {
         var authHeader = request.getHeader("Authorization");
         if(authHeader == null) return null;
         return authHeader.replace("Bearer ", "");
+    }
+
+    public Empresa getEmpresaFromToken(HttpServletRequest request, UsuarioService service){
+        
+        return service.findByLogin(validateToken(recoverToken(request))).get().getEmpresa();
     }
 }

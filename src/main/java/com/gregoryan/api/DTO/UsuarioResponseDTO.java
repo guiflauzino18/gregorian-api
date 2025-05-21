@@ -3,6 +3,7 @@ package com.gregoryan.api.DTO;
 import java.util.Calendar;
 
 import com.gregoryan.api.Models.UserRole;
+import com.gregoryan.api.Models.Usuario.StatusUsuario;
 
 public record UsuarioResponseDTO(
     long id,
@@ -13,7 +14,7 @@ public record UsuarioResponseDTO(
     String email,
     String login,
     String endereco,
-    int status,
+    StatusUsuario status,
     boolean alteraNextLogon,
     UserRole role,
     Calendar dataRegistro,

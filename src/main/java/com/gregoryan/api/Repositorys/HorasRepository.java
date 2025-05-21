@@ -10,6 +10,5 @@ import com.gregoryan.api.Models.StatusHora;
 public interface HorasRepository extends JpaRepository<Horas, Long>{
 
     Page<Horas> findByStatusHora(StatusHora status, Pageable pageable);
-   
-    
+
 }

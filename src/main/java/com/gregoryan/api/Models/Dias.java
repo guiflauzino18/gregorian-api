@@ -45,7 +45,7 @@ public class Dias implements Serializable{
     @JoinColumn(name = "dia_fk")
     private List<Horas> horas;
 
-    private long intervaloSesssaoInMinutes;
+    private long intervaloSessaoInMinutes;
 
     private long duracaoSessaoInMinutes;
 
@@ -79,7 +79,7 @@ public class Dias implements Serializable{
             hora.setStatusHora(statusHora);
             horasP.add(hora);
 
-            incremento = incremento.plusMinutes(duracaoSessaoInMinutes).plusMinutes(intervaloSesssaoInMinutes);
+            incremento = incremento.plusMinutes(duracaoSessaoInMinutes).plusMinutes(intervaloSessaoInMinutes);
         }
 
         this.setHoras(horasP);

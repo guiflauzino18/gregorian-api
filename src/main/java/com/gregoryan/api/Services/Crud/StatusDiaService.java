@@ -4,7 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import java.util.Optional;
+
+import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.StatusDia;
 import com.gregoryan.api.Repositorys.StatusDiaRepository;
 
@@ -39,6 +43,10 @@ public class StatusDiaService {
 
     public Page<StatusDia> findAll(Pageable pageable){
         return repository.findAll(pageable);
+    }
+
+    public Optional<List<StatusDia>> findByEmpresa(Empresa empresa){
+        return repository.findByEmpresa(empresa);
     }
 
     
