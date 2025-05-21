@@ -3,7 +3,7 @@ name: Build da versão de Produção
 on:
     pull_request:
         branches:
-            - master
+            - main
 
 jobs:
     build:
