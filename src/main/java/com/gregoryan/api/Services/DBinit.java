@@ -132,7 +132,7 @@ public class DBinit {
             usuario.setEmail("admin@email.com");
             usuario.setEndereco("Sem endereço");
             usuario.setRole(UserRole.GESTOR);
-            usuario.setStatus(Usuario.STATUS_ATIVO);
+            usuario.setStatus(Usuario.StatusUsuario.ATIVO);
             usuario.setLogin("sysadmin");
             String encryptedPassword = new BCryptPasswordEncoder().encode(sysadminpass);
             usuario.setSenha(encryptedPassword);

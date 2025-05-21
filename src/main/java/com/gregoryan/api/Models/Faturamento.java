@@ -51,6 +51,25 @@ public class Faturamento {
     private Empresa empresa;
 
 
+    private StatusFaturamento status;
+
+    public enum StatusFaturamento {
+        GERADO(1), CANCELADO(2), FATURADO(3);
+
+        private final int status;
+
+        private StatusFaturamento(int valor){
+            status = valor;
+        }
+
+        public int getStatus(){
+            return status;
+        }
+
+        
+    }
+
+
     public float getDebito(){
         return getTotal() - pago;
     }

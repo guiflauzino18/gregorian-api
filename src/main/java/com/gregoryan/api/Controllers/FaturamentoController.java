@@ -74,6 +74,8 @@ public class FaturamentoController {
         Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
         faturamento.setEmpresa(usuario.getEmpresa());
 
+        faturamento.setStatus(Faturamento.StatusFaturamento.GERADO);
+
         return new ResponseEntity<>(faturamentoService.save(faturamento), HttpStatus.CREATED);
     }
 
