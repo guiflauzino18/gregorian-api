@@ -17,7 +17,7 @@ import com.gregoryan.api.Services.Crud.UsuarioService;
 import com.gregoryan.api.Services.Interfaces.UsuarioListInterface;
 
 @Service
-public class UsuarioList implements UsuarioListInterface{
+public class UsuarioListService implements UsuarioListInterface{
 
     @Autowired
     private UsuarioService service;

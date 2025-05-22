@@ -12,7 +12,7 @@ import com.gregoryan.api.Services.Interfaces.DataConverterInterface;
 import com.gregoryan.api.Services.Interfaces.UsuarioValidateInterface;
 
 @Service
-public class UsuarioRegistrationService{
+public class UsuarioCreateService{
 
     @Autowired
     private UsuarioService usuarioService;

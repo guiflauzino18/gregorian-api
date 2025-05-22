@@ -11,6 +11,7 @@ import java.text.ParseException;
 import java.util.stream.Collectors;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -53,6 +54,9 @@ import com.gregoryan.api.DTO.UsuarioEditDTO;
 import com.gregoryan.api.DTO.planoPacienteCadastroDTO;
 import com.gregoryan.api.DTO.UsuarioResetSenhaDTO;
 import com.gregoryan.api.Exception.AcessoNegadoException;
+import com.gregoryan.api.Exception.AgendaDontExistException;
+import com.gregoryan.api.Exception.ProfissionalDontExitException;
+import com.gregoryan.api.Exception.StatusAgendaDontExistException;
 import com.gregoryan.api.Exception.UsuarioDontExistException;
 import com.gregoryan.api.Exception.UsuarioExisteException;
 import com.gregoryan.api.Models.Agenda;
@@ -69,7 +73,9 @@ import com.gregoryan.api.Models.StatusHora;
 import com.gregoryan.api.Models.Usuario;
 import com.gregoryan.api.Services.UsuarioDeletingService;
 import com.gregoryan.api.Services.UsuarioEditingService;
-import com.gregoryan.api.Services.UsuarioRegistrationService;
+import com.gregoryan.api.Services.AgendaCreateService;
+import com.gregoryan.api.Services.AgendaDeletingService;
+import com.gregoryan.api.Services.UsuarioCreateService;
 import com.gregoryan.api.Services.UsuarioResetSenha;
 import com.gregoryan.api.Services.Crud.AgendaService;
 import com.gregoryan.api.Services.Crud.DiaBloqueadoService;
@@ -82,17 +88,25 @@ import com.gregoryan.api.Services.Crud.StatusAgendaService;
 import com.gregoryan.api.Services.Crud.StatusDiaService;
 import com.gregoryan.api.Services.Crud.StatusHoraService;
 import com.gregoryan.api.Services.Crud.UsuarioService;
+import com.gregoryan.api.Services.Interfaces.AgendaListInterface;
 import com.gregoryan.api.Services.Interfaces.UsuarioListInterface;
 import com.gregoryan.api.Services.Security.TokenService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 
 @RestController
 @RequestMapping("/api/admin")
+@Tag(name = "Administradores", description = "Operações relacionadas a Administradores do sistema")
 public class AdminController {
     
     @Autowired
     private PlanoPacienteService planoPacienteService;
- 
     @Autowired
     private TokenService tokenService;
     @Autowired
@@ -118,7 +132,7 @@ public class AdminController {
     @Autowired
     private UsuarioService usuarioService;
     @Autowired
-    private UsuarioRegistrationService usuarioRegistration;
+    private UsuarioCreateService usuarioCreate;
     @Autowired
     private UsuarioDeletingService usuarioDeleting;
     @Autowired
@@ -128,11 +142,19 @@ public class AdminController {
     @Autowired
     private UsuarioResetSenha resetSenha;
 
-    
+    //Injetor relacionado a Agenda
+    @Autowired
+    private AgendaCreateService agendaCreate;
+    @Autowired
+    private AgendaListInterface agendaList;
+    @Autowired
+    private AgendaDeletingService agendaDeleting;
 
     // ================================= PLANO PACIENTE ==================================
 
     @PostMapping("/planopaciente/cadastro")
+    @Operation(summary = "Cadastro de plano paciente", description = "Salvar um plano para paciente no Banco")
+    @ApiResponse(responseCode = "200", description = "Cadastro realizado com sucesso.")
     public ResponseEntity<PlanoPaciente> planoPacienteCadastro(@RequestBody planoPacienteCadastroDTO planoPacienteDTO, HttpServletRequest request){ 
         PlanoPaciente planoPaciente = new PlanoPaciente();
 
@@ -153,28 +175,44 @@ public class AdminController {
 
     // ================================= Usuários dos Sistema =================================
 
-    //Cadastro de Usuário
     @PostMapping("/usuario/cadastro")
-    public ResponseEntity<Object> saveUsuario(@RequestBody @Valid UsuarioCadastroDTO usuarioDTO, HttpServletRequest request) throws ParseException {
+    @Operation(summary = "Cadastro de usuários", description = "Salva um usuário no Banco de Dados")
+    @ApiResponse(responseCode = "201", description = "Usuário salvo com sucesso")
+    @ApiResponse(responseCode = "409", description = "Conflito de login")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<Object> saveUsuario(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Dados do usuário a ser cadastrado",
+            required = true,
+            content = @Content(schema = @Schema(implementation = UsuarioCadastroDTO.class))
+        )
+        @RequestBody @Valid UsuarioCadastroDTO usuarioDTO, HttpServletRequest request) throws ParseException {
         
         try {
-
             Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            
-            Usuario usuario = usuarioRegistration.cadastrar(usuarioDTO, empresa);
+            Usuario usuario = usuarioCreate.cadastrar(usuarioDTO, empresa);
             
             return new ResponseEntity<>(usuario, HttpStatus.CREATED);
-        }catch (UsuarioExisteException e){
 
+        }catch (UsuarioExisteException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
-            
+
         }
         
     }
 
-    //Exclusão de usuário
     @DeleteMapping("/usuario/exclui/{id}")
-    public ResponseEntity<Object> deleteUsuario(@PathVariable long id, HttpServletRequest request){
+    @Operation(summary = "Deleta Usuário", description = "Deleta um usuário do Banco de Dados")
+    @ApiResponse(responseCode = "200", description = "Usuário deletado com sucesso")
+    @ApiResponse(responseCode = "404", description = "Usuário não encontrado para deletar")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<Object> deleteUsuario(
+        @Parameter(
+            description = "ID do usuário a ser excluído",
+            required = true,
+            example = "123"
+        )
+        @PathVariable long id, HttpServletRequest request){
 
         try{
 
@@ -189,22 +227,28 @@ public class AdminController {
         }
     }
 
-    //List Usuario por Empresa
     @GetMapping("/usuario/list")
+    @Operation(summary = "Lista usuário da empresa", description = "Lista usuários da empresa da qual o usuário faz parte.")
+    @ApiResponse(responseCode = "200", description = "Usuário listado com sucesso")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     public ResponseEntity<Object> usuarioListByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
         
-        try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            return new ResponseEntity<>(usuarioListing.list(empresa, pageable), HttpStatus.OK);
-
-        }catch (UsuarioDontExistException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-        }
+        Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+        return new ResponseEntity<>(usuarioListing.list(empresa, pageable), HttpStatus.OK);
     }
 
-    // Lista Usuario por ID
     @GetMapping("/usuario")
-    public ResponseEntity<Object> usuarioListById(@RequestParam long id, HttpServletRequest request){
+    @Operation(summary = "Busca Usuário por ID", description = "Busca usuário no Banco pelo ID")
+    @ApiResponse(responseCode = "200", description = "Usuário localizado é retornado")
+    @ApiResponse(responseCode = "404", description = "Usuário não localizado")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<Object> usuarioListById(
+        @Parameter(
+            description = "ID do uusário",
+            required = true,
+            example = "123"
+        )
+        @RequestParam long id, HttpServletRequest request){
 
         try {
             return new ResponseEntity<>(usuarioListing.list(id), HttpStatus.OK);
@@ -215,9 +259,18 @@ public class AdminController {
             
     }
 
-    // Lista Usuario por Login
     @GetMapping("/usuario/findlogin")
-    public ResponseEntity<Object> usuarioListByLogin(@RequestParam String login){
+    @Operation(summary = "Busca usuário por Login", description = "Busca usuário no banco pelo login")
+    @ApiResponse(responseCode = "200", description = "Usuário localizado é retornado")
+    @ApiResponse(responseCode = "404", description = "Usuário não localizado")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<Object> usuarioListByLogin(
+        @Parameter(
+            description = "Login do usuário",
+            required = true,
+            example = "maria.jose"
+        )
+        @RequestParam String login){
 
         System.out.println("-------------------------\n"+login);
 
@@ -230,10 +283,18 @@ public class AdminController {
             
     }
 
-
-    //Edição de Usuário
     @PutMapping("/usuario/edit")
-    public ResponseEntity<Object> editUsuario(@RequestBody @Valid UsuarioEditDTO usuarioDTO, HttpServletRequest request) throws ParseException{
+    @Operation(summary = "Edita dados de usuário", description = "Salva dados editados do usuário no Banco de Dados")
+    @ApiResponse(responseCode = "200", description = "Usuário salvo com sucesso no Banco de Dados")
+    @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<Object> editUsuario(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Dados do usuário editado a ser salvo",
+            required = true,
+            content = @Content(schema = @Schema(implementation = UsuarioEditDTO.class))
+        )
+        @RequestBody @Valid UsuarioEditDTO usuarioDTO, HttpServletRequest request) throws ParseException{
 
         try {
             
@@ -249,9 +310,18 @@ public class AdminController {
         
     }
 
-    //Reset de Senha
     @PutMapping("/usuario/resetsenha")
-    public ResponseEntity<Object> usuarioResetPass(@RequestBody @Valid UsuarioResetSenhaDTO usuarioDTO, HttpServletRequest request){
+    @Operation(summary = "Reseta senha de usuário", description = "Define uma nova senha para o usuário passado como parâmetro")
+    @ApiResponse(responseCode = "200", description = "Usuário salvo com sucesso no Banco de Dados")
+    @ApiResponse(responseCode = "404", description = "Usuário não localizado")
+    @ApiResponse(responseCode = "403", description = "Usuário sem premissão para esta operação")
+    public ResponseEntity<Object> usuarioResetPass(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Dados do usuário como ID e nova senha",
+            required = true,
+            content = @Content(schema =  @Schema(implementation = UsuarioResetSenhaDTO.class))
+        )
+        @RequestBody @Valid UsuarioResetSenhaDTO usuarioDTO, HttpServletRequest request){
 
         
         try {
@@ -272,140 +342,148 @@ public class AdminController {
 
     // =============================================== AGENDA ======================================
 
-    //Cadastro de Agenda
     @PostMapping("/agenda/cadastro")
-    public ResponseEntity<Object> agendaCadastro(@RequestBody @Valid AgendaCadastroDTO agendaDTO, HttpServletRequest request){
+    @Operation(summary = "Cadastrado de Agenda", description = "Salva uma nova agenda no Banco de Dados")
+    @ApiResponse(responseCode = "201", description = "Agenda cadastrada com sucesso")
+    @ApiResponse(responseCode = "404", description = "Profissional ou Status para a agenda não foram encontrados")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    @ApiResponse(responseCode = "400", description = "Profissional informado já possui agenda")
+    public ResponseEntity<Object> agendaCadastro(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Dados da agenda a ser cadastrada",
+            required = true,
+            content = @Content(schema = @Schema(implementation = AgendaCadastroDTO.class))
+        )
+        @RequestBody @Valid AgendaCadastroDTO agendaDTO, HttpServletRequest request){
 
-        if(agendaService.existsByNome(agendaDTO.nome()))
-            return new ResponseEntity<>("Conflito: Nome de agenda já existe!", HttpStatus.CONFLICT);
-        
-        Agenda agenda = new Agenda();
+        try {
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
 
-        
-        if (statusAgendaService.findByNome("Ativo").isPresent()) 
-            agenda.setStatusAgenda(statusAgendaService.findByNome("Ativo").get());
+            agendaCreate.cadastrar(agendaDTO, empresa);
 
-        
-        Optional<Profissional> profissional = profissionalService.findById(agendaDTO.idProfissional());
+            return new ResponseEntity<>("Agenda cadastrada", HttpStatus.CREATED);
 
-        if (!profissional.isPresent())
-            return new ResponseEntity<>("Profissional não encontrado!", HttpStatus.NOT_FOUND);
+        }catch (ProfissionalDontExitException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
-        agenda.setProfissional(profissional.get());
+        }catch(StatusAgendaDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
-        Usuario logado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-        agenda.setEmpresa(logado.getEmpresa());
-
-        agenda.setNome(agendaDTO.nome());
-
-        return new ResponseEntity<>(agendaService.save(agenda), HttpStatus.CREATED);
+        }catch(DataIntegrityViolationException e){
+            return new ResponseEntity<>("Este profissional já possui agenda", HttpStatus.BAD_REQUEST);
+        }
 
     }
 
-    //List Agendas
     @GetMapping("/agenda/list")
+    @Operation(summary = "Lista agendas da Empresa", description = "Lista agendas da empresa pegando a empresa do usuário logado")
+    @ApiResponse(responseCode = "200", description = "Retorna agendas da empresa com sucesso")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    @ApiResponse(responseCode = "500", description = "Se houver algum erro na operação")
     public ResponseEntity<Page<AgendaResponseDTO>> agendaList(
         @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
         HttpServletRequest request){
-        
-        Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
 
-        Page<Agenda> page = agendaService.findByEmpresa(usuario.getEmpresa(), pageable);
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
 
-        Page<AgendaResponseDTO> agendas = page.map(agenda -> {
+            return new ResponseEntity<>(agendaList.list(empresa, pageable), HttpStatus.OK);
 
-            AgendaResponseDTO dto = new AgendaResponseDTO(agenda.getId(), agenda.getNome(), agenda.getStatusAgenda(), agenda.getEmpresa().getNome(),
-            agenda.getProfissional().getId(), agenda.getProfissional().getUsuario().getNome(), agenda.getDias());
+        }catch(Exception e){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
-            return dto;
-        });
-
-
-        return new ResponseEntity<>(agendas, HttpStatus.OK);
     }
 
     //Busca Agenda por ID
     @GetMapping("/agenda/{id}")
-    public ResponseEntity<Object> agendaById(@PathVariable long id , HttpServletRequest request){
-        System.out.println(id);
-        Optional<Agenda> agenda = agendaService.findById(id);
-        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+    @Operation(summary = "Lista agenda pelo ID", description = "Busca agenda pelo ID no Banco de Dados")
+    @ApiResponse(responseCode = "200", description = "Retorna agenda encontrada com sucesso")
+    @ApiResponse(responseCode = "404", description = "Agenda não encontrada")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<Object> agendaById(
+        @Parameter(
+            description = "ID da Agenda a ser buscada",
+            required = true,
+            example = "123"
+        )
+        @PathVariable long id , HttpServletRequest request){
+ 
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
 
-        //Somente busca agenda se agenda pertencer à empresa do usuário
-        if (!agenda.isPresent() || agenda.get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId() )
-            return new ResponseEntity<> ("Agenda não encontrada!", HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(agendaList.list(id, empresa), HttpStatus.OK);
 
-        //Cria DTO e passa valores de agenda para o DTO
-        AgendaResponseDTO dto = new AgendaResponseDTO(agenda.get().getId(), agenda.get().getNome(), agenda.get().getStatusAgenda(),
-            agenda.get().getEmpresa().getNome(), agenda.get().getProfissional().getId(), agenda.get().getProfissional().getUsuario().getNome(),
-            agenda.get().getDias());
-        //Retorna DTO
-        return new ResponseEntity<>(dto, HttpStatus.OK);
+        }catch(AgendaDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
     }
 
     //Exclui Agenda
     @DeleteMapping("/agenda/delete/{id}")
     public ResponseEntity<String> agendaDelete(@PathVariable long id, HttpServletRequest request){
 
-        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            agendaDeleting.deletar(empresa, id);
+            return new ResponseEntity<>("Agenda deletada", HttpStatus.OK);
+        }catch(AgendaDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
-        Optional<Agenda> agenda = agendaService.findById(id);
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
 
-        //Somente deleta agenda se Empresa da Agenda for a mesma do Usuário logado.
-        if (agenda.isPresent() && agenda.get().getEmpresa().getId() == usuarioLogado.getEmpresa().getId()) {
-            try {
-                agendaService.delete(agenda.get());
-                return new ResponseEntity<String> ("Agenda excluída do sistema!", HttpStatus.OK);
+        }catch(DataIntegrityViolationException e){
+            return new ResponseEntity<>("Erro ao excluir agenda: "+e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 
-            } catch (Exception e) {
-                return new ResponseEntity<>("Nâo é possível excluir essa Agenda!\n"+e, HttpStatus.FORBIDDEN);
-            }
-            
-        } else return new ResponseEntity<>("Agenda não encontrada!", HttpStatus.NOT_FOUND);
+        }
     }
 
     //Configura Agenda
     @PutMapping("/agenda/config")
     public ResponseEntity<Object> agendaConfig(@RequestBody @Valid AgendaConfigDTO agendaDTO, HttpServletRequest request){
+
         Optional<StatusHora> statusHora = statusHoraService.findByNome("Ativo");
         Optional<StatusDia> statusDia = statusDiaService.findByNome("Ativo");
         Optional<Agenda> agenda = agendaService.findById(agendaDTO.idAgenda());
 
-        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+        // Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
 
-        //Se agenda não existe ou empresa da agenda é diferente da empresa do usuário logado retorno 404
-        if (!agenda.isPresent() || agenda.get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) 
-            return new ResponseEntity<>("Agenda não encontrada!", HttpStatus.NOT_FOUND);
+        // //Se agenda não existe ou empresa da agenda é diferente da empresa do usuário logado retorno 404
+        // if (!agenda.isPresent() || agenda.get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) 
+        //     return new ResponseEntity<>("Agenda não encontrada!", HttpStatus.NOT_FOUND);
 
-        for (DiaCadastroDTO diaDTO : agendaDTO.dias()) {
+        // for (DiaCadastroDTO diaDTO : agendaDTO.dias()) {
 
-            Dias dia;
+        //     Dias dia;
 
-            if (diaDTO.id() != 0){
-                dia = diasService.findById(diaDTO.id()).get();
-            }else {
-                dia = new Dias();
-            }
+        //     if (diaDTO.id() != 0){
+        //         dia = diasService.findById(diaDTO.id()).get();
+        //     }else {
+        //         dia = new Dias();
+        //     }
 
-            dia.setNome(diaDTO.nome());
+        //     dia.setNome(diaDTO.nome());
             
-            dia.setDuracaoSessaoInMinutes(diaDTO.duracaoSessaoInMinutes());
-            dia.setIntervaloSessaoInMinutes(diaDTO.intervaloSessaoInMinutes());
+        //     dia.setDuracaoSessaoInMinutes(diaDTO.duracaoSessaoInMinutes());
+        //     dia.setIntervaloSessaoInMinutes(diaDTO.intervaloSessaoInMinutes());
 
-            LocalTime inicio = LocalTime.of(Integer.parseInt(diaDTO.inicio().split(":")[0]), Integer.parseInt(diaDTO.inicio().split(":")[1]));
-            LocalTime fim = LocalTime.of(Integer.parseInt(diaDTO.fim().split(":")[0]), Integer.parseInt(diaDTO.fim().split(":")[1]));
-            dia.setInicio(inicio);
-            dia.setFim(fim);
+        //     LocalTime inicio = LocalTime.of(Integer.parseInt(diaDTO.inicio().split(":")[0]), Integer.parseInt(diaDTO.inicio().split(":")[1]));
+        //     LocalTime fim = LocalTime.of(Integer.parseInt(diaDTO.fim().split(":")[0]), Integer.parseInt(diaDTO.fim().split(":")[1]));
+        //     dia.setInicio(inicio);
+        //     dia.setFim(fim);
 
-            if (statusDia.isPresent()) dia.setStatusDia(statusDia.get());     
+        //     if (statusDia.isPresent()) dia.setStatusDia(statusDia.get());     
             
-            if (statusHora.isPresent()) dia.createHoras(statusHora.get(), horasService);
+        //     if (statusHora.isPresent()) dia.createHoras(statusHora.get(), horasService);
             
-            agenda.get().getDias().add(dia);
-        }
+        //     agenda.get().getDias().add(dia);
+        // }
 
-        agendaService.save(agenda.get());
+        //agendaService.save(agenda.get());
 
         Optional<Profissional> profissional = profissionalService.findById(agendaDTO.idProfissional());
         if (profissional.isPresent()) {

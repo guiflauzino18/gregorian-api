@@ -3,10 +3,8 @@ package com.gregoryan.api.Services.Interfaces;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
 import com.gregoryan.api.DTO.UsuarioResponseDTO;
 import com.gregoryan.api.Models.Empresa;
-import com.gregoryan.api.Models.Usuario;
 
 public interface UsuarioListInterface {
     

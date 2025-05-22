@@ -3,6 +3,7 @@ package com.gregoryan.api.Services;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -34,5 +35,16 @@ public class DataConverter implements DataConverterInterface{
 
         return nascimento;
     }
+
+    @Override
+    public LocalTime getHour(String hourString) {
+        int hour = Integer.parseInt(hourString.split(":")[0]);
+        int minute = Integer.parseInt(hourString.split(":")[1]);
+
+        return LocalTime.of(hour, minute);
+            
+    }
+
+    
     
 }
