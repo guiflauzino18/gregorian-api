@@ -1,0 +1,43 @@
+package com.gregoryan.api.Services;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import com.gregoryan.api.Exception.EntityDontExistException;
+import com.gregoryan.api.Models.Empresa;
+import com.gregoryan.api.Models.StatusHora;
+import com.gregoryan.api.Services.Crud.StatusHoraService;
+import com.gregoryan.api.Services.Interfaces.StatusHoraListInterface;
+import com.gregoryan.api.Services.Interfaces.UsuarioValidateInterface;
+
+@Service
+public class StatusHoraListService implements StatusHoraListInterface{
+
+    @Autowired
+    private StatusHoraService statusHoraService;
+    @Autowired
+    private UsuarioValidateInterface usuarioValidate;
+
+    @Override
+    public StatusHora list(long id, Empresa empresa) {
+        StatusHora statusHora = statusHoraService.findById(id).orElseThrow(() -> new EntityDontExistException("Status não encontrado"));
+        usuarioValidate.isSameEmpresaFromUserLogged(empresa, statusHora.getEmpresa());
+        return statusHora;
+    }
+
+    @Override
+    public Page<StatusHora> list(Empresa empresa, Pageable pageable) {
+        List<StatusHora> list = statusHoraService.findByEmpresa(empresa, pageable).getContent();
+        statusHoraService.findByNome("Ativo").ifPresent(item -> list.add(item));
+        statusHoraService.findByNome("Bloqueado").ifPresent(item -> list.add(item));
+
+        return new PageImpl<StatusHora>(list);
+    }
+
+    
+}

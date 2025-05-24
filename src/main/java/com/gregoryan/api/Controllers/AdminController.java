@@ -10,9 +10,11 @@ import java.util.TimeZone;
 import java.text.ParseException;
 import java.util.stream.Collectors;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -34,16 +36,15 @@ import com.gregoryan.api.DTO.AgendaConfigDTO;
 import com.gregoryan.api.DTO.AgendaEditDTO;
 import com.gregoryan.api.DTO.AgendaReplicaDiaDTO;
 import com.gregoryan.api.DTO.AgendaResponseDTO;
-import com.gregoryan.api.DTO.DiaCadastroDTO;
 import com.gregoryan.api.DTO.DiaEditDTO;
 import com.gregoryan.api.DTO.FeriadoCadastroDTO;
 import com.gregoryan.api.DTO.FeriadoEditDTO;
 import com.gregoryan.api.DTO.HorasEditDTO;
 import com.gregoryan.api.DTO.ProfissionalCadastroDTO;
 import com.gregoryan.api.DTO.ProfissionalEditDTO;
-import com.gregoryan.api.DTO.ProfissionalListDTO;
 import com.gregoryan.api.DTO.ProfissionalResponseDTO;
 import com.gregoryan.api.DTO.StatusAgendaCadastroDTO;
+import com.gregoryan.api.DTO.StatusAgendaResponseDTO;
 import com.gregoryan.api.DTO.StatusDiaCadastroDTO;
 import com.gregoryan.api.DTO.StatusDiaEditDTO;
 import com.gregoryan.api.DTO.StatusDiaResponseDTO;
@@ -53,12 +54,10 @@ import com.gregoryan.api.DTO.UsuarioCadastroDTO;
 import com.gregoryan.api.DTO.UsuarioEditDTO;
 import com.gregoryan.api.DTO.planoPacienteCadastroDTO;
 import com.gregoryan.api.DTO.UsuarioResetSenhaDTO;
+import com.gregoryan.api.DTO.UsuarioResponseDTO;
 import com.gregoryan.api.Exception.AcessoNegadoException;
-import com.gregoryan.api.Exception.AgendaDontExistException;
-import com.gregoryan.api.Exception.ProfissionalDontExitException;
-import com.gregoryan.api.Exception.StatusAgendaDontExistException;
-import com.gregoryan.api.Exception.UsuarioDontExistException;
-import com.gregoryan.api.Exception.UsuarioExisteException;
+import com.gregoryan.api.Exception.EntityDontExistException;
+import com.gregoryan.api.Exception.ConflictException;
 import com.gregoryan.api.Models.Agenda;
 import com.gregoryan.api.Models.DiaBloqueado;
 import com.gregoryan.api.Models.Dias;
@@ -75,6 +74,13 @@ import com.gregoryan.api.Services.UsuarioDeletingService;
 import com.gregoryan.api.Services.UsuarioEditingService;
 import com.gregoryan.api.Services.AgendaCreateService;
 import com.gregoryan.api.Services.AgendaDeletingService;
+import com.gregoryan.api.Services.ProfissionalCreateService;
+import com.gregoryan.api.Services.ProfissionalDeletingService;
+import com.gregoryan.api.Services.ProfissionalEditingService;
+import com.gregoryan.api.Services.StatusAgendaCreateService;
+import com.gregoryan.api.Services.StatusAgendaDeletingService;
+import com.gregoryan.api.Services.StatusHoraCreateService;
+import com.gregoryan.api.Services.StatusHoraDeleteService;
 import com.gregoryan.api.Services.UsuarioCreateService;
 import com.gregoryan.api.Services.UsuarioResetSenha;
 import com.gregoryan.api.Services.Crud.AgendaService;
@@ -88,8 +94,17 @@ import com.gregoryan.api.Services.Crud.StatusAgendaService;
 import com.gregoryan.api.Services.Crud.StatusDiaService;
 import com.gregoryan.api.Services.Crud.StatusHoraService;
 import com.gregoryan.api.Services.Crud.UsuarioService;
+import com.gregoryan.api.Services.Interfaces.AgendaConverterInterface;
 import com.gregoryan.api.Services.Interfaces.AgendaListInterface;
+import com.gregoryan.api.Services.Interfaces.ProfissionalConverterInterface;
+import com.gregoryan.api.Services.Interfaces.ProfissionalListInterface;
+import com.gregoryan.api.Services.Interfaces.StatusAgendaConverterInterface;
+import com.gregoryan.api.Services.Interfaces.StatusAgendaListInterface;
+import com.gregoryan.api.Services.Interfaces.StatusHoraConverterInterface;
+import com.gregoryan.api.Services.Interfaces.StatusHoraListInterface;
+import com.gregoryan.api.Services.Interfaces.UsuarioConverterInterface;
 import com.gregoryan.api.Services.Interfaces.UsuarioListInterface;
+import com.gregoryan.api.Services.Interfaces.UsuarioValidateInterface;
 import com.gregoryan.api.Services.Security.TokenService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -141,6 +156,22 @@ public class AdminController {
     private UsuarioEditingService usuarioEditing;
     @Autowired
     private UsuarioResetSenha resetSenha;
+    @Autowired
+    private UsuarioConverterInterface usuarioConverter;
+    @Autowired
+    private UsuarioValidateInterface usuarioValidate;
+
+    //Injetores relacionados ao Profissional
+    @Autowired
+    private ProfissionalCreateService profissionalCreate;
+    @Autowired
+    private ProfissionalEditingService profissionalEditing;
+    @Autowired
+    private ProfissionalDeletingService profissionalDeleting;
+    @Autowired
+    private ProfissionalListInterface profissionalList;
+    @Autowired
+    private ProfissionalConverterInterface profissionalConverter;
 
     //Injetor relacionado a Agenda
     @Autowired
@@ -149,6 +180,24 @@ public class AdminController {
     private AgendaListInterface agendaList;
     @Autowired
     private AgendaDeletingService agendaDeleting;
+    @Autowired
+    private AgendaConverterInterface agendaConverter;
+    @Autowired
+    private StatusAgendaCreateService statusAgendaCreate;
+    @Autowired
+    private StatusAgendaListInterface statusAgendaList;
+    @Autowired
+    private StatusAgendaDeletingService statusAgendaDeleting;
+    @Autowired
+    private StatusAgendaConverterInterface statusAgendaConverter;
+    @Autowired
+    private StatusHoraCreateService statusHoraCreate;
+    @Autowired
+    private StatusHoraListInterface statusHoraList;
+    @Autowired
+    private StatusHoraConverterInterface statusHoraConverter;
+    @Autowired
+    private StatusHoraDeleteService statusHoraDelete;
 
     // ================================= PLANO PACIENTE ==================================
 
@@ -190,11 +239,11 @@ public class AdminController {
         
         try {
             Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            Usuario usuario = usuarioCreate.cadastrar(usuarioDTO, empresa);
+            usuarioCreate.cadastrar(usuarioDTO, empresa);
             
-            return new ResponseEntity<>(usuario, HttpStatus.CREATED);
+            return new ResponseEntity<>("Usuário cadastrado com sucesso", HttpStatus.CREATED);
 
-        }catch (UsuarioExisteException e){
+        }catch (ConflictException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
 
         }
@@ -217,11 +266,12 @@ public class AdminController {
         try{
 
             Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            usuarioDeleting.deleteUser(id, empresa);
+            usuarioDeleting.delete(id, empresa);
             return new ResponseEntity<>("Usuário excluído do sistema", HttpStatus.OK);
 
-        } catch(UsuarioDontExistException e) {
+        } catch(EntityDontExistException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
         } catch (AcessoNegadoException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
@@ -233,8 +283,21 @@ public class AdminController {
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     public ResponseEntity<Object> usuarioListByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
         
-        Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-        return new ResponseEntity<>(usuarioListing.list(empresa, pageable), HttpStatus.OK);
+        try {
+
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            
+            List<UsuarioResponseDTO> listDTO = usuarioListing.list(empresa, pageable).getContent().stream().map(usuario -> {
+                UsuarioResponseDTO dto = usuarioConverter.toUsuarioResponseDTO(usuario);
+                return dto;
+            }).collect(Collectors.toList());
+            
+            return new ResponseEntity<>(new PageImpl<UsuarioResponseDTO>(listDTO), HttpStatus.OK);
+
+        }catch(BeansException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
     }
 
     @GetMapping("/usuario")
@@ -251,10 +314,16 @@ public class AdminController {
         @RequestParam long id, HttpServletRequest request){
 
         try {
-            return new ResponseEntity<>(usuarioListing.list(id), HttpStatus.OK);
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            Usuario usuario = usuarioListing.list(id, empresa);
+            UsuarioResponseDTO dto = usuarioConverter.toUsuarioResponseDTO(usuario);
+            return new ResponseEntity<>(dto, HttpStatus.OK);
 
-        }catch(UsuarioDontExistException e){
+        }catch(EntityDontExistException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
             
     }
@@ -270,15 +339,21 @@ public class AdminController {
             required = true,
             example = "maria.jose"
         )
-        @RequestParam String login){
-
-        System.out.println("-------------------------\n"+login);
+        @RequestParam String login, HttpServletRequest request){
 
         try {
-            return new ResponseEntity<>(usuarioListing.list(login), HttpStatus.OK);
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            Usuario usuario = usuarioListing.list(login, empresa);
 
-        }catch(UsuarioDontExistException e){
+            UsuarioResponseDTO dto = usuarioConverter.toUsuarioResponseDTO(usuario);
+            return new ResponseEntity<>(dto, HttpStatus.OK);
+            //return new ResponseEntity<>(usuarioListing.list(login), HttpStatus.OK);
+
+        }catch(EntityDontExistException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
             
     }
@@ -297,11 +372,11 @@ public class AdminController {
         @RequestBody @Valid UsuarioEditDTO usuarioDTO, HttpServletRequest request) throws ParseException{
 
         try {
-            
             Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            usuarioEditing.editar(usuarioDTO, empresa);
+            usuarioEditing.edit(usuarioDTO, empresa);
             return new ResponseEntity<>("Usuario Editado", HttpStatus.OK);
-        }catch (UsuarioDontExistException e){
+
+        }catch (EntityDontExistException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
         }catch (AcessoNegadoException e){
@@ -328,10 +403,9 @@ public class AdminController {
 
             Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
             resetSenha.reset(usuarioDTO, empresa);
-
             return new ResponseEntity<>("Senha Resetada", HttpStatus.OK);
 
-        }catch(UsuarioDontExistException e){
+        }catch(EntityDontExistException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
         }catch(AcessoNegadoException e){
@@ -363,10 +437,7 @@ public class AdminController {
 
             return new ResponseEntity<>("Agenda cadastrada", HttpStatus.CREATED);
 
-        }catch (ProfissionalDontExitException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-
-        }catch(StatusAgendaDontExistException e){
+        }catch (EntityDontExistException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
         }catch(DataIntegrityViolationException e){
@@ -386,8 +457,15 @@ public class AdminController {
 
         try{
             Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            List<Agenda> agendas = agendaList.list(empresa, pageable).getContent();
 
-            return new ResponseEntity<>(agendaList.list(empresa, pageable), HttpStatus.OK);
+            List<AgendaResponseDTO> listDTO = agendas.stream().map(agenda -> {
+                AgendaResponseDTO dto = agendaConverter.toResponseDTO(agenda);
+                return dto;
+            }).collect(Collectors.toList());
+
+            return new ResponseEntity<>(new PageImpl<AgendaResponseDTO>(listDTO), HttpStatus.OK);
+            
 
         }catch(Exception e){
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -402,19 +480,16 @@ public class AdminController {
     @ApiResponse(responseCode = "404", description = "Agenda não encontrada")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     public ResponseEntity<Object> agendaById(
-        @Parameter(
-            description = "ID da Agenda a ser buscada",
-            required = true,
-            example = "123"
-        )
+        @Parameter(description = "ID da Agenda a ser buscada",required = true,example = "123")
         @PathVariable long id , HttpServletRequest request){
  
         try{
             Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            Agenda agenda = agendaList.list(id, empresa);
+            AgendaResponseDTO dto = agendaConverter.toResponseDTO(agenda);
+            return new ResponseEntity<>(dto, HttpStatus.OK);
 
-            return new ResponseEntity<>(agendaList.list(id, empresa), HttpStatus.OK);
-
-        }catch(AgendaDontExistException e){
+        }catch(EntityDontExistException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
         }catch(AcessoNegadoException e){
@@ -424,13 +499,19 @@ public class AdminController {
 
     //Exclui Agenda
     @DeleteMapping("/agenda/delete/{id}")
+    @Operation(summary = "Deleta Agenda", description = "Deleta uma agenda do Banco de Dados")
+    @ApiResponse(responseCode = "200", description = "Agenda deletada com sucesso")
+    @ApiResponse(responseCode = "404", description = "Agenda não encontrada")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    @ApiResponse(responseCode = "500", description = "Erro ao excluir agenda. Agenda possivelmente vinculada a um profissional ou agendamento. ")
     public ResponseEntity<String> agendaDelete(@PathVariable long id, HttpServletRequest request){
 
         try{
             Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
             agendaDeleting.deletar(empresa, id);
             return new ResponseEntity<>("Agenda deletada", HttpStatus.OK);
-        }catch(AgendaDontExistException e){
+
+        }catch(EntityDontExistException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
         }catch(AcessoNegadoException e){
@@ -581,17 +662,88 @@ public class AdminController {
 
     //Cadastro de Status Agenda
     @PostMapping("/agenda/status/cadastro")
-    public ResponseEntity<Object> statusAgendaCadstro(@RequestBody @Valid StatusAgendaCadastroDTO statusAgendaDTO){
-        if (statusAgendaService.existsByNome(statusAgendaDTO.nome())) 
-            return new ResponseEntity<>("Conflito: Nome já existe!", HttpStatus.CONFLICT);
+    @Operation(summary = "Cadastra um StatusAgenda", description = "Cadastra um novo status para a agenda")
+    @ApiResponse(responseCode = "201", description = "Status cadastrado com sucesso")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<Object> statusAgendaCadstro(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Dados do status a ser cadastrado",
+            required = true,
+            content = @Content(schema = @Schema(implementation = StatusAgendaCadastroDTO.class))
+        )
+        @RequestBody @Valid StatusAgendaCadastroDTO statusAgendaDTO, HttpServletRequest request){
         
-
-        StatusAgenda statusAgenda = new StatusAgenda();
-        statusAgenda.setNome(statusAgendaDTO.nome());
+        try{
+            
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            statusAgendaCreate.create(statusAgendaDTO, empresa);
+            return new ResponseEntity<>("Status de Agenda cadastrado com sucesso", HttpStatus.CREATED);
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+        }
         
-        return new ResponseEntity<>(statusAgendaService.save(statusAgenda), HttpStatus.CREATED);
     }
     
+    //Deleta um status da Agenda
+    @DeleteMapping("agenda/status/delete/{id}")
+    @Operation(summary = "Exclui um StatusAgenda", description = "Exclui um status da agenda")
+    @ApiResponse(responseCode = "200", description = "Status excluído com sucesso")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    @ApiResponse(responseCode = "404", description = "Status não encontrado para exclus]ao")
+    public ResponseEntity<Object> statusAgendaDelete(
+        @Parameter(description = "ID do status a excluir", required = true, example = "123")
+        @PathVariable long id , HttpServletRequest request){
+
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            statusAgendaDeleting.delete(id, empresa);
+            return new ResponseEntity<>("Status Excluída", HttpStatus.OK);
+
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
+    }
+
+    //Lista Status da Agenda por Empresa;
+    @GetMapping("/agenda/status/empresa")
+    @Operation(summary = "Lista Status da Agenda", description = "Lista Status das Agendas por Empresa")
+    @ApiResponse(responseCode = "200", description = "Lista status com sucesso")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<Page<StatusAgendaResponseDTO>> statusAgendaByEmpresa(HttpServletRequest request, @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
+        
+        Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+        List<StatusAgendaResponseDTO> listDTO = statusAgendaList.list(empresa, pageable).getContent().stream().map(status -> {
+            StatusAgendaResponseDTO dto = statusAgendaConverter.toResponseDTO(status);
+            return dto;
+        }).collect(Collectors.toList());
+
+        return new ResponseEntity<>(new PageImpl<StatusAgendaResponseDTO>(listDTO), HttpStatus.OK);
+    }
+
+
+    //Lista Status da Agenda por ID
+    @GetMapping("/agenda/status")
+        @Operation(summary = "Lista Status da Agenda", description = "Lista Status das Agendas por ID")
+    @ApiResponse(responseCode = "200", description = "Lista status com sucesso")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    @ApiResponse(responseCode = "404", description = "Status não encontrado")
+    public ResponseEntity<Object> statusAgendaById(@RequestParam long id, HttpServletRequest request){
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            StatusAgenda statusAgenda = statusAgendaList.list(id, empresa);
+            StatusAgendaResponseDTO dto = statusAgendaConverter.toResponseDTO(statusAgenda);
+            return new ResponseEntity<>(dto,HttpStatus.OK);
+
+        }catch( EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
+    }
 
 
     //Lista horas por ID do dia
@@ -609,81 +761,95 @@ public class AdminController {
     }
 
 
-    //Lista Status da Hora
+    //Lista Status da Hora por empresa
     @GetMapping("/agenda/horas/status")
-    public ResponseEntity<Object> listaStatusHora(HttpServletRequest request){
-        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+    @Operation(summary = "Lista Status da Hora", description = "Lista status por empresa")
+    @ApiResponse(responseCode = "200", description = "Lista status encontrados ou lista vazia;")
+    public ResponseEntity<Object> listaStatusHora(
+        HttpServletRequest request,
+        @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
+        
+        Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+        List<StatusHora> statusHoras = statusHoraList.list(empresa, pageable).getContent();
 
-        Optional<List<StatusHora>> status = statusHoraService.findByEmpresa(usuarioLogado.getEmpresa());
-
-        if (!status.isPresent()){
-            return new ResponseEntity<>("Nenhum status encontrado", HttpStatus.NOT_FOUND);
-        }
-
-        //Além de buscar os status cadastrados pelo cliente, trás tambem os status padrão.
-        Optional<StatusHora> ativo = statusHoraService.findByNome("Ativo");
-        Optional<StatusHora> bloqueado = statusHoraService.findByNome("Bloqueado");
-
-        if (ativo.isPresent() || bloqueado.isPresent()) {
-            status.get().add(ativo.get());
-            status.get().add(bloqueado.get());
-        }
-
-        //Passa os dados do model para o DTO
-        List<StatusHoraResponseDTO> statusDTO = status.get().stream().map(item -> {
-            StatusHoraResponseDTO dto = new StatusHoraResponseDTO(item.getId(), item.getNome());
+        List<StatusHoraResponseDTO> listDTO = statusHoras.stream().map(status -> {
+            StatusHoraResponseDTO dto = statusHoraConverter.toResponseDTO(status);
             return dto;
-
         }).collect(Collectors.toList());
 
-        return new ResponseEntity<>(statusDTO, HttpStatus.OK);
+        return new ResponseEntity<>(listDTO, HttpStatus.OK);
+
+        
+        // Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+
+        // Optional<List<StatusHora>> status = statusHoraService.findByEmpresa(usuarioLogado.getEmpresa());
+
+        // if (!status.isPresent()){
+        //     return new ResponseEntity<>("Nenhum status encontrado", HttpStatus.NOT_FOUND);
+        // }
+
+        // //Além de buscar os status cadastrados pelo cliente, trás tambem os status padrão.
+        // Optional<StatusHora> ativo = statusHoraService.findByNome("Ativo");
+        // Optional<StatusHora> bloqueado = statusHoraService.findByNome("Bloqueado");
+
+        // if (ativo.isPresent() || bloqueado.isPresent()) {
+        //     status.get().add(ativo.get());
+        //     status.get().add(bloqueado.get());
+        // }
+
+        // //Passa os dados do model para o DTO
+        // List<StatusHoraResponseDTO> statusDTO = status.get().stream().map(item -> {
+        //     StatusHoraResponseDTO dto = new StatusHoraResponseDTO(item.getId(), item.getNome());
+        //     return dto;
+
+        // }).collect(Collectors.toList());
+
+        // return new ResponseEntity<>(statusDTO, HttpStatus.OK);
     }
 
     //Cadastra Status Hora
     @PostMapping("/agenda/horas/status")
-    public ResponseEntity<Object> cadastraStatusHora(@RequestBody @Valid StatusHoraCadastroDTO statusHoraDTO, HttpServletRequest request){
+    @Operation(summary = "Deleta StatusHora", description = "Deleta status para as horas")
+    @ApiResponse(responseCode = "201", description = "Status cadastrado com sucesso")
+    @ApiResponse(responseCode = "409", description = "Já existe status com esse nome")
+    public ResponseEntity<Object> cadastraStatusHora(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Dados a serem cadastrados", required = true,
+        content = @Content(schema = @Schema(implementation = StatusHoraCadastroDTO.class)))
+        @RequestBody @Valid StatusHoraCadastroDTO statusHoraDTO, HttpServletRequest request){
 
-        if (statusHoraService.existsByNome(statusHoraDTO.nome()))
-            return new ResponseEntity<>("Status ja existe", HttpStatus.CONFLICT);
+        try{
 
-        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-        Empresa empresa = usuarioLogado.getEmpresa();
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            statusHoraCreate.create(statusHoraDTO, empresa);
+            return new ResponseEntity<>("Status cadastrado com sucesso", HttpStatus.CREATED);
+            
+        }catch(ConflictException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
 
-        StatusHora status = new StatusHora();
-        BeanUtils.copyProperties(statusHoraDTO, status);
+        }
 
-        status.setEmpresa(empresa);
-        statusHoraService.save(status);
-
-        return new ResponseEntity<>("Cadastro realizado com sucesso!", HttpStatus.CREATED);
     }
    
    
     //Deleta status da hora
     @DeleteMapping("/agenda/horas/status/{id}")
+    @Operation(summary = "Exclui Status Hora", description = "Exclui um status hora do Banco de Dados")
+    @ApiResponse(responseCode = "200", description = "Status excluído com sucesso")
+    @ApiResponse(responseCode = "404", description = "Status não encontrado")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação;")
     public ResponseEntity<String> deletaStatusHora(@PathVariable long id, HttpServletRequest request){
 
-        // Nâo permite deletar status com ID 1 Ativo ou 2 Bloqueado.
-        if (id == 1 || id == 2){
-            return new ResponseEntity<>("Status não pode ser excluído", HttpStatus.FORBIDDEN);
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            statusHoraDelete.delete(id, empresa);
+            return new ResponseEntity<>("Status excluído", HttpStatus.OK);
+
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
-
-        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-
-        Optional<StatusHora> status = statusHoraService.findById(id);
-
-        // Se status não existe retorn erro
-        if (!status.isPresent()){
-            return new ResponseEntity<>("Status não encontrado", HttpStatus.NOT_FOUND);
-        }
-
-        // Se empresa do status for diferente da empresa do usuario logado retorna erro - Evita usuario excluir ID que não pertence a sua empresa
-        if (status.get().getEmpresa() != usuarioLogado.getEmpresa())
-            return new ResponseEntity<>("Status não encontrado", HttpStatus.NOT_FOUND);
-
-        statusHoraService.delete(status.get());
-
-        return new ResponseEntity<>("Status deletado", HttpStatus.OK);
     }
    
     //Lista Status do dia
@@ -871,111 +1037,138 @@ public class AdminController {
 
     //Cadastro de Profissional
     @PostMapping("/profissional/cadastro")
-    public ResponseEntity<Object> profissionalCadastro(@RequestBody @Valid ProfissionalCadastroDTO profissionalDTO, HttpServletRequest request){
-        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+    @Operation(summary = "Cadastro de Profissional", description = "Insere um novo Profissional no Banco de Dados")
+    @ApiResponse(responseCode = "201", description = "Cadastro do usuário realizado com sucesso")
+    @ApiResponse(responseCode = "404", description = "Usuário do profissional não encontrado")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    @ApiResponse(responseCode = "409", description = "Usuário do profissional já vinculado com outro Profissional")
+    public ResponseEntity<Object> profissionalCadastro(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Dados a serem cadastrados",
+            required = true,
+            content = @Content(schema = @Schema(implementation = ProfissionalCadastroDTO.class))
+        )
+        @RequestBody @Valid ProfissionalCadastroDTO profissionalDTO, HttpServletRequest request){
 
-        Optional<Usuario> usuario = usuarioService.findByLogin(profissionalDTO.login());
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            profissionalCreate.create(profissionalDTO, empresa);
+            return new ResponseEntity<>("Profissional cadastrado com sucesso", HttpStatus.CREATED);
 
-        //Se usuario não existe a empresa do usuario do profissional for diferente da empresa do usuario logado retorn 404
-        if (!usuario.isPresent() || usuario.get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) 
-            return new ResponseEntity<>("Usuário não encontrado!", HttpStatus.NOT_FOUND);
 
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
-        Profissional profissional = new Profissional();
-        BeanUtils.copyProperties(profissionalDTO, profissional);
-        profissional.setUsuario(usuario.get());
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
 
-        profissionalService.save(profissional);
-
-        return new ResponseEntity<>("Profissional Cadastrado com sucesso", HttpStatus.CREATED);
+        }catch(DataIntegrityViolationException e){
+            return new ResponseEntity<>("Erro no cadastro. Prossivelmente este usuário já possui um Profissional vinculado", HttpStatus.CONFLICT);
+        }
     }
 
     //Editar Profissional
     @PutMapping("/profissional/edit")
-    public ResponseEntity<Object> profissionalEditar(@RequestBody @Valid ProfissionalEditDTO profissionalDTO, HttpServletRequest request) throws Exception{
-        Optional<Profissional> profissional = profissionalService.findById(profissionalDTO.id());
+    @Operation(summary = "Edição de Profissional", description = "Altera atributos do Profissional")
+    @ApiResponse(responseCode = "200", description = "Edição do profissional ocoreu com sucesso")
+    @ApiResponse(responseCode = "400", description = "Profissional não encontrado para edição")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<Object> profissionalEditar(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Dados editados",
+            required = true,
+            content = @Content(schema = @Schema(implementation = ProfissionalEditDTO.class))
+        )
+        @RequestBody @Valid ProfissionalEditDTO profissionalDTO, HttpServletRequest request) throws Exception{
+        
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            profissionalEditing.edit(profissionalDTO, empresa);
+            return new ResponseEntity<>("Profissional editado com sucesso", HttpStatus.OK);
 
-        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
-        //Se profissional não existir ou empresa do usuario do profissional for diferente da empresa do usuario logado retorna 404
-        if (!profissional.isPresent() || profissional.get().getUsuario().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) 
-            return new ResponseEntity<>("Profissional não encontrado!", HttpStatus.NOT_FOUND);
-
-        profissional.get().setTitulo(profissionalDTO.titulo());
-        profissional.get().setRegistro(profissionalDTO.registro());
-
-        Optional<Agenda> agenda = agendaService.findById(profissionalDTO.idAgenda());
-        if (agenda.isPresent()) profissional.get().setAgenda(agenda.get());
-
-        if (profissionalDTO.idAgenda() == -1) profissional.get().setAgenda(null);
-
-        return new ResponseEntity<>(profissionalService.save(profissional.get()), HttpStatus.OK);
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
     }
 
     //Excluir Profissional
     @DeleteMapping("/profissional/delete/{id}")
-    public ResponseEntity<Object> profissionalDelete(@PathVariable long id, HttpServletRequest request){
-        Optional<Profissional> profissional = profissionalService.findById(id);
+    @Operation(summary = "Delta Profissional", description = "Exclui um profissional do Banco de Dados")
+    @ApiResponse(responseCode = "200", description = "Profissional excluído com sucesso")
+    @ApiResponse(responseCode = "404", description = "Profissional não encontrado para exclusão")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<Object> profissionalDelete(
+        @Parameter(
+            description = "ID do profissional a ser excluído",
+            required = true,
+            example = "123"
+        )
+        @PathVariable long id, HttpServletRequest request){
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            profissionalDeleting.delete(id, empresa);
+            return new ResponseEntity<>("Profissional deletado", HttpStatus.OK);
 
-        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
-        if (profissional.isPresent() && profissional.get().getUsuario().getEmpresa().getId() == usuarioLogado.getEmpresa().getId()) {
-            profissionalService.delete(profissional.get());
-            return new ResponseEntity<>("Profissional excluído do sistema!", HttpStatus.OK);
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+
+        }catch(DataIntegrityViolationException e){
+            return new ResponseEntity<>("Profissional não pode ser excludído. Possivelmente está vinculado a uma agenda.", HttpStatus.NOT_FOUND);
+
         }
-
-        return new ResponseEntity<>("Profissional não encontrado!", HttpStatus.NOT_FOUND);
     }
 
     //Lista Profissoinal por empresa
     @GetMapping("/profissional/list")
+    @Operation(summary = "Lista profissionais da Empresa")
+    @ApiResponse(responseCode = "200", description = "Lista profissionais com sucesso")
+    @ApiResponse(responseCode = "403", description = "Usuario sem permissão para esta operação")
     public ResponseEntity<Page<ProfissionalResponseDTO>> profissionalListByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
-        Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
 
-        Page<Profissional> page = profissionalService.findByEmpresa(usuario.getEmpresa().getId(), pageable);
-
-        Page<ProfissionalResponseDTO> profissionais = page.map(profissional -> {
-            ProfissionalResponseDTO dto = new ProfissionalResponseDTO(profissional.getId(),profissional.getTitulo(),profissional.getRegistro(),
-            profissional.getUsuario().getNome(), profissional.getUsuario().getSobrenome(), profissional.getUsuario().getLogin(), profissional.getUsuario().getEmpresa().getNome(), null);
-
+        Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+        List<ProfissionalResponseDTO> listDTO = profissionalList.list(empresa, pageable).getContent().stream().map(profissional -> {
+            ProfissionalResponseDTO dto = profissionalConverter.toResponseDTO(profissional);
             return dto;
-        });
-
-        return new ResponseEntity<>(profissionais, HttpStatus.OK);
-    }
-
-    //Lista Profissoinal por empresa
-    @GetMapping("/profissionais")
-    public ResponseEntity<List<ProfissionalListDTO>> profissionalList(@PageableDefault(page = 0, size = 1000, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
-        Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-
-        Page<Profissional> page = profissionalService.findByEmpresa(usuario.getEmpresa().getId(), pageable);
-
-        List<ProfissionalListDTO> profissionais = page.getContent().stream().map(profissional -> {
-            ProfissionalListDTO dto = new ProfissionalListDTO(profissional.getUsuario().getNome(), profissional.getId());
-            return dto;
-
         }).collect(Collectors.toList());
 
-        return new ResponseEntity<>(profissionais, HttpStatus.OK);
+        return new ResponseEntity<>(new PageImpl<ProfissionalResponseDTO>(listDTO), HttpStatus.OK);
+    
     }
 
-
     @GetMapping("/profissional/findbyid")
-    public ResponseEntity<Object> profissionalFindById(@RequestParam long id){
+    @Operation(summary = "Lista profissional pelo ID", description = "Busca profissional pelo ID no Banco de Dados")
+    @ApiResponse(responseCode = "200", description = "Profissional encontrado é retornado")
+    @ApiResponse(responseCode = "404", description = "Profissional não encontrado")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<Object> profissionalFindById(
+        @Parameter(description = "ID do Profissional a ser buscado", required = true, example = "123")
+        @RequestParam long id, HttpServletRequest request){
 
-        Optional<Profissional> profissional = profissionalService.findById(id);
 
-        if (!profissional.isPresent()) 
-            return new ResponseEntity<>("Prosfissional não encontrado!", HttpStatus.NOT_FOUND);
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            Profissional profissional = profissionalList.list(id);
 
-        ProfissionalResponseDTO dto = new ProfissionalResponseDTO(
-            profissional.get().getId(), profissional.get().getTitulo(), profissional.get().getRegistro(), profissional.get().getUsuario().getNome(),
-            profissional.get().getUsuario().getSobrenome(), profissional.get().getUsuario().getLogin(), profissional.get().getUsuario().getEmpresa().getNome(),
-            profissional.get().getAgenda());
+            usuarioValidate.isSameEmpresaFromUserLogged(empresa, profissional.getUsuario().getEmpresa());
+
+            ProfissionalResponseDTO dto = profissionalConverter.toResponseDTO(profissional);
+
+            return new ResponseEntity<>(dto, HttpStatus.OK);
+        
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
 
         
-        return new ResponseEntity<>(dto, HttpStatus.OK);
         
     }
 

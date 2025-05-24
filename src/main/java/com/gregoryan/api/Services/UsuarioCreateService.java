@@ -7,7 +7,6 @@ import com.gregoryan.api.DTO.UsuarioCadastroDTO;
 import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.Usuario;
 import com.gregoryan.api.Services.Crud.UsuarioService;
-import com.gregoryan.api.Services.Interfaces.CriptografarSenhaInterface;
 import com.gregoryan.api.Services.Interfaces.DataConverterInterface;
 import com.gregoryan.api.Services.Interfaces.UsuarioValidateInterface;
 
@@ -16,8 +15,6 @@ public class UsuarioCreateService{
 
     @Autowired
     private UsuarioService usuarioService;
-    @Autowired
-    private CriptografarSenhaInterface criptografarSenha;
     @Autowired
     private UsuarioConverter usuarioConverter;
     @Autowired
@@ -29,10 +26,8 @@ public class UsuarioCreateService{
     public Usuario cadastrar(UsuarioCadastroDTO dto, Empresa empresa){
         validateUsuario.jaExiste(dto);
 
-        Usuario usuario = usuarioConverter.cadastroDTOToModel(dto);
-        usuario.setSenha(criptografarSenha.criptografar(dto.senha()));
+        Usuario usuario = usuarioConverter.toUsuario(dto);
         usuario.setDataRegistro(dataConverter.getDateCurrent());
-        usuario.setNascimento(dataConverter.getDateOfBirth(dto.nascimento()));
         usuario.setEmpresa(empresa);
         usuario.setStatus(Usuario.StatusUsuario.ATIVO);
 

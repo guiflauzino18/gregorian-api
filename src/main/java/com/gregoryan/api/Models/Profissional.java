@@ -38,4 +38,11 @@ public class Profissional {
     @OneToOne
     @JoinColumn(name = "agenda_fk")
     private Agenda agenda;
+
+    private StatusProfissional status;
+
+    public enum StatusProfissional {
+        ATIVO, INATIVO, BLOQUEADO;
+
+    }
 }

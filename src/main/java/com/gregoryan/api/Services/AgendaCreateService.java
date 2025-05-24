@@ -2,10 +2,8 @@ package com.gregoryan.api.Services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.gregoryan.api.DTO.AgendaCadastroDTO;
-import com.gregoryan.api.Exception.ProfissionalDontExitException;
-import com.gregoryan.api.Exception.StatusAgendaDontExistException;
+import com.gregoryan.api.Exception.EntityDontExistException;
 import com.gregoryan.api.Models.Agenda;
 import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.Profissional;
@@ -29,11 +27,11 @@ public class AgendaCreateService {
     public void cadastrar(AgendaCadastroDTO dto, Empresa empresa){
         Agenda agenda = converter.toAgenda(dto);
 
-        Profissional profissional = profissionalService.findById(dto.idProfissional()).orElseThrow(() -> new ProfissionalDontExitException("Profissionao não encontrado"));
+        Profissional profissional = profissionalService.findById(dto.idProfissional()).orElseThrow(() -> new EntityDontExistException("Profissionao não encontrado"));
         agenda.setProfissional(profissional);
         agenda.setEmpresa(empresa);
 
-        StatusAgenda status = statusService.findByNome("Ativo").orElseThrow(() -> new StatusAgendaDontExistException("Status Ativo da Agenda não existe"));
+        StatusAgenda status = statusService.findByNome("Ativo").orElseThrow(() -> new EntityDontExistException("Status Ativo da Agenda não existe"));
         
         agenda.setStatusAgenda(status);
 

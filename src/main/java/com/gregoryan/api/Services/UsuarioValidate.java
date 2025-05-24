@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 
 import com.gregoryan.api.DTO.UsuarioCadastroDTO;
 import com.gregoryan.api.Exception.AcessoNegadoException;
-import com.gregoryan.api.Exception.UsuarioDontExistException;
-import com.gregoryan.api.Exception.UsuarioExisteException;
+import com.gregoryan.api.Exception.ConflictException;
+import com.gregoryan.api.Exception.EntityDontExistException;
 import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.Usuario;
 import com.gregoryan.api.Services.Crud.UsuarioService;
@@ -24,7 +24,7 @@ public class UsuarioValidate implements UsuarioValidateInterface{
     public void jaExiste(UsuarioCadastroDTO dto) {
         if (usuarioservice.existByLogin(dto.login())){
 
-            throw new UsuarioExisteException("Login já existe");
+            throw new ConflictException("Já existe um usuário com este login");
         }
     }
 
@@ -43,7 +43,7 @@ public class UsuarioValidate implements UsuarioValidateInterface{
         if (usuario.isPresent())
             return usuario.get();
         
-        throw new UsuarioDontExistException("Usuáio não encontrado.");
+        throw new EntityDontExistException("Usuáio não encontrado.");
         
     }
     

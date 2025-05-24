@@ -1,5 +1,7 @@
 package com.gregoryan.api.DTO;
 
-public record ProfissionalEditDTO(long id, String titulo, String registro, long idAgenda) {
+import com.gregoryan.api.Models.Profissional.StatusProfissional;
+
+public record ProfissionalEditDTO(long id, String titulo, String registro, long idAgenda, StatusProfissional status) {
     
 }

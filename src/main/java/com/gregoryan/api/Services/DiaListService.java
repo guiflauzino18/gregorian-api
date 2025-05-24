@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import com.gregoryan.api.DTO.DiaResponseDTO;
-import com.gregoryan.api.Exception.DiaDontExistException;
+import com.gregoryan.api.Exception.EntityDontExistException;
 import com.gregoryan.api.Models.Dias;
 import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Services.Crud.DiasService;
@@ -17,13 +17,12 @@ public class DiaListService implements DiaListInterface{
     
     @Autowired
     private DiasService service;
-    @Autowired
-    private DiaConverterInterface diaConverter;
+
 
     @Override
     public Dias list(long id) {
         
-        return service.findById(id).orElseThrow(() -> new DiaDontExistException("Dia não encontrado"));
+        return service.findById(id).orElseThrow(() -> new EntityDontExistException("Dia não encontrado"));
     }
 
     @Override

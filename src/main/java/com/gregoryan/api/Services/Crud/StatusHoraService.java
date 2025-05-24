@@ -4,10 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 import java.util.Optional;
-
 import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.StatusHora;
 import com.gregoryan.api.Repositorys.StatusHoraRepository;
@@ -45,8 +42,8 @@ public class StatusHoraService {
         return repository.existsByNome(nome);
     }
 
-    public Optional<List<StatusHora>> findByEmpresa(Empresa empresa){
-        return repository.findByEmpresa(empresa);
+    public Page<StatusHora> findByEmpresa(Empresa empresa, Pageable pageable){
+        return repository.findByEmpresa(empresa, pageable);
     }
     
 }

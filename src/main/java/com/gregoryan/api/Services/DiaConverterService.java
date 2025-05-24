@@ -10,20 +10,17 @@ import com.gregoryan.api.DTO.DiaCadastroDTO;
 import com.gregoryan.api.DTO.DiaEditDTO;
 import com.gregoryan.api.DTO.DiaResponseDTO;
 import com.gregoryan.api.DTO.StatusDiaResponseDTO;
-import com.gregoryan.api.Exception.DiaDontExistException;
+import com.gregoryan.api.Exception.EntityDontExistException;
 import com.gregoryan.api.Models.Dias;
 import com.gregoryan.api.Services.Crud.DiasService;
 import com.gregoryan.api.Services.Interfaces.DiaConverterInterface;
 import com.gregoryan.api.Services.Interfaces.StatusDiaConverterInterface;
-import com.gregoryan.api.Services.Interfaces.StatusDiaListInterface;
 
 @Service
 public class DiaConverterService implements DiaConverterInterface{
 
     @Autowired
     private DataConverter dataConverter;
-    @Autowired
-    private StatusDiaListInterface statusDiaList;
     @Autowired
     private DiasService diasService;
     @Autowired
@@ -46,7 +43,7 @@ public class DiaConverterService implements DiaConverterInterface{
     @Override
     public Dias toDia(DiaEditDTO dto) {
         
-        Dias dia = diasService.findById(dto.idDia()).orElseThrow(() -> new DiaDontExistException("Dia não encontrado"));
+        Dias dia = diasService.findById(dto.idDia()).orElseThrow(() -> new EntityDontExistException("Dia não encontrado"));
 
         dia.setIntervaloSessaoInMinutes(dto.intervaloSessaoInMinutes());
         dia.setDuracaoSessaoInMinutes(dto.duracaoSessaoInMinutes());
