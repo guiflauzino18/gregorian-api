@@ -1,5 +1,6 @@
 package com.gregoryan.api.Services;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,11 +33,22 @@ public class StatusHoraListService implements StatusHoraListInterface{
 
     @Override
     public Page<StatusHora> list(Empresa empresa, Pageable pageable) {
-        List<StatusHora> list = statusHoraService.findByEmpresa(empresa, pageable).getContent();
-        statusHoraService.findByNome("Ativo").ifPresent(item -> list.add(item));
-        statusHoraService.findByNome("Bloqueado").ifPresent(item -> list.add(item));
+        
+        List<StatusHora> listStatus = statusHoraService.findByEmpresa(empresa, pageable).getContent();
 
-        return new PageImpl<StatusHora>(list);
+        //getContent retorna uma lista imutável, para acrescentar mais itens é necessário criar uma nova lista mutavel
+        // que recebe os status da empresa mais os status Ativo e Inativo.
+        List<StatusHora> statusHoras = new ArrayList<>();
+
+        listStatus.stream().map(item -> {
+            statusHoras.add(item);
+            return item;
+        });
+
+        statusHoraService.findByNome("Ativo").ifPresent(item -> statusHoras.add(item));
+        statusHoraService.findByNome("Bloqueado").ifPresent(item -> statusHoras.add(item));
+
+        return new PageImpl<StatusHora>(statusHoras);
     }
 
     

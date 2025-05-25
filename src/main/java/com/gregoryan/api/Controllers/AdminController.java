@@ -46,6 +46,7 @@ import com.gregoryan.api.DTO.FeriadoResponseDTO;
 import com.gregoryan.api.DTO.HorasEditDTO;
 import com.gregoryan.api.DTO.ProfissionalCadastroDTO;
 import com.gregoryan.api.DTO.ProfissionalEditDTO;
+import com.gregoryan.api.DTO.ProfissionalListDTO;
 import com.gregoryan.api.DTO.ProfissionalResponseDTO;
 import com.gregoryan.api.DTO.StatusAgendaCadastroDTO;
 import com.gregoryan.api.DTO.StatusAgendaResponseDTO;
@@ -1155,6 +1156,24 @@ public class AdminController {
 
         return new ResponseEntity<>(new PageImpl<ProfissionalResponseDTO>(listDTO), HttpStatus.OK);
     
+    }
+
+
+    //Lista Profissional por Nome e ID
+    @GetMapping("/profissionais")
+    @Operation(summary = "Lista nome e id de profissionais", description = "Retorna lista com Nome e ID de Profissionais da Empresa.")
+    public ResponseEntity<List<ProfissionalListDTO>> profissionalListNameAndId(HttpServletRequest request,
+    @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
+
+        Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+        List<Profissional> profissionals = profissionalList.list(empresa, pageable).getContent();
+
+        List<ProfissionalListDTO> listDTO = profissionals.stream().map(item -> {
+            ProfissionalListDTO dto = profissionalConverter.toListDTO(item);
+            return dto;
+        }).collect(Collectors.toList());
+
+        return new ResponseEntity<List<ProfissionalListDTO>>(listDTO, HttpStatus.OK);
     }
 
     @GetMapping("/profissional/findbyid")

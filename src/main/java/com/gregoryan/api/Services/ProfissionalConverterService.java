@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.gregoryan.api.DTO.ProfissionalCadastroDTO;
 import com.gregoryan.api.DTO.ProfissionalEditDTO;
+import com.gregoryan.api.DTO.ProfissionalListDTO;
 import com.gregoryan.api.DTO.ProfissionalResponseDTO;
 import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.Profissional;
@@ -61,6 +62,11 @@ public class ProfissionalConverterService implements ProfissionalConverterInterf
             profissional.getUsuario().getEmpresa().getNome(),
             profissional.getStatus(),
              null);
+    }
+
+    @Override
+    public ProfissionalListDTO toListDTO(Profissional profissional) {
+        return new ProfissionalListDTO(profissional.getUsuario().getNome(),  profissional.getId());
     }
     
 }
