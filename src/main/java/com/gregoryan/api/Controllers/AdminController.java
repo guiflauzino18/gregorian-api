@@ -36,6 +36,9 @@ import com.gregoryan.api.DTO.AgendaConfigDTO;
 import com.gregoryan.api.DTO.AgendaEditDTO;
 import com.gregoryan.api.DTO.AgendaReplicaDiaDTO;
 import com.gregoryan.api.DTO.AgendaResponseDTO;
+import com.gregoryan.api.DTO.DiaBloqueadoCadastroDTO;
+import com.gregoryan.api.DTO.DiaBloqueadoEditDTO;
+import com.gregoryan.api.DTO.DiaBloqueadoResponseDTO;
 import com.gregoryan.api.DTO.DiaEditDTO;
 import com.gregoryan.api.DTO.FeriadoCadastroDTO;
 import com.gregoryan.api.DTO.FeriadoEditDTO;
@@ -75,6 +78,8 @@ import com.gregoryan.api.Services.UsuarioDeletingService;
 import com.gregoryan.api.Services.UsuarioEditingService;
 import com.gregoryan.api.Services.AgendaCreateService;
 import com.gregoryan.api.Services.AgendaDeletingService;
+import com.gregoryan.api.Services.DiaBloqueadoCreateService;
+import com.gregoryan.api.Services.DiaBloqueadoEditingService;
 import com.gregoryan.api.Services.FeriadoCreateService;
 import com.gregoryan.api.Services.FeriadoDeletingService;
 import com.gregoryan.api.Services.FeriadoEditingService;
@@ -103,6 +108,8 @@ import com.gregoryan.api.Services.Crud.StatusHoraService;
 import com.gregoryan.api.Services.Crud.UsuarioService;
 import com.gregoryan.api.Services.Interfaces.AgendaConverterInterface;
 import com.gregoryan.api.Services.Interfaces.AgendaListInterface;
+import com.gregoryan.api.Services.Interfaces.DiaBloqueadoConverterInterface;
+import com.gregoryan.api.Services.Interfaces.DiaBloqueadoListInterface;
 import com.gregoryan.api.Services.Interfaces.FeriadoConverterInterface;
 import com.gregoryan.api.Services.Interfaces.FeriadoListInterface;
 import com.gregoryan.api.Services.Interfaces.ProfissionalConverterInterface;
@@ -219,6 +226,14 @@ public class AdminController {
     private StatusDiaEditingService statusDiaEditing;
     @Autowired
     private StatusDiaDeletingService statusDiaDeleting;
+    @Autowired
+    private DiaBloqueadoListInterface diaBloqueadoList;
+    @Autowired
+    private DiaBloqueadoCreateService diaBloqueadoCreate;
+    @Autowired
+    private DiaBloqueadoEditingService diaBloqueadoEditing;
+    @Autowired
+    private DiaBloqueadoConverterInterface diaBloqueadoConverter;
 
     //Injetores realacionados a feriado
     @Autowired
@@ -1325,18 +1340,51 @@ public class AdminController {
         }
     }
 
+
     // ======================================================= DIAS BLOQUEADOS ==============================================
     @PostMapping("diabloqueado/cadastro")
-    public ResponseEntity<Object> diaBloqueadoCadastro(@RequestBody @Valid DiaBloqueado diaBloqueado, HttpServletRequest request){
-        Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-        diaBloqueado.setEmpresa(usuario.getEmpresa());
-        return new ResponseEntity<>(diaBloqueadoService.save(diaBloqueado), HttpStatus.CREATED);
+    @Operation(summary = "Cadastra um bloqueio para um dia", description = "Cadastra um bloqueio de dia no Banco de Dados")
+    @ApiResponse(responseCode = "200", description = "Bloqueio editado com sucesso")
+    public ResponseEntity<Object> diaBloqueadoCadastro(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Dados a serem editados",
+            required = true,
+            content = @Content(schema = @Schema(implementation = DiaBloqueadoCadastroDTO.class))
+        )
+        @RequestBody @Valid DiaBloqueadoCadastroDTO diaBloqueado, HttpServletRequest request){
+        
+        Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+        diaBloqueadoCreate.create(diaBloqueado, empresa);
+        return new ResponseEntity<>("Bloquio do dia cadastrado com sucesso", HttpStatus.CREATED);
+ 
     }
 
-    @PutMapping("/diabloqueado/edit")
-    public ResponseEntity<Object> diaBloqueadoEdit(@RequestBody @Valid DiaBloqueado diaBloqueado){
 
-        return new ResponseEntity<>(diaBloqueadoService.save(diaBloqueado), HttpStatus.OK);
+    @PutMapping("/diabloqueado/edit")
+    @Operation(summary = "Edita um bloqueio de dia", description = "Edita dados de um bloqueio de dia")
+    @ApiResponse(responseCode = "200", description = "Bloqueio editado com sucesso")
+    @ApiResponse(responseCode = "404", description = "Bloqueio não encontrado para edição")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<Object> diaBloqueadoEdit(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Dados a serem editados",
+            required = true,
+            content = @Content(schema = @Schema(implementation = DiaBloqueadoEditDTO.class))
+        )
+        @RequestBody @Valid DiaBloqueadoEditDTO diaBloqueado, HttpServletRequest request){
+
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            diaBloqueadoEditing.edit(diaBloqueado, empresa);
+            return new ResponseEntity<>("Bloqueio do dia editado com sucesso", HttpStatus.OK);
+
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
+       
     }
 
     @DeleteMapping("/diabloqueado/delete/{id}")
@@ -1351,13 +1399,24 @@ public class AdminController {
     }
 
     @GetMapping("/diabloqueado/list")
+    @Operation(summary = "Lista bloqueios de dia", description = "Lista bloqueios para a empresa")
+    @ApiResponse(responseCode = "200", description = "Retorna dados com sucesso")
     public ResponseEntity<Object> diaBloqueadoListByEmpresa(
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
             HttpServletRequest request){
 
-        Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-        return new ResponseEntity<>(diaBloqueadoService.findByEmpresa(usuario.getEmpresa(), pageable), HttpStatus.OK);
-    
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            List<DiaBloqueado> diaBloqueados = diaBloqueadoList.list(empresa, pageable).getContent();
+
+            List<DiaBloqueadoResponseDTO> listDTO = diaBloqueados.stream().map(item -> {
+                DiaBloqueadoResponseDTO dto = diaBloqueadoConverter.toResponseDTO(item);
+                return dto;
+
+            }).collect(Collectors.toList());
+
+            return new ResponseEntity<>(new PageImpl<DiaBloqueadoResponseDTO>(listDTO), HttpStatus.OK);
+
+
     }
         
 

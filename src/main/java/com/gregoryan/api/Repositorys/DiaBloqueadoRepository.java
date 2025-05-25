@@ -11,4 +11,5 @@ public interface DiaBloqueadoRepository extends JpaRepository<DiaBloqueado, Long
     
     Page<DiaBloqueado> findByNome(String nome, Pageable pageable);
     Page<DiaBloqueado> findByEmpresa(Empresa empresa, Pageable pageable);
+    
 }
