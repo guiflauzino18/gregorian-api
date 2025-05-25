@@ -39,6 +39,7 @@ import com.gregoryan.api.DTO.AgendaResponseDTO;
 import com.gregoryan.api.DTO.DiaEditDTO;
 import com.gregoryan.api.DTO.FeriadoCadastroDTO;
 import com.gregoryan.api.DTO.FeriadoEditDTO;
+import com.gregoryan.api.DTO.FeriadoResponseDTO;
 import com.gregoryan.api.DTO.HorasEditDTO;
 import com.gregoryan.api.DTO.ProfissionalCadastroDTO;
 import com.gregoryan.api.DTO.ProfissionalEditDTO;
@@ -74,11 +75,17 @@ import com.gregoryan.api.Services.UsuarioDeletingService;
 import com.gregoryan.api.Services.UsuarioEditingService;
 import com.gregoryan.api.Services.AgendaCreateService;
 import com.gregoryan.api.Services.AgendaDeletingService;
+import com.gregoryan.api.Services.FeriadoCreateService;
+import com.gregoryan.api.Services.FeriadoDeletingService;
+import com.gregoryan.api.Services.FeriadoEditingService;
 import com.gregoryan.api.Services.ProfissionalCreateService;
 import com.gregoryan.api.Services.ProfissionalDeletingService;
 import com.gregoryan.api.Services.ProfissionalEditingService;
 import com.gregoryan.api.Services.StatusAgendaCreateService;
 import com.gregoryan.api.Services.StatusAgendaDeletingService;
+import com.gregoryan.api.Services.StatusDiaCreateService;
+import com.gregoryan.api.Services.StatusDiaDeletingService;
+import com.gregoryan.api.Services.StatusDiaEditingService;
 import com.gregoryan.api.Services.StatusHoraCreateService;
 import com.gregoryan.api.Services.StatusHoraDeleteService;
 import com.gregoryan.api.Services.UsuarioCreateService;
@@ -96,10 +103,14 @@ import com.gregoryan.api.Services.Crud.StatusHoraService;
 import com.gregoryan.api.Services.Crud.UsuarioService;
 import com.gregoryan.api.Services.Interfaces.AgendaConverterInterface;
 import com.gregoryan.api.Services.Interfaces.AgendaListInterface;
+import com.gregoryan.api.Services.Interfaces.FeriadoConverterInterface;
+import com.gregoryan.api.Services.Interfaces.FeriadoListInterface;
 import com.gregoryan.api.Services.Interfaces.ProfissionalConverterInterface;
 import com.gregoryan.api.Services.Interfaces.ProfissionalListInterface;
 import com.gregoryan.api.Services.Interfaces.StatusAgendaConverterInterface;
 import com.gregoryan.api.Services.Interfaces.StatusAgendaListInterface;
+import com.gregoryan.api.Services.Interfaces.StatusDiaConverterInterface;
+import com.gregoryan.api.Services.Interfaces.StatusDiaListInterface;
 import com.gregoryan.api.Services.Interfaces.StatusHoraConverterInterface;
 import com.gregoryan.api.Services.Interfaces.StatusHoraListInterface;
 import com.gregoryan.api.Services.Interfaces.UsuarioConverterInterface;
@@ -198,6 +209,28 @@ public class AdminController {
     private StatusHoraConverterInterface statusHoraConverter;
     @Autowired
     private StatusHoraDeleteService statusHoraDelete;
+    @Autowired
+    private StatusDiaListInterface statusDiaList;
+    @Autowired
+    private StatusDiaConverterInterface statusDiaConverter;
+    @Autowired
+    private StatusDiaCreateService statusDiaCreate;
+    @Autowired
+    private StatusDiaEditingService statusDiaEditing;
+    @Autowired
+    private StatusDiaDeletingService statusDiaDeleting;
+
+    //Injetores realacionados a feriado
+    @Autowired
+    private FeriadoCreateService feriadoCreate;
+    @Autowired
+    FeriadoEditingService feriadoEditing;
+    @Autowired
+    private FeriadoDeletingService feriadoDeleting;
+    @Autowired
+    private FeriadoListInterface feriadoList;
+    @Autowired
+    private FeriadoConverterInterface feriadoConverter;
 
     // ================================= PLANO PACIENTE ==================================
 
@@ -779,32 +812,6 @@ public class AdminController {
 
         return new ResponseEntity<>(listDTO, HttpStatus.OK);
 
-        
-        // Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-
-        // Optional<List<StatusHora>> status = statusHoraService.findByEmpresa(usuarioLogado.getEmpresa());
-
-        // if (!status.isPresent()){
-        //     return new ResponseEntity<>("Nenhum status encontrado", HttpStatus.NOT_FOUND);
-        // }
-
-        // //Além de buscar os status cadastrados pelo cliente, trás tambem os status padrão.
-        // Optional<StatusHora> ativo = statusHoraService.findByNome("Ativo");
-        // Optional<StatusHora> bloqueado = statusHoraService.findByNome("Bloqueado");
-
-        // if (ativo.isPresent() || bloqueado.isPresent()) {
-        //     status.get().add(ativo.get());
-        //     status.get().add(bloqueado.get());
-        // }
-
-        // //Passa os dados do model para o DTO
-        // List<StatusHoraResponseDTO> statusDTO = status.get().stream().map(item -> {
-        //     StatusHoraResponseDTO dto = new StatusHoraResponseDTO(item.getId(), item.getNome());
-        //     return dto;
-
-        // }).collect(Collectors.toList());
-
-        // return new ResponseEntity<>(statusDTO, HttpStatus.OK);
     }
 
     //Cadastra Status Hora
@@ -854,103 +861,97 @@ public class AdminController {
    
     //Lista Status do dia
     @GetMapping("/agenda/dia/status")
-    public ResponseEntity<Object> listaStatusDiaByEmpresa(HttpServletRequest request){
-        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+    @Operation(summary = "Lista Status Dia", description = "Lista Status Dia por empresa")
+    @ApiResponse(responseCode = "200", description = "Retorna lista com status dia por empresa com sucesso")
+    public ResponseEntity<Page<StatusDiaResponseDTO>> listaStatusDiaByEmpresa(
+        HttpServletRequest request,
+        @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
+    ){
+        
+        Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+        List<StatusDia> statusDias = statusDiaList.list(empresa, pageable).getContent();
 
-        Optional<List<StatusDia>> statusDia = statusDiaService.findByEmpresa(usuarioLogado.getEmpresa());
-
-        if (!statusDia.isPresent())
-            return new ResponseEntity<>("Status não encontrado", HttpStatus.NOT_FOUND);
-
-        List<StatusDiaResponseDTO> status = statusDia.get().stream().map(item -> {
-            StatusDiaResponseDTO dto = new StatusDiaResponseDTO(item.getId(), item.getNome());
+        List<StatusDiaResponseDTO> listDTO = statusDias.stream().map(item -> {
+            StatusDiaResponseDTO dto = statusDiaConverter.toResponseDTO(item);
             return dto;
+        }).collect(Collectors.toList());
 
-        }).collect(Collectors.toList()); //Converte Stream para List
-
-        //Adiciona Status padrao ATIVO e BLOQUEADO na lista
-        Optional<StatusDia> statusAtivo = statusDiaService.findById(1);
-        if (statusAtivo.isPresent()){
-
-            StatusDiaResponseDTO statusDTO = new StatusDiaResponseDTO(statusAtivo.get().getId(), statusAtivo.get().getNome());
-            
-            status.add(statusDTO);
-        }
-
-        Optional<StatusDia> statusBloqueado = statusDiaService.findById(2);
-        if (statusBloqueado.isPresent()){
-
-            StatusDiaResponseDTO statusDTO = new StatusDiaResponseDTO(statusBloqueado.get().getId(), statusBloqueado.get().getNome());
-            
-            status.add(statusDTO);
-        }
-
-        return new ResponseEntity<>(status, HttpStatus.OK);
+        return new ResponseEntity<>(new PageImpl<StatusDiaResponseDTO>(listDTO), HttpStatus.OK);
 
     }
 
     //Cadastra Status Dia
     @PostMapping("/agenda/dia/status")
-    public ResponseEntity<Object> cadastraStatusDia(@RequestBody StatusDiaCadastroDTO dto, HttpServletRequest request){
-        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-
-        if (statusDiaService.existsByNome(dto.nome()))
-            return new ResponseEntity<>("Status já existe", HttpStatus.CONFLICT);
-
-        StatusDia status = new StatusDia();
-        status.setNome(dto.nome());
-        status.setEmpresa(usuarioLogado.getEmpresa());
-
-        statusDiaService.save(status);
-
-        return new ResponseEntity<>("Status Cadastrado com sucesso", HttpStatus.CREATED);
+    @Operation(summary = "Cadastra um Status Dia", description = "Insere um novo status dia no Banco de Dados")
+    @ApiResponse(responseCode = "201", description = "Status cadastrado com sucesso")
+    @ApiResponse(responseCode = "403", description = "Já existe um status com este nome")
+    public ResponseEntity<Object> cadastraStatusDia(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Dados a serem cadastrados",
+            required = true,
+            content = @Content(schema = @Schema(implementation = StatusDiaCadastroDTO.class))
+        )
+        @RequestBody StatusDiaCadastroDTO dto, HttpServletRequest request){
+        
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            statusDiaCreate.create(dto, empresa);
+            return new ResponseEntity<>("Status cadastrado com sucesso", HttpStatus.CREATED);
+        
+        }catch(ConflictException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+        }
     }
 
     //Edita Status Dia
     @PutMapping("/agenda/dia/status")
-    public ResponseEntity<Object> editaStatusDia(@RequestBody StatusDiaEditDTO dto, HttpServletRequest request){
-        //Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+    @Operation(summary = "Edita Status Dia", description = "Edita nome de um status dia")
+    @ApiResponse(responseCode = "200", description = "Edição do status realizado com sucesso")
+    @ApiResponse(responseCode = "409", description = "Já esite um status com esse nome")
+    @ApiResponse(responseCode = "404", description = "Status não encontrado para edição")
+    public ResponseEntity<Object> editaStatusDia(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Dados a serem editados",
+            required = true,
+            content = @Content(schema = @Schema(implementation = StatusDiaEditDTO.class))
+        )
+        @RequestBody StatusDiaEditDTO dto, HttpServletRequest request){
         
-        //Não permite alterar o status Ativo nem Bloqueado
-        if (dto.id() == 1 || dto.id() == 2)
-            return new ResponseEntity<>("Não é possível editar este status.", HttpStatus.FORBIDDEN);
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            statusDiaEditing.edit(dto, empresa);
+            return new ResponseEntity<>("Status editado com sucesso", HttpStatus.OK);
 
-        Optional<StatusDia> status = statusDiaService.findById(dto.id());
+        }catch(ConflictException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
 
-        if (!status.isPresent())
-            return new ResponseEntity<>("Status não encontrado", HttpStatus.NOT_FOUND);
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
-        status.get().setNome(dto.nome());
-
-        statusDiaService.save(status.get());
-
-        return new ResponseEntity<>("Status editado com sucesso", HttpStatus.OK);
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
     }
 
 
     //Deleta Status Dia
     @DeleteMapping("/agenda/dia/status/{id}")
+    @Operation(summary = "Deleta Status Dia", description = "Deleta um status dia do Banco de Dados")
+    @ApiResponse(responseCode = "200", description = "Exclusão realizada com sucesso")
+    @ApiResponse(responseCode = "404", description = "Status não encontrado para exclusão")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     public ResponseEntity<Object> deletaStatusDia(@PathVariable long id, HttpServletRequest request){
-        Usuario  usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+        
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            statusDiaDeleting.delete(id, empresa);
+            return new ResponseEntity<>("Status excluído com sucesso", HttpStatus.OK);
 
-        Optional<StatusDia> status = statusDiaService.findById(id);
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
-        //Se status exite
-        if (status.isPresent()){
-
-            //Não deleta se status for padrão do sistema Ativo ou Bloqueado.
-            if (status.get().getId() == 1 || status.get().getId() == 2)
-                return new ResponseEntity<>("Status não pode ser deletado.", HttpStatus.FORBIDDEN);
-
-            //Se empresa do usuario e empresa do status são a mesma
-            if (status.get().getEmpresa() == usuarioLogado.getEmpresa()){
-                statusDiaService.delete(status.get());
-                return new ResponseEntity<>("Status deletado com sucesso", HttpStatus.OK);
-            }else {
-                return new ResponseEntity<>("Status não encontrado", HttpStatus.NOT_FOUND);
-            }
-        }else {
-            return new ResponseEntity<>("Status não encontrado", HttpStatus.NOT_FOUND);
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
     }
 
@@ -1153,10 +1154,7 @@ public class AdminController {
 
         try{
             Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            Profissional profissional = profissionalList.list(id);
-
-            usuarioValidate.isSameEmpresaFromUserLogged(empresa, profissional.getUsuario().getEmpresa());
-
+            Profissional profissional = profissionalList.list(id, empresa);
             ProfissionalResponseDTO dto = profissionalConverter.toResponseDTO(profissional);
 
             return new ResponseEntity<>(dto, HttpStatus.OK);
@@ -1175,72 +1173,157 @@ public class AdminController {
 
     // ========================================== FERIADOS =============================================================
     @PostMapping("/feriado/cadastro")
-    public ResponseEntity<Object> feriadoCadastro(@RequestBody @Valid FeriadoCadastroDTO feriadoDTO, HttpServletRequest request){
-        
-        Feriado feriado = new Feriado();
-        BeanUtils.copyProperties(feriadoDTO, feriado);
+    @Operation(summary = "Cadastra Feriado", description = "Insere um novo feriado no Bando de Dados")
+    @ApiResponse(responseCode = "201", description = "Feriado cadastrado com sucesso")
+    @ApiResponse(responseCode = "409", description = "Feriado já existe")
+    public ResponseEntity<Object> feriadoCadastro(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Dados a serem cadastrados",
+            required = true,
+            content = @Content(schema = @Schema(implementation = FeriadoCadastroDTO.class))
+        )
+        @RequestBody @Valid FeriadoCadastroDTO feriadoDTO, HttpServletRequest request){
+        System.out.println("------------------------");
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            feriadoCreate.create(feriadoDTO, empresa);
+            return new ResponseEntity<>("Feriado cadastrado com sucesso", HttpStatus.CREATED);
 
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT-3:00"), new Locale("pt-BR"));
-        String ano = feriadoDTO.dia().split("-")[0];
-        String mes = feriadoDTO.dia().split("-")[1];
-        String dia = feriadoDTO.dia().split("-")[2];
-        calendar.set(Integer.parseInt(ano), Integer.parseInt(mes), Integer.parseInt(dia));
-        feriado.setDia(calendar);
+        }catch(ConflictException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
 
-        Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-        feriado.setEmpresa(usuario.getEmpresa());
-        return new ResponseEntity<>(feriadoService.save(feriado), HttpStatus.CREATED);
+        }
+
+
+        // Feriado feriado = new Feriado();
+        // BeanUtils.copyProperties(feriadoDTO, feriado);
+
+        // Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT-3:00"), new Locale("pt-BR"));
+        // String ano = feriadoDTO.dia().split("-")[0];
+        // String mes = feriadoDTO.dia().split("-")[1];
+        // String dia = feriadoDTO.dia().split("-")[2];
+        // calendar.set(Integer.parseInt(ano), Integer.parseInt(mes), Integer.parseInt(dia));
+        // feriado.setDia(calendar);
+
+        // Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+        // feriado.setEmpresa(usuario.getEmpresa());
+        // return new ResponseEntity<>(feriadoService.save(feriado), HttpStatus.CREATED);
     }
 
     @PutMapping("/feriado/edit")
-    public ResponseEntity<Object> feriadoEdit(@RequestBody @Valid FeriadoEditDTO feriadoDTO){
+    @Operation(summary = "Edita um feriado", description = "Edita um feriado já cadastrado")
+    @ApiResponse(responseCode = "200", description = "Feriado editado com sucesso")
+    @ApiResponse(responseCode = "404", description = "Feriado não encontrado para edição")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    @ApiResponse(responseCode = "409", description = "Jà existe um feriado com esse nome")
+    public ResponseEntity<Object> feriadoEdit(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Dados a serem editados",
+            required = true,
+            content = @Content(schema = @Schema(implementation = FeriadoEditDTO.class))
+        )
+        @RequestBody @Valid FeriadoEditDTO feriadoDTO, HttpServletRequest request){
 
-        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(null))).get();
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            feriadoEditing.edit(feriadoDTO, empresa);
+            return new ResponseEntity<>("Feriado editado com sucesso", HttpStatus.OK);
 
-        Optional<Feriado> feriado = feriadoService.findById(feriadoDTO.id());
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
-        //SOmente edita feriado se Empresa do feriado for a memsa do usuario logado.
-        if (feriado.isPresent() && feriado.get().getEmpresa().getId() == usuarioLogado.getEmpresa().getId()){
-            Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT-3:00"), new Locale("pt-BR"));
-            int ano = Integer.parseInt(feriadoDTO.data().split("-")[0]);
-            int mes = Integer.parseInt(feriadoDTO.data().split("-")[1]);
-            int dia = Integer.parseInt(feriadoDTO.data().split("-")[2]); 
-            calendar.set(ano, mes, dia);
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
 
-            feriado.get().setNome(feriadoDTO.nome());
-            feriado.get().setDia(calendar);
+        }catch(ConflictException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+        }
 
-            return new ResponseEntity<>(feriadoService.save(feriado.get()), HttpStatus.OK);
+        // Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(null))).get();
+
+        // Optional<Feriado> feriado = feriadoService.findById(feriadoDTO.id());
+
+        // //SOmente edita feriado se Empresa do feriado for a memsa do usuario logado.
+        // if (feriado.isPresent() && feriado.get().getEmpresa().getId() == usuarioLogado.getEmpresa().getId()){
+        //     Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT-3:00"), new Locale("pt-BR"));
+        //     int ano = Integer.parseInt(feriadoDTO.data().split("-")[0]);
+        //     int mes = Integer.parseInt(feriadoDTO.data().split("-")[1]);
+        //     int dia = Integer.parseInt(feriadoDTO.data().split("-")[2]); 
+        //     calendar.set(ano, mes, dia);
+
+        //     feriado.get().setNome(feriadoDTO.nome());
+        //     feriado.get().setDia(calendar);
+
+        //     return new ResponseEntity<>(feriadoService.save(feriado.get()), HttpStatus.OK);
         
-        } else return new ResponseEntity<>("Feriado não encontrado!", HttpStatus.NOT_FOUND);
+        // } else return new ResponseEntity<>("Feriado não encontrado!", HttpStatus.NOT_FOUND);
         
     }
 
     @DeleteMapping("/feriado/delete/{id}")
-    public ResponseEntity<Object> feriadoDelete(@PathVariable (name = "id") long id, HttpServletRequest request){
-        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+    @Operation(summary = "Deleta Feriado", description = "Deleta um feriado do Banco de Dados")
+    @ApiResponse(responseCode = "200", description = "Feriado excluído com sucesso")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    @ApiResponse(responseCode = "404", description = "Feriado não encontrado para exclusão")
+    public ResponseEntity<Object> feriadoDelete(
+        @Parameter(description = "Id do feriado", required = true, example = "123")
+        @PathVariable (name = "id") long id, HttpServletRequest request){
+        
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            feriadoDeleting.delete(id, empresa);
+            return new ResponseEntity<>("Feriado excluído com sucesso", HttpStatus.OK);
 
-        Optional<Feriado> feriado = feriadoService.findById(id);
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
 
-        if (feriado.isPresent() && feriado.get().getEmpresa().getId() == usuarioLogado.getEmpresa().getId()) {
-            
-            feriadoService.delete(feriado.get());
-            return new ResponseEntity<>("Feriado deletado do sistema!", HttpStatus.NOT_FOUND);
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
-        }    else return new ResponseEntity<>("Feriado não encontrado!", HttpStatus.NOT_FOUND);
+        }
+        
+        
     }
 
-
+    
     @GetMapping("/feriado/list")
-    public ResponseEntity<Page<Feriado>> feriadoListByEmpresa(
+    @Operation(summary = "Lista feriados", description = "Lista feriados da Empresa")
+    @ApiResponse(responseCode = "200", description = "Retorna feriados com sucesso")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<Page<FeriadoResponseDTO>> feriadoListByEmpresa(
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) 
             Pageable pageable, HttpServletRequest request){
-                Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-                Page<Feriado> feriado = feriadoService.findByEmpresa(usuario.getEmpresa(), pageable);
+               
+                Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+                List<Feriado> feriados = feriadoList.list(empresa, pageable).getContent();
+                List<FeriadoResponseDTO> listDTO = feriados.stream().map(feriado -> {
+                    FeriadoResponseDTO dto = feriadoConverter.toResponseDTO(feriado);
+                    return dto;
 
-                return new ResponseEntity<>(feriado, HttpStatus.OK);
+                }).collect(Collectors.toList());
+
+                return new ResponseEntity<>(new PageImpl<FeriadoResponseDTO>(listDTO), HttpStatus.OK);
             }
 
+    @GetMapping("/feriado")
+    @Operation(summary = "Busca feriado", description = "Busca feriado da empresa pelo ID")
+    @ApiResponse(responseCode = "200", description = "Feriado encontrado é retornado")
+    @ApiResponse(responseCode = "404", description = "Feriado não encontrado")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<Object> feriadoListById(@RequestParam long id, HttpServletRequest request){
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            Feriado feriado = feriadoList.list(id, empresa);
+            FeriadoResponseDTO dto = feriadoConverter.toResponseDTO(feriado);
+            return new ResponseEntity<>(dto, HttpStatus.OK);
+
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
+    }
 
     // ======================================================= DIAS BLOQUEADOS ==============================================
     @PostMapping("diabloqueado/cadastro")

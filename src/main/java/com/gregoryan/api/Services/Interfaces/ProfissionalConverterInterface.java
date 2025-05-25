@@ -8,6 +8,6 @@ import com.gregoryan.api.Models.Profissional;
 
 public interface ProfissionalConverterInterface {
     Profissional toProfissional(ProfissionalCadastroDTO dto, Empresa empresa);
-    Profissional toProfissional(ProfissionalEditDTO dto);
+    Profissional toProfissional(ProfissionalEditDTO dto, Empresa empresa);
     ProfissionalResponseDTO toResponseDTO(Profissional profissional);
 }

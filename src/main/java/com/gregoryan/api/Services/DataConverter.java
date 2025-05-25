@@ -21,8 +21,9 @@ public class DataConverter implements DataConverterInterface{
         return now;
     }
 
+    //Cria um Calendar com o dia da string no formato yyyy-MM-dd;
     @Override
-    public Calendar getDateOfBirth(String data) {
+    public Calendar toCalendar(String data) {
         Calendar nascimento = Calendar.getInstance();
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         

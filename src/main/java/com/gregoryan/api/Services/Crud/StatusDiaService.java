@@ -45,8 +45,8 @@ public class StatusDiaService {
         return repository.findAll(pageable);
     }
 
-    public Optional<List<StatusDia>> findByEmpresa(Empresa empresa){
-        return repository.findByEmpresa(empresa);
+    public Page<StatusDia> findByEmpresa(Empresa empresa, Pageable pageable){
+        return repository.findByEmpresa(empresa, pageable);
     }
 
     

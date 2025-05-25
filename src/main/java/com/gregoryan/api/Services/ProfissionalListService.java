@@ -16,10 +16,15 @@ public class ProfissionalListService implements ProfissionalListInterface{
 
     @Autowired
     private ProfissionalService profissionalService;
+    @Autowired
+    private UsuarioValidate usuarioValidate;
 
     @Override
-    public Profissional list(long id) {
-        return profissionalService.findById(id).orElseThrow(() -> new EntityDontExistException("Profissional não encontrado"));
+    public Profissional list(long id, Empresa empresa) {
+        Profissional profissional = profissionalService.findById(id).orElseThrow(() -> new EntityDontExistException("Profissional não encontrado"));
+        usuarioValidate.isSameEmpresaFromUserLogged(empresa, profissional.getUsuario().getEmpresa());
+
+        return profissional;
     }
 
     @Override

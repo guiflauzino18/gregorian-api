@@ -13,14 +13,11 @@ public class ProfissionalDeletingService {
     @Autowired
     private ProfissionalService profissionalService;
     @Autowired
-    private UsuarioValidate usuarioValidate;
-    @Autowired
     private ProfissionalListInterface profissionalList;
 
     public void delete(long id, Empresa empresa){
-        Profissional profissional = profissionalList.list(id); //ProfissionalDontExistException
-        usuarioValidate.isSameEmpresaFromUserLogged(empresa, profissional.getUsuario().getEmpresa()); //AcessoNegadoException
-        profissionalService.delete(profissional);
+        Profissional profissional = profissionalList.list(id, empresa); //ProfissionalDontExistException
+        profissionalService.delete(profissional); 
     }
 
 }

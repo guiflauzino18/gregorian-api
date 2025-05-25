@@ -21,8 +21,8 @@ public class UsuarioValidate implements UsuarioValidateInterface{
     private UsuarioService usuarioservice;
 
     @Override
-    public void jaExiste(UsuarioCadastroDTO dto) {
-        if (usuarioservice.existByLogin(dto.login())){
+    public void jaExiste(String login) {
+        if (usuarioservice.existByLogin(login)){
 
             throw new ConflictException("Já existe um usuário com este login");
         }

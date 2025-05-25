@@ -13,20 +13,13 @@ import com.gregoryan.api.Services.Crud.UsuarioService;
 public class UsuarioEditingService {
     
     @Autowired
-    private UsuarioValidate validate;
-    @Autowired
     private UsuarioConverter usuarioConverter;
     @Autowired
     private UsuarioService usuarioService;
 
     public Usuario edit(UsuarioEditDTO dto, Empresa empresa){
 
-        Usuario usuario = usuarioService.findById(dto.id()).orElseThrow(()-> new EntityDontExistException("Usuário não encontrado"));
-        
-        validate.isSameEmpresaFromUserLogged(empresa, usuario.getEmpresa());
-
-        usuario = usuarioConverter.toUsuario(dto, empresa);
-
+        Usuario usuario = usuarioConverter.toUsuario(dto, empresa);
         return usuarioService.save(usuario);
 
     }

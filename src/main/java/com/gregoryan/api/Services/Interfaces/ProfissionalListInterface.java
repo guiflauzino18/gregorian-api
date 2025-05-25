@@ -8,6 +8,6 @@ import com.gregoryan.api.Models.Profissional;
 
 public interface ProfissionalListInterface {
     
-    Profissional list(long id);
+    Profissional list(long id, Empresa empresa);
     Page<Profissional> list(Empresa empresa, Pageable pageable);
 }

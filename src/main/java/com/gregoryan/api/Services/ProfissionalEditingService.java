@@ -7,7 +7,6 @@ import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.Profissional;
 import com.gregoryan.api.Services.Crud.ProfissionalService;
 import com.gregoryan.api.Services.Interfaces.ProfissionalConverterInterface;
-import com.gregoryan.api.Services.Interfaces.UsuarioValidateInterface;
 
 @Service
 public class ProfissionalEditingService {
@@ -15,15 +14,10 @@ public class ProfissionalEditingService {
     private ProfissionalService profissionalService;
     @Autowired
     private ProfissionalConverterInterface profissionalConverter;
-    @Autowired
-    private UsuarioValidateInterface usuarioValidate;
 
     public void edit(ProfissionalEditDTO dto, Empresa empresa){
         
-
-        Profissional profissional = profissionalConverter.toProfissional(dto); //ProfissionalDontExitException
-        usuarioValidate.isSameEmpresaFromUserLogged(empresa,profissional.getUsuario().getEmpresa());
-
+        Profissional profissional = profissionalConverter.toProfissional(dto, empresa); //ProfissionalDontExitException
         profissionalService.save(profissional);
 
     }

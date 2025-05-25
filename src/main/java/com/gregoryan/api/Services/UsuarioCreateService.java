@@ -24,7 +24,7 @@ public class UsuarioCreateService{
 
     
     public Usuario cadastrar(UsuarioCadastroDTO dto, Empresa empresa){
-        validateUsuario.jaExiste(dto);
+        validateUsuario.jaExiste(dto.login());
 
         Usuario usuario = usuarioConverter.toUsuario(dto);
         usuario.setDataRegistro(dataConverter.getDateCurrent());

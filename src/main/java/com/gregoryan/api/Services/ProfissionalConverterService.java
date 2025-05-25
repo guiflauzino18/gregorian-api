@@ -40,8 +40,8 @@ public class ProfissionalConverterService implements ProfissionalConverterInterf
     }
 
     @Override
-    public Profissional toProfissional(ProfissionalEditDTO dto) {
-        Profissional profissional = profissionalList.list(dto.id()); //ProfissionalDontExitException
+    public Profissional toProfissional(ProfissionalEditDTO dto, Empresa empresa) {
+        Profissional profissional = profissionalList.list(dto.id(), empresa); //ProfissionalDontExitException
         profissional.setTitulo(dto.titulo());
         profissional.setRegistro(dto.registro());
         profissional.setStatus(dto.status());

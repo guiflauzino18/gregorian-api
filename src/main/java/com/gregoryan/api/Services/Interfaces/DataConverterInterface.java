@@ -5,6 +5,6 @@ import java.util.Calendar;
 
 public interface DataConverterInterface {
     Calendar getDateCurrent();
-    Calendar getDateOfBirth(String data);
+    Calendar toCalendar(String data);
     LocalTime getHour(String hour);
 }

@@ -33,7 +33,7 @@ public class UsuarioConverter implements UsuarioConverterInterface{
         Usuario usuario = new Usuario();
         usuario.setNome(dto.nome());
         usuario.setSobrenome(dto.sobrenome());
-        usuario.setNascimento(dataConverter.getDateOfBirth(dto.nascimento()));
+        usuario.setNascimento(dataConverter.toCalendar(dto.nascimento()));
         usuario.setTelefone(dto.telefone());
         usuario.setEmail(dto.email());
         usuario.setLogin(dto.login());
@@ -52,7 +52,7 @@ public class UsuarioConverter implements UsuarioConverterInterface{
         Usuario usuario = usuarioList.list(dto.id(), empresa);
 
         usuario.setNome(dto.nome());
-        usuario.setNascimento(dataConverter.getDateOfBirth(dto.nascimento()));
+        usuario.setNascimento(dataConverter.toCalendar(dto.nascimento()));
         usuario.setTelefone(dto.telefone());
         usuario.setEmail(dto.email());
         usuario.setEndereco(dto.endereco());
@@ -83,40 +83,4 @@ public class UsuarioConverter implements UsuarioConverterInterface{
 
         return dto;
     }
-
-    // @Autowired
-    // private DataConverter dataConverter;
-
-    // public Usuario cadastroDTOToModel(UsuarioCadastroDTO dto){
-    //     Usuario usuario = new Usuario();
-    //     BeanUtils.copyProperties(dto, usuario);
-
-    //     return usuario;
-    // }
-
-    // public Usuario EditTOToModel(UsuarioEditDTO dto, Usuario usuario){
-
-    //     usuario.setNome(dto.nome());
-    //     usuario.setSobrenome(dto.sobrenome());
-    //     usuario.setNascimento(dataConverter.getDateOfBirth(dto.nascimento()));
-    //     usuario.setTelefone(dto.telefone());
-    //     usuario.setEmail(dto.email());
-    //     usuario.setStatus(dto.status());
-    //     usuario.setEndereco(dto.endereco());
-    //     usuario.setRole(dto.role());
-    //     usuario.setAlteraNextLogon(dto.alteraNextLogon());
-
-    //     return usuario;
-    // }
-
-    // public UsuarioResponseDTO toResponseDTO(Usuario usuario){
-    //     UsuarioResponseDTO dto = new UsuarioResponseDTO(usuario.getId(),usuario.getNome(), usuario.getSobrenome(), usuario.getNascimento(), 
-    //     usuario.getTelefone(), usuario.getEmail(), usuario.getLogin(), usuario.getEndereco(), usuario.getStatus(), usuario.isAlteraNextLogon(),
-    //     usuario.getRole(), usuario.getDataRegistro(), usuario.getEmpresa().getNome());
-
-    //     return dto;
-    // }
-
-
-    
 }

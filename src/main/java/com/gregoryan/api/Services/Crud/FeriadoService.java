@@ -45,5 +45,9 @@ public class FeriadoService {
         return repository.findByEmpresa(empresa, pageable);
     }
 
+    public boolean existByNome(String nome){
+        return repository.existsByNome(nome);
+    }
+
     
 }
