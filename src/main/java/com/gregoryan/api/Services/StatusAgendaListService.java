@@ -33,5 +33,12 @@ public class StatusAgendaListService implements StatusAgendaListInterface{
     public Page<StatusAgenda> list(Empresa empresa, Pageable pageable) {
         return statusAgendaService.findByEmpresa(empresa, pageable);
     }
+
+    @Override
+    public StatusAgenda list(String nome, Empresa empresa) {
+        StatusAgenda statusAgenda = statusAgendaService.findByNome(nome).orElseThrow(() -> new EntityDontExistException("Status da Agenda não encontrado"));
+        usuarioValidate.isSameEmpresaFromUserLogged(empresa, statusAgenda.getEmpresa());
+        return statusAgenda;
+    }
     
 }

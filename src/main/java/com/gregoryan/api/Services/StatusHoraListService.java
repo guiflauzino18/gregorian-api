@@ -51,5 +51,13 @@ public class StatusHoraListService implements StatusHoraListInterface{
         return new PageImpl<StatusHora>(statusHoras);
     }
 
+    @Override
+    public StatusHora list(String nome, Empresa empresa) {
+        StatusHora statusHora = statusHoraService.findByNome(nome).orElseThrow(() -> new EntityDontExistException("Status hora não encontrado"));
+        usuarioValidate.isSameEmpresaFromUserLogged(empresa, statusHora.getEmpresa());
+
+        return statusHora;
+    }
+
     
 }

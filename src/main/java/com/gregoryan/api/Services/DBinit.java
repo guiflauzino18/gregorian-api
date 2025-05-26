@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import com.gregoryan.api.Exception.EntityDontExistException;
 import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.Profissional;
 import com.gregoryan.api.Models.StatusAgenda;
@@ -48,6 +49,9 @@ public class DBinit {
     @PostConstruct
     public void criaStatusSeNaoExistir(){
 
+        //Cria empresa Gregorian
+        empresaGregorian();
+
         //Cria Status da Agenda Ativo
         statusAgendaAtivo();
 
@@ -57,9 +61,6 @@ public class DBinit {
         //Cria Status da Hora para Ativo
         statusHoraAtivoEBloqueado();
 
-        //Cria empresa Gregorian
-        empresaGregorian();
-
         //Cria Usuario Sysadmin se não existir
         usuarioSysAdmin();
 
@@ -68,11 +69,27 @@ public class DBinit {
 
     }
 
+        private void empresaGregorian(){
+        if(!empresaService.existsByCnpj(0000000000)){
+            Empresa empresa = new Empresa();
+            empresa.setCnpj(0000000000);
+            empresa.setEndereco("Rua 0");
+            empresa.setNome("Gregorian");
+            empresa.setResponsavel("sysadmin");
+            empresa.setTelefone("00 000000000");
+            Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT"), new Locale("pt-BR"));
+            empresa.setDataRegistro(now);
+            empresaService.save(empresa);
+        }
+    }
+
     private void statusAgendaAtivo(){
         //Cria Status Ativo para Agenda na Inicialização;
         if (!statusAgendaService.existsByNome("Ativo")){
             StatusAgenda statusAgenda = new StatusAgenda();
+            Empresa empresa = empresaService.findByCnpj(0000000000).orElseThrow(() -> new EntityDontExistException("Empresa não encontrada"));
             statusAgenda.setNome("Ativo");
+            statusAgenda.setEmpresa(empresa);
             statusAgendaService.save(statusAgenda);
         }
     }
@@ -81,7 +98,9 @@ public class DBinit {
         //Cria Status Ativo para Dia na Inicialização;
         if (!statusDiaService.existsByNome("Ativo")){
             StatusDia statusDia = new StatusDia();
+            Empresa empresa = empresaService.findByCnpj(0000000000).orElseThrow(() -> new EntityDontExistException("Empresa não encontrada"));
             statusDia.setNome("Ativo");
+            statusDia.setEmpresa(empresa);
             statusDiaService.save(statusDia);
         }
 
@@ -89,6 +108,8 @@ public class DBinit {
         if (!statusDiaService.existsByNome("Bloqueado")){
             StatusDia statusDia = new StatusDia();
             statusDia.setNome("Bloqueado");
+            Empresa empresa = empresaService.findByCnpj(0000000000).orElseThrow(() -> new EntityDontExistException("Empresa não encontrada"));
+            statusDia.setEmpresa(empresa);
             statusDiaService.save(statusDia);
         }
     }
@@ -98,28 +119,18 @@ public class DBinit {
         if (!statusHoraService.existsByNome("Ativo")){
             StatusHora statusHora = new StatusHora();
             statusHora.setNome("Ativo");
+            Empresa empresa = empresaService.findByCnpj(0000000000).orElseThrow(() -> new EntityDontExistException("Empresa não encontrada"));
+            statusHora.setEmpresa(empresa);
             statusHoraService.save(statusHora);
         }
 
         //cria status Ativo para Hora na Incialização
         if (!statusHoraService.existsByNome("Bloqueado")){
+            Empresa empresa = empresaService.findByCnpj(0000000000).orElseThrow(() -> new EntityDontExistException("Empresa não encontrada"));
             StatusHora statusHora = new StatusHora();
             statusHora.setNome("Bloqueado");
+            statusHora.setEmpresa(empresa);
             statusHoraService.save(statusHora);
-        }
-    }
-
-    private void empresaGregorian(){
-        if(!empresaService.existsByCnpj(123456789)){
-            Empresa empresa = new Empresa();
-            empresa.setCnpj(123456789);
-            empresa.setEndereco("Rua 0");
-            empresa.setNome("Gregorian");
-            empresa.setResponsavel("sysadmin");
-            empresa.setTelefone("00 000000000");
-            Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT"), new Locale("pt-BR"));
-            empresa.setDataRegistro(now);
-            empresaService.save(empresa);
         }
     }
 
@@ -139,9 +150,9 @@ public class DBinit {
             Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
             usuario.setDataRegistro(now);
             usuario.setNascimento(now);
-            Optional<Empresa> empresa = empresaService.findByCnpj(123456789);
-            if (empresa.isPresent()) usuario.setEmpresa(empresa.get());
-
+            
+            Empresa empresa = empresaService.findByCnpj(0000000000).orElseThrow(() -> new EntityDontExistException("Empresa não encontrada"));
+            usuario.setEmpresa(empresa);
             usuarioService.save(usuario);
         }
     }
@@ -154,7 +165,6 @@ public class DBinit {
             profissional.setTitulo("Administrador");
             profissional.setRegistro("987654321");
             profissional.setUsuario(usuarioService.findByLogin("sysadmin").get());
-
             profissionalService.save(profissional);
         }
     }

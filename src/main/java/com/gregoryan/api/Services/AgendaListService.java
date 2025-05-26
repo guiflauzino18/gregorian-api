@@ -20,8 +20,6 @@ public class AgendaListService implements AgendaListInterface{
     private AgendaService agendaService;
     @Autowired
     private UsuarioValidateInterface usuarioValidade;
-    @Autowired
-    private AgendaConverter converter;
 
     //Lista agenda por ID
     @Override

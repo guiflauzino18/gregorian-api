@@ -77,11 +77,13 @@ import com.gregoryan.api.Models.StatusHora;
 import com.gregoryan.api.Models.Usuario;
 import com.gregoryan.api.Services.UsuarioDeletingService;
 import com.gregoryan.api.Services.UsuarioEditingService;
+import com.gregoryan.api.Services.AgendaConfigureService;
 import com.gregoryan.api.Services.AgendaCreateService;
 import com.gregoryan.api.Services.AgendaDeletingService;
 import com.gregoryan.api.Services.DiaBloqueadoCreateService;
 import com.gregoryan.api.Services.DiaBloqueadoDeleteService;
 import com.gregoryan.api.Services.DiaBloqueadoEditingService;
+import com.gregoryan.api.Services.DiaEditService;
 import com.gregoryan.api.Services.FeriadoCreateService;
 import com.gregoryan.api.Services.FeriadoDeletingService;
 import com.gregoryan.api.Services.FeriadoEditingService;
@@ -197,6 +199,8 @@ public class AdminController {
     @Autowired
     private AgendaDeletingService agendaDeleting;
     @Autowired
+    private AgendaConfigureService agendaConfigure;
+    @Autowired
     private AgendaConverterInterface agendaConverter;
     @Autowired
     private StatusAgendaCreateService statusAgendaCreate;
@@ -234,6 +238,8 @@ public class AdminController {
     private DiaBloqueadoConverterInterface diaBloqueadoConverter;
     @Autowired
     private DiaBloqueadoDeleteService diaBloqueadoDelete;
+    @Autowired
+    private DiaEditService diaEditService;
 
     //Injetores realacionados a feriado
     @Autowired
@@ -323,7 +329,7 @@ public class AdminController {
     }
 
     @GetMapping("/usuario")
-    @Operation(summary = "Busca Usuário por ID", description = "Busca usuário no Banco pelo ID")
+    @Operation(summary = "Busca Us uário por ID", description = "Busca usuário no Banco pelo ID")
     @ApiResponse(responseCode = "200", description = "Usuário localizado é retornado")
     @ApiResponse(responseCode = "404", description = "Usuário não localizado")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
@@ -540,9 +546,21 @@ public class AdminController {
     @PutMapping("/agenda/config")
     public ResponseEntity<Object> agendaConfig(@RequestBody @Valid AgendaConfigDTO agendaDTO, HttpServletRequest request){
 
-        Optional<StatusHora> statusHora = statusHoraService.findByNome("Ativo");
-        Optional<StatusDia> statusDia = statusDiaService.findByNome("Ativo");
-        Optional<Agenda> agenda = agendaService.findById(agendaDTO.idAgenda());
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            agendaConfigure.configure(agendaDTO, empresa);
+            return new ResponseEntity<>("Agenda configurada com sucesso", HttpStatus.CREATED);
+
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
+
+        // Optional<StatusHora> statusHora = statusHoraService.findByNome("Ativo");
+        // Optional<StatusDia> statusDia = statusDiaService.findByNome("Ativo");
+        // Optional<Agenda> agenda = agendaService.findById(agendaDTO.idAgenda());
 
         // Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
 
@@ -565,13 +583,7 @@ public class AdminController {
         //     dia.setDuracaoSessaoInMinutes(diaDTO.duracaoSessaoInMinutes());
         //     dia.setIntervaloSessaoInMinutes(diaDTO.intervaloSessaoInMinutes());
 
-        //     LocalTime inicio = LocalTime.of(Integer.parseInt(diaDTO.inicio().split(":")[0]), Integer.parseInt(diaDTO.inicio().split(":")[1]));
-        //     LocalTime fim = LocalTime.of(Integer.parseInt(diaDTO.fim().split(":")[0]), Integer.parseInt(diaDTO.fim().split(":")[1]));
-        //     dia.setInicio(inicio);
-        //     dia.setFim(fim);
-
-        //     if (statusDia.isPresent()) dia.setStatusDia(statusDia.get());     
-            
+        //     LocalTime inicio = LocalTime.of(Integer.parseInt(diaDTO.inrequest
         //     if (statusHora.isPresent()) dia.createHoras(statusHora.get(), horasService);
             
         //     agenda.get().getDias().add(dia);
@@ -579,12 +591,12 @@ public class AdminController {
 
         //agendaService.save(agenda.get());
 
-        Optional<Profissional> profissional = profissionalService.findById(agendaDTO.idProfissional());
-        if (profissional.isPresent()) {
-            profissional.get().setAgenda(agenda.get());
-            profissionalService.save(profissional.get());
-        }
-        return new ResponseEntity<>(agenda.get(), HttpStatus.OK);
+        // Optional<Profissional> profissional = profissionalService.findById(agendaDTO.idProfissional());
+        // if (profissional.isPresent()) {
+        //     profissional.get().setAgenda(agenda.get());
+        //     profissionalService.save(profissional.get());
+        // }
+        // return new ResponseEntity<>(agenda.get(), HttpStatus.OK);
     }
 
     //Edita Agenda
@@ -611,38 +623,50 @@ public class AdminController {
 
     //Edita Dias da Agenda
     @PutMapping("/agenda/edit/dia")
-    public ResponseEntity<Object> agendaEditDia(@RequestBody @Valid DiaEditDTO diaDTO){
+    public ResponseEntity<Object> agendaEditDia(@RequestBody @Valid DiaEditDTO diaDTO, HttpServletRequest request){
 
-        Optional<Dias> dia = diasService.findById(diaDTO.idDia());
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            diaEditService.editar(empresa, diaDTO);
+            return new ResponseEntity<>("Dia editado com sucesso", HttpStatus.OK);
 
-        if (dia.isPresent()) {
-            long duracaoSessaoBeforeEdit = dia.get().getDuracaoSessaoInMinutes();
-            long intervaloSessaoBeforeEdit = dia.get().getIntervaloSessaoInMinutes();
-            LocalTime inicioBeforeEdit = dia.get().getInicio();
-            LocalTime fimBeforeEdit = dia.get().getFim();
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
-            dia.get().setDuracaoSessaoInMinutes(diaDTO.duracaoSessaoInMinutes());
-            dia.get().setIntervaloSessaoInMinutes(diaDTO.intervaloSessaoInMinutes());
-            Optional<StatusDia> statusDia = statusDiaService.findById(diaDTO.idStatusDia());
-            if (statusDia.isPresent()) dia.get().setStatusDia(statusDia.get());
-            LocalTime inicio = LocalTime.of(Integer.parseInt(diaDTO.inicio().split(":")[0]), Integer.parseInt(diaDTO.inicio().split(":")[1]));
-            LocalTime fim = LocalTime.of(Integer.parseInt(diaDTO.fim().split(":")[0]), Integer.parseInt(diaDTO.fim().split(":")[1]));
-            dia.get().setInicio(inicio);
-            dia.get().setFim(fim);
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
+
+        // Optional<Dias> dia = diasService.findById(diaDTO.idDia());
+
+        // if (dia.isPresent()) {
+        //     long duracaoSessaoBeforeEdit = dia.get().getDuracaoSessaoInMinutes();
+        //     long intervaloSessaoBeforeEdit = dia.get().getIntervaloSessaoInMinutes();
+        //     LocalTime inicioBeforeEdit = dia.get().getInicio();
+        //     LocalTime fimBeforeEdit = dia.get().getFim();
+
+        //     dia.get().setDuracaoSessaoInMinutes(diaDTO.duracaoSessaoInMinutes());
+        //     dia.get().setIntervaloSessaoInMinutes(diaDTO.intervaloSessaoInMinutes());
+        //     Optional<StatusDia> statusDia = statusDiaService.findById(diaDTO.idStatusDia());
+        //     if (statusDia.isPresent()) dia.get().setStatusDia(statusDia.get());
+        //     LocalTime inicio = LocalTime.of(Integer.parseInt(diaDTO.inicio().split(":")[0]), Integer.parseInt(diaDTO.inicio().split(":")[1]));
+        //     LocalTime fim = LocalTime.of(Integer.parseInt(diaDTO.fim().split(":")[0]), Integer.parseInt(diaDTO.fim().split(":")[1]));
+        //     dia.get().setInicio(inicio);
+        //     dia.get().setFim(fim);
 
             
-            if (duracaoSessaoBeforeEdit != dia.get().getDuracaoSessaoInMinutes() ||
-                intervaloSessaoBeforeEdit != dia.get().getIntervaloSessaoInMinutes()||
-                !inicio.equals(inicioBeforeEdit) || !fim.equals(fimBeforeEdit)) {
+        //     if (duracaoSessaoBeforeEdit != dia.get().getDuracaoSessaoInMinutes() ||
+        //         intervaloSessaoBeforeEdit != dia.get().getIntervaloSessaoInMinutes()||
+        //         !inicio.equals(inicioBeforeEdit) || !fim.equals(fimBeforeEdit)) {
                     
-                StatusHora statusHora = statusHoraService.findByNome("Ativo").get();
+        //         StatusHora statusHora = statusHoraService.findByNome("Ativo").get();
 
-                dia.get().createHoras(statusHora, horasService);
-            }
+        //         dia.get().createHoras(statusHora, horasService);
+        //     }
             
-            return new ResponseEntity<>(diasService.save(dia.get()), HttpStatus.OK);
+        //     return new ResponseEntity<>(diasService.save(dia.get()), HttpStatus.OK);
 
-        } else return new ResponseEntity<>("Dia não encontrado!", HttpStatus.NOT_FOUND);
+        // } else return new ResponseEntity<>("Dia não encontrado!", HttpStatus.NOT_FOUND);
     
     }
 
@@ -761,18 +785,18 @@ public class AdminController {
 
     //Lista horas por ID do dia
     @GetMapping("/agenda/horas")
-    public ResponseEntity<Object> listHorasByDia(@RequestParam long idDia, HttpServletRequest request){
+    public ResponseEntity<Object> listHorasByDia(@RequestParam long id, HttpServletRequest request){
 
 
-        // Optional<Dias> dia = diasService.findById(id);
+        Optional<Dias> dia = diasService.findById(id);
 
-        // if (!dia.isPresent()){
-        //     return new ResponseEntity<>("Dia não encontrado", HttpStatus.NOT_FOUND);
-        // }
+        if (!dia.isPresent()){
+            return new ResponseEntity<>("Dia não encontrado", HttpStatus.NOT_FOUND);
+        }
 
-        // List<Horas> horas = dia.get().getHoras();
+        List<Horas> horas = dia.get().getHoras();
 
-        // return new ResponseEntity<>(horas, HttpStatus.OK);
+        return new ResponseEntity<>(horas, HttpStatus.OK);
     }
 
 

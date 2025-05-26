@@ -11,5 +11,6 @@ import com.gregoryan.api.Models.StatusAgenda;
 public interface StatusAgendaListInterface {
     StatusAgenda list(long id, Empresa empresa);
     Page<StatusAgenda> list(Empresa empresa, Pageable pageable);
+    StatusAgenda list(String nome, Empresa empresa);
 
 }

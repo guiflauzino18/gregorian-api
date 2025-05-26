@@ -31,5 +31,13 @@ public class StatusDiaListService implements StatusDiaListInterface{
         usuarioValidate.isSameEmpresaFromUserLogged(empresa, statusDia.getEmpresa());
         return statusDia;
     }
+
+    @Override
+    public StatusDia list(String nome, Empresa empresa) {
+        StatusDia statusDia = statusDiaService.findByNome(nome).orElseThrow(() -> new EntityDontExistException("Status Dia não encontrado"));
+        usuarioValidate.isSameEmpresaFromUserLogged(empresa, statusDia.getEmpresa());
+
+        return statusDia;
+    }
     
 }

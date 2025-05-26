@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import com.gregoryan.api.Models.Agenda;
 import com.gregoryan.api.Models.Dias;
+import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Repositorys.DiasRepository;
 
 import jakarta.transaction.Transactional;
@@ -42,6 +43,10 @@ public class DiasService {
 
     public Page<Dias> findAll(Pageable pageable){
         return repository.findAll(pageable);
+    }
+
+    public Page<Dias> findByEmpresa(Empresa empresa, Pageable pageable){
+        return repository.findByEmpresa(empresa, pageable);
     }
 
     public Optional<Long> getAgenda(long idDia){

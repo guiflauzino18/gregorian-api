@@ -30,9 +30,6 @@ import java.time.LocalTime;
 @Getter
 @Setter
 public class Dias implements Serializable{
-
-    // @Autowired
-    // private StatusHoraService statusHoraService;
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,6 +55,10 @@ public class Dias implements Serializable{
 
     @Column(nullable = false)
     private LocalTime fim;
+
+    @ManyToOne
+    @JoinColumn(name = "empresa_fk")
+    private Empresa empresa;
 
     public void createHoras(StatusHora statusHora, HorasService horasService){
 
@@ -85,4 +86,24 @@ public class Dias implements Serializable{
         this.setHoras(horasP);
     }
 
+    public boolean recriarHora(Dias diaAtual, Dias diaNovo){
+        
+        boolean recriarHora = false;
+        if (diaAtual.getFim().equals(diaNovo.getFim())|| 
+            diaAtual.getInicio().equals(diaNovo.getInicio())|| 
+            diaAtual.getDuracaoSessaoInMinutes() != diaNovo.getDuracaoSessaoInMinutes() ||
+            diaAtual.getIntervaloSessaoInMinutes() != diaNovo.getIntervaloSessaoInMinutes()){
+            return  recriarHora = true;
+        }
+        // if (diaAtual.getDuracaoSessaoInMinutes() != diaNovo.getDuracaoSessaoInMinutes() ||
+        //     diaAtual.getIntervaloSessaoInMinutes() != diaNovo.getIntervaloSessaoInMinutes() ||
+        //     diaAtual.getInicio() != diaNovo.getInicio() ||
+        //     diaAtual.getFim() != diaNovo.getFim() ||
+        //     diaAtual.getFim().
+        //     ){
+        //        return  recriarHora = true;
+        //     }
+
+        return recriarHora;
+    }
 }

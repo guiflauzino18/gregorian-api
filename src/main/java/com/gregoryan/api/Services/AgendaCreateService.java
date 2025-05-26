@@ -3,14 +3,13 @@ package com.gregoryan.api.Services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.gregoryan.api.DTO.AgendaCadastroDTO;
-import com.gregoryan.api.Exception.EntityDontExistException;
 import com.gregoryan.api.Models.Agenda;
 import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.Profissional;
 import com.gregoryan.api.Models.StatusAgenda;
 import com.gregoryan.api.Services.Crud.AgendaService;
-import com.gregoryan.api.Services.Crud.ProfissionalService;
-import com.gregoryan.api.Services.Crud.StatusAgendaService;
+import com.gregoryan.api.Services.Interfaces.ProfissionalListInterface;
+import com.gregoryan.api.Services.Interfaces.StatusAgendaListInterface;
 
 @Service
 public class AgendaCreateService {
@@ -20,20 +19,19 @@ public class AgendaCreateService {
     @Autowired
     private AgendaConverter converter;
     @Autowired
-    private ProfissionalService profissionalService;
+    private StatusAgendaListInterface statusAgendaList;
     @Autowired
-    private StatusAgendaService statusService;
+    private ProfissionalListInterface profissionalList;
     
     public void cadastrar(AgendaCadastroDTO dto, Empresa empresa){
         Agenda agenda = converter.toAgenda(dto);
 
-        Profissional profissional = profissionalService.findById(dto.idProfissional()).orElseThrow(() -> new EntityDontExistException("Profissionao não encontrado"));
+        Profissional profissional = profissionalList.list(dto.idProfissional(), empresa);
         agenda.setProfissional(profissional);
         agenda.setEmpresa(empresa);
 
-        StatusAgenda status = statusService.findByNome("Ativo").orElseThrow(() -> new EntityDontExistException("Status Ativo da Agenda não existe"));
-        
-        agenda.setStatusAgenda(status);
+        StatusAgenda statusAgenda = statusAgendaList.list("Ativo", empresa);
+        agenda.setStatusAgenda(statusAgenda);
 
         service.save(agenda);
 

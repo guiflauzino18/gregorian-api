@@ -10,6 +10,7 @@ public interface StatusHoraListInterface {
     
     StatusHora list(long id, Empresa empresa); // lista por ID
     Page<StatusHora> list(Empresa empresa, Pageable pageable); // lista por Empresa
+    StatusHora list(String nome, Empresa empresa);
 
 
 }

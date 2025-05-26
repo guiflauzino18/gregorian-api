@@ -7,9 +7,8 @@ import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.StatusDia;
 
 public interface StatusDiaListInterface {
-    //findByEmpresa
-    Page<StatusDia> list(Empresa empresa, Pageable pageable);
 
-    //findById
+    Page<StatusDia> list(Empresa empresa, Pageable pageable);
     StatusDia list(long id, Empresa empresa);
+    StatusDia list(String nome, Empresa empresa);
 }
