@@ -80,6 +80,7 @@ import com.gregoryan.api.Services.UsuarioEditingService;
 import com.gregoryan.api.Services.AgendaCreateService;
 import com.gregoryan.api.Services.AgendaDeletingService;
 import com.gregoryan.api.Services.DiaBloqueadoCreateService;
+import com.gregoryan.api.Services.DiaBloqueadoDeleteService;
 import com.gregoryan.api.Services.DiaBloqueadoEditingService;
 import com.gregoryan.api.Services.FeriadoCreateService;
 import com.gregoryan.api.Services.FeriadoDeletingService;
@@ -158,8 +159,6 @@ public class AdminController {
     @Autowired
     private HorasService horasService;
     @Autowired
-    private FeriadoService feriadoService;
-    @Autowired
     private DiaBloqueadoService diaBloqueadoService;
 
     // Injetor relacionado a Usuarios
@@ -177,8 +176,6 @@ public class AdminController {
     private UsuarioResetSenha resetSenha;
     @Autowired
     private UsuarioConverterInterface usuarioConverter;
-    @Autowired
-    private UsuarioValidateInterface usuarioValidate;
 
     //Injetores relacionados ao Profissional
     @Autowired
@@ -235,6 +232,8 @@ public class AdminController {
     private DiaBloqueadoEditingService diaBloqueadoEditing;
     @Autowired
     private DiaBloqueadoConverterInterface diaBloqueadoConverter;
+    @Autowired
+    private DiaBloqueadoDeleteService diaBloqueadoDelete;
 
     //Injetores realacionados a feriado
     @Autowired
@@ -248,28 +247,7 @@ public class AdminController {
     @Autowired
     private FeriadoConverterInterface feriadoConverter;
 
-    // ================================= PLANO PACIENTE ==================================
-
-    @PostMapping("/planopaciente/cadastro")
-    @Operation(summary = "Cadastro de plano paciente", description = "Salvar um plano para paciente no Banco")
-    @ApiResponse(responseCode = "200", description = "Cadastro realizado com sucesso.")
-    public ResponseEntity<PlanoPaciente> planoPacienteCadastro(@RequestBody planoPacienteCadastroDTO planoPacienteDTO, HttpServletRequest request){ 
-        PlanoPaciente planoPaciente = new PlanoPaciente();
-
-        BeanUtils.copyProperties(planoPacienteDTO, planoPaciente);
-
-        Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT"), new Locale("pt-BR"));
-
-        planoPaciente.setDataRegistro(now);
-
-        Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-        planoPaciente.setEmpresa(usuario.getEmpresa());
-
-        planoPaciente.setStatus(PlanoPaciente.PLANO_STATUS_ATIVO);
-
-        return new ResponseEntity<PlanoPaciente>(planoPacienteService.save(planoPaciente), HttpStatus.CREATED);
-        
-    }
+    
 
     // ================================= Usuários dos Sistema =================================
 
@@ -305,15 +283,10 @@ public class AdminController {
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado para deletar")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     public ResponseEntity<Object> deleteUsuario(
-        @Parameter(
-            description = "ID do usuário a ser excluído",
-            required = true,
-            example = "123"
-        )
+        @Parameter(description = "ID do usuário a ser excluído",required = true,example = "123")
         @PathVariable long id, HttpServletRequest request){
 
         try{
-
             Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
             usuarioDeleting.delete(id, empresa);
             return new ResponseEntity<>("Usuário excluído do sistema", HttpStatus.OK);
@@ -355,11 +328,7 @@ public class AdminController {
     @ApiResponse(responseCode = "404", description = "Usuário não localizado")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     public ResponseEntity<Object> usuarioListById(
-        @Parameter(
-            description = "ID do uusário",
-            required = true,
-            example = "123"
-        )
+        @Parameter(description = "ID do uusário",required = true,example = "123")
         @RequestParam long id, HttpServletRequest request){
 
         try {
@@ -383,11 +352,7 @@ public class AdminController {
     @ApiResponse(responseCode = "404", description = "Usuário não localizado")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     public ResponseEntity<Object> usuarioListByLogin(
-        @Parameter(
-            description = "Login do usuário",
-            required = true,
-            example = "maria.jose"
-        )
+        @Parameter(description = "Login do usuário",required = true,example = "maria.jose")
         @RequestParam String login, HttpServletRequest request){
 
         try {
@@ -396,7 +361,6 @@ public class AdminController {
 
             UsuarioResponseDTO dto = usuarioConverter.toUsuarioResponseDTO(usuario);
             return new ResponseEntity<>(dto, HttpStatus.OK);
-            //return new ResponseEntity<>(usuarioListing.list(login), HttpStatus.OK);
 
         }catch(EntityDontExistException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
@@ -797,16 +761,18 @@ public class AdminController {
 
     //Lista horas por ID do dia
     @GetMapping("/agenda/horas")
-    public ResponseEntity<Object> listHorasByDia(@RequestParam long id, HttpServletRequest request){
-        Optional<Dias> dia = diasService.findById(id);
+    public ResponseEntity<Object> listHorasByDia(@RequestParam long idDia, HttpServletRequest request){
 
-        if (!dia.isPresent()){
-            return new ResponseEntity<>("Dia não encontrado", HttpStatus.NOT_FOUND);
-        }
 
-        List<Horas> horas = dia.get().getHoras();
+        // Optional<Dias> dia = diasService.findById(id);
 
-        return new ResponseEntity<>(horas, HttpStatus.OK);
+        // if (!dia.isPresent()){
+        //     return new ResponseEntity<>("Dia não encontrado", HttpStatus.NOT_FOUND);
+        // }
+
+        // List<Horas> horas = dia.get().getHoras();
+
+        // return new ResponseEntity<>(horas, HttpStatus.OK);
     }
 
 
@@ -1162,6 +1128,7 @@ public class AdminController {
     //Lista Profissional por Nome e ID
     @GetMapping("/profissionais")
     @Operation(summary = "Lista nome e id de profissionais", description = "Retorna lista com Nome e ID de Profissionais da Empresa.")
+    @ApiResponse(responseCode = "200", description = "Retorna usuários encontrado com sucesso")
     public ResponseEntity<List<ProfissionalListDTO>> profissionalListNameAndId(HttpServletRequest request,
     @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
 
@@ -1407,14 +1374,25 @@ public class AdminController {
     }
 
     @DeleteMapping("/diabloqueado/delete/{id}")
-    public ResponseEntity<Object> diaBloqueadoDelete(@PathVariable(name = "id") long id){
-        Optional<DiaBloqueado> diaBloqueado = diaBloqueadoService.findById(id);
+    @Operation(summary = "Deleta um bloqueio de dia", description = "Deleta um bloqueio de dia do Banco de Dados")
+    @ApiResponse(responseCode = "200", description = "Bloqueio do dia deletado com sucesso")
+    @ApiResponse(responseCode = "404", description = "Bloqueio do dia não encontrado para exclusão")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<Object> diaBloqueadoDelete(
+        @Parameter(description = "ID do bloqueio a ser excluído", required = true, example = "123")
+        @PathVariable(name = "id") long id, HttpServletRequest request){
 
-        if (diaBloqueado.isPresent()){
-            diaBloqueadoService.delete(diaBloqueado.get());
-            return new ResponseEntity<>("Dia Bloqueado deletado do sistema!", HttpStatus.OK);
+        try{
+            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            diaBloqueadoDelete.delete(id, empresa);
+            return new ResponseEntity<>("Bloqueio do dia excluído com sucesso", HttpStatus.OK);
 
-        } else return new ResponseEntity<>("Dia Bloqueado não encontrado!", HttpStatus.NOT_FOUND);
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
     }
 
     @GetMapping("/diabloqueado/list")
@@ -1437,7 +1415,29 @@ public class AdminController {
 
 
     }
+
+    // ================================= PLANO PACIENTE ==================================
+
+    @PostMapping("/planopaciente/cadastro")
+    @Operation(summary = "Cadastro de plano paciente", description = "Salvar um plano para paciente no Banco")
+    @ApiResponse(responseCode = "200", description = "Cadastro realizado com sucesso.")
+    public ResponseEntity<PlanoPaciente> planoPacienteCadastro(@RequestBody planoPacienteCadastroDTO planoPacienteDTO, HttpServletRequest request){ 
+        PlanoPaciente planoPaciente = new PlanoPaciente();
+
+        BeanUtils.copyProperties(planoPacienteDTO, planoPaciente);
+
+        Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT"), new Locale("pt-BR"));
+
+        planoPaciente.setDataRegistro(now);
+
+        Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+        planoPaciente.setEmpresa(usuario.getEmpresa());
+
+        planoPaciente.setStatus(PlanoPaciente.PLANO_STATUS_ATIVO);
+
+        return new ResponseEntity<PlanoPaciente>(planoPacienteService.save(planoPaciente), HttpStatus.CREATED);
         
+    }
 
 }
 

@@ -1,11 +1,8 @@
 package com.gregoryan.api.Services;
 
 import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.gregoryan.api.DTO.UsuarioCadastroDTO;
 import com.gregoryan.api.Exception.AcessoNegadoException;
 import com.gregoryan.api.Exception.ConflictException;
 import com.gregoryan.api.Exception.EntityDontExistException;
@@ -20,6 +17,7 @@ public class UsuarioValidate implements UsuarioValidateInterface{
     @Autowired
     private UsuarioService usuarioservice;
 
+    // TODO Verifica se já existe um usuário com este login. Caso sim, lança um Conclict Exception.
     @Override
     public void jaExiste(String login) {
         if (usuarioservice.existByLogin(login)){
@@ -28,13 +26,15 @@ public class UsuarioValidate implements UsuarioValidateInterface{
         }
     }
 
+    
+    // TODO Verifica se propriedade que está sendo manipulada pertence à mesma empresa do usuário que está logado. Se não, lança um Acesso negado.
     @Override
     public void isSameEmpresaFromUserLogged(Empresa empresaUser, Empresa empresa) {
         
         if (empresaUser != empresa){
             throw new AcessoNegadoException("Esta propriedade não pertence a sua Empresa");
         }
-        //return empresaUser == empresa;
+        
     }
 
     @Override
