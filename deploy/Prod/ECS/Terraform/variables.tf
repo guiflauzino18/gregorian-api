@@ -26,7 +26,7 @@ variable "api-port" {
   type = number
 }
 
-variables "alb-port"{
+variable "alb-port"{
   type = number
 }
 
