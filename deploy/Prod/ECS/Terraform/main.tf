@@ -158,7 +158,7 @@ resource "aws_alb" "this" {
 
 resource "aws_alb_target_group" "api-target" {
   name = "api-target"
-  port = var.app-port #api tambem irá escutar na porta 80. Por isso está sendo usado a mesma porta da app
+  port = var.api-port
   protocol = "HTTP"
   vpc_id = aws_vpc.main.id
   target_type = "ip" #para fargate essa opção é IP para EC2 é instance.
@@ -203,10 +203,10 @@ resource "aws_alb_target_group" "kibana-target" {
   
 }
 
-# Listener na porta 80 com regras que encaminha para o target group correspondente
+# Listener na porta 80 ou 443 com regras que encaminha para o target group correspondente
 resource "aws_alb_listener" "app-listener" {
   load_balancer_arn = aws_alb.this.arn
-  port = var.app-port
+  port = var.alb-port
   protocol = "HTTP"
   default_action {
     type = "fixed-response"

@@ -12,6 +12,8 @@ api-port = 9090
 app-url = "http://cliente.gregorian.com"
 app-port = 8080
 
+alb-port = 80
+
 mysql-database = "gregorian"
 #mysql-password = passado via parametro
 #mysql-user = passado via parâmetro
