@@ -59,12 +59,13 @@ resource "aws_route_table_association" "sub-b" {
 # }
 
 
+# Security Group do ALB permite entrada da porta 80 ou 443 e saída para qualquer destino.
 #Security Groups
 resource "aws_security_group" "alb-sg" {
   vpc_id = aws_vpc.main.id
 
   ingress {
-    from_port = var.alb-port
+    from_port = var.alb-port #Porta de escuta como 80 ou 443
     to_port = var.alb-port
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
@@ -78,6 +79,7 @@ resource "aws_security_group" "alb-sg" {
   }
 }
 
+#Security Group do RDS permite entrada da porta 3306 vindo da rede da VPC e saída para qualquer destino
 resource "aws_security_group" "rds-sg" {
     vpc_id = aws_vpc.main.id
 
@@ -97,6 +99,7 @@ resource "aws_security_group" "rds-sg" {
   
 }
 
+# Security Group usado no service do ECS. Permite entrada de qualquer porta vindo da rede da VPC
 resource "aws_security_group" "container-sg" {
     vpc_id = aws_vpc.main.id
 
@@ -158,7 +161,7 @@ resource "aws_alb" "this" {
 
 resource "aws_alb_target_group" "api-target" {
   name = "api-target"
-  port = var.api-port
+  port = var.api-port #Porta de escuta do container
   protocol = "HTTP"
   vpc_id = aws_vpc.main.id
   target_type = "ip" #para fargate essa opção é IP para EC2 é instance.
@@ -173,7 +176,7 @@ resource "aws_alb_target_group" "api-target" {
 
 resource "aws_alb_target_group" "app-target" {
   name = "app-target"
-  port = var.app-port
+  port = var.app-port #Porta de escuta do container
   protocol = "HTTP"
   vpc_id = aws_vpc.main.id
   target_type = "ip"
@@ -203,10 +206,10 @@ resource "aws_alb_target_group" "kibana-target" {
   
 }
 
-# Listener na porta 80 ou 443 com regras que encaminha para o target group correspondente
+# Listener na porta 80 ou 443 com regras que encaminha para o target group correspondente. Se nenhum target der match retorna página de erro 404
 resource "aws_alb_listener" "app-listener" {
   load_balancer_arn = aws_alb.this.arn
-  port = var.alb-port
+  port = var.alb-port #Porta do listener como 80 ou 443
   protocol = "HTTP"
   default_action {
     type = "fixed-response"
@@ -218,6 +221,7 @@ resource "aws_alb_listener" "app-listener" {
   }
 }
 
+#Regra que encaminha request da api para o target group da api
 resource "aws_lb_listener_rule" "rule-api" {
     listener_arn = aws_alb_listener.app-listener.arn
     priority = 10
@@ -233,6 +237,7 @@ resource "aws_lb_listener_rule" "rule-api" {
   
 }
 
+#Regra que encaminha request da app para o target group da app
 resource "aws_alb_listener_rule" "rule-app" {
     listener_arn = aws_alb_listener.app-listener.arn
     priority = 20
@@ -292,7 +297,7 @@ resource "aws_ecs_task_definition" "task-api" {
         cpu =    256
         memory = 512
         essential = true
-        portMappings = [{containerPort = "${var.api-port}"}] #Aqui mapeia a porta do container. O target group recebe na porta 80 e aqui redireciona para a 9090
+        portMappings = [{containerPort = "${var.api-port}"}] #Aqui mapeia a porta do container.
         environment = [
             {name = "MYSQL_IP", value = aws_db_instance.mysql.address},
             {name = "MYSQL_USERNAME", value = "${var.mysql-user}"},
@@ -331,7 +336,7 @@ resource "aws_ecs_task_definition" "task-app" {
             {name = "API_URL", value = "${var.api-url}"},
             {name = "APP_PORT", value = "8080"}
         ]
-                logConfiguration = {
+        logConfiguration = {
           logDriver = "awslogs"
           options = {
             awslogs-group = aws_cloudwatch_log_group.frontend_logs.name
