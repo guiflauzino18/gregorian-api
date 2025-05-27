@@ -329,7 +329,7 @@ resource "aws_ecs_task_definition" "task-app" {
         portMappings = [{containerPort = "${var.app-port}"}]
         environment = [
             {name = "API_URL", value = "${var.api-url}"},
-            {name = "APP_PORT", value = "${var.app-port}"}
+            {name = "APP_PORT", value = ${var.app-port}}
         ]
                 logConfiguration = {
           logDriver = "awslogs"
