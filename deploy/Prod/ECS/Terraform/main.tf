@@ -292,7 +292,7 @@ resource "aws_ecs_task_definition" "task-api" {
         cpu =    256
         memory = 512
         essential = true
-        portMappings = [{containerPort = "${var.api-port}"}] #Aqui mapeia a porta do container. O target group recebe na porta 80 e aqui redireciona para a 8080
+        portMappings = [{containerPort = "${var.api-port}"}] #Aqui mapeia a porta do container. O target group recebe na porta 80 e aqui redireciona para a 9090
         environment = [
             {name = "MYSQL_IP", value = aws_db_instance.mysql.address},
             {name = "MYSQL_USERNAME", value = "${var.mysql-user}"},
@@ -328,7 +328,8 @@ resource "aws_ecs_task_definition" "task-app" {
         essential = true
         portMappings = [{containerPort = "${var.app-port}"}]
         environment = [
-            {name = "API_URL", value = "${var.api-url}"}
+            {name = "API_URL", value = "${var.api-url}"},
+            {name = "APP_PORT", value = "${var.app-port}"}
         ]
                 logConfiguration = {
           logDriver = "awslogs"
