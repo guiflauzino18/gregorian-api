@@ -60,12 +60,12 @@ resource "aws_route_table_association" "sub-b" {
 
 
 #Security Groups
-resource "aws_security_group" "ecs-sg" {
+resource "aws_security_group" "alb-sg" {
   vpc_id = aws_vpc.main.id
 
   ingress {
-    from_port = var.app-port
-    to_port = var.app-port
+    from_port = var.alb-port
+    to_port = var.alb-port
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -152,7 +152,7 @@ resource "aws_alb" "this" {
   name = "gregorian-alb"
   internal = false
   load_balancer_type = "application"
-  security_groups = [aws_security_group.ecs-sg.id]
+  security_groups = [aws_security_group.alb-sg.id]
   subnets = [ aws_subnet.public-a.id, aws_subnet.private-b.id ]
 }
 
