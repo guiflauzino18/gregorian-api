@@ -43,7 +43,7 @@ public class UsuarioService {
 
     public Optional<Usuario> findByLogin(String login){
         Usuario usuario = (Usuario) usuarioRepository.findByLogin(login);
-        return Optional.of(usuario);
+        return Optional.ofNullable(usuario);   
     }
 
     public Page<Usuario> findByEmpresa(Empresa empresa, Pageable pageable){

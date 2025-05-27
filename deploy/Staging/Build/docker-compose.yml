@@ -24,7 +24,7 @@ services:
       - MYSQL_PASSWORD=pass123
 
   gregorian-api:
-    image: guiflauzino18/gregorian-api:alfa
+    image: guiflauzino18/gregorian-api:latest
     container_name: gregorian-api
     restart: always
     depends_on:

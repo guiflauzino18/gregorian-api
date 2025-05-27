@@ -26,9 +26,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Usuario implements UserDetails {
-
-    public static final int STATUS_ATIVO = 1;
-    public static final int STATUS_INATIVO = 0;
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,8 +51,10 @@ public class Usuario implements UserDetails {
 
     private String endereco;
 
-    @Column(nullable = false, length = 2)
-    private int status;
+    // @Column(nullable = false, length = 2)
+    // private int status;
+
+    private StatusUsuario status;
 
     private boolean alteraNextLogon;
 
@@ -68,6 +67,21 @@ public class Usuario implements UserDetails {
     @ManyToOne
     @JoinColumn(name = "empresa_fk")
     private Empresa empresa;
+
+    public enum StatusUsuario {
+        ATIVO(1), INATIVO(0), BLOQUEADO(2);
+
+        private final int status;
+
+        private StatusUsuario(int valor){
+            this.status = valor;
+        }
+
+        public int getStatus(){
+            return status;
+        }
+
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

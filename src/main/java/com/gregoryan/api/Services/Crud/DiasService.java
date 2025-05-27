@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
+
+import com.gregoryan.api.Models.Agenda;
 import com.gregoryan.api.Models.Dias;
 import com.gregoryan.api.Repositorys.DiasRepository;
 
@@ -40,6 +42,10 @@ public class DiasService {
 
     public Page<Dias> findAll(Pageable pageable){
         return repository.findAll(pageable);
+    }
+
+    public Optional<Long> getAgenda(long idDia){
+        return repository.getAgenda(idDia);
     }
 
     

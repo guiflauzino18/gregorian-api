@@ -1,5 +1,9 @@
 package com.gregoryan.api.Models;
 
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,9 +19,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "tbl_agenda")
@@ -43,7 +44,8 @@ public class Agenda {
     private Empresa empresa;
 
     @JsonIgnoreProperties("agenda")
-    @OneToOne(mappedBy = "agenda")
+    @OneToOne()
+    @JoinColumn(name = "profissional_fk")
     private Profissional profissional;
  
     @OneToMany(cascade = CascadeType.ALL)

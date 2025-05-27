@@ -1,5 +1,10 @@
 package com.gregoryan.api.Services;
 
+import java.util.Calendar;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.TimeZone;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,16 +23,14 @@ import com.gregoryan.api.Services.Crud.StatusAgendaService;
 import com.gregoryan.api.Services.Crud.StatusDiaService;
 import com.gregoryan.api.Services.Crud.StatusHoraService;
 import com.gregoryan.api.Services.Crud.UsuarioService;
-import java.util.Calendar;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.TimeZone;
 
 import jakarta.annotation.PostConstruct;
 
 @Component
 public class DBinit {
     
+    @Autowired
+    private EmpresaService empresaService;
     @Autowired
     private StatusAgendaService statusAgendaService;
     @Autowired
@@ -36,8 +39,6 @@ public class DBinit {
     private StatusHoraService statusHoraService;
     @Autowired
     private UsuarioService usuarioService;
-    @Autowired
-    private EmpresaService empresaService;
     @Autowired
     private ProfissionalService profissionalService;
 
@@ -131,14 +132,14 @@ public class DBinit {
             usuario.setEmail("admin@email.com");
             usuario.setEndereco("Sem endereço");
             usuario.setRole(UserRole.GESTOR);
-            usuario.setStatus(Usuario.STATUS_ATIVO);
+            usuario.setStatus(Usuario.StatusUsuario.ATIVO);
             usuario.setLogin("sysadmin");
             String encryptedPassword = new BCryptPasswordEncoder().encode(sysadminpass);
             usuario.setSenha(encryptedPassword);
-            Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT"), new Locale("pt-BR"));
+            Calendar now = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
             usuario.setDataRegistro(now);
             usuario.setNascimento(now);
-            Optional<Empresa> empresa = empresaService.findByCnpj(12346789);
+            Optional<Empresa> empresa = empresaService.findByCnpj(123456789);
             if (empresa.isPresent()) usuario.setEmpresa(empresa.get());
 
             usuarioService.save(usuario);
