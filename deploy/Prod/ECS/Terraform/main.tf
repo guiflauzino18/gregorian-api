@@ -322,7 +322,7 @@ resource "aws_ecs_task_definition" "task-app" {
   container_definitions = jsonencode([
     {
         name  = "gregorian-app"
-        image = "guiflauzino18/gregorian-app:beta"
+        image = "guiflauzino18/gregorian-app:latest"
         cpu =    256
         memory = 512
         essential = true
