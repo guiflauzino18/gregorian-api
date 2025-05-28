@@ -59,13 +59,14 @@ resource "aws_route_table_association" "sub-b" {
 # }
 
 
+# Security Group do ALB permite entrada da porta 80 ou 443 e saída para qualquer destino.
 #Security Groups
-resource "aws_security_group" "ecs-sg" {
+resource "aws_security_group" "alb-sg" {
   vpc_id = aws_vpc.main.id
 
   ingress {
-    from_port = var.app-port
-    to_port = var.app-port
+    from_port = var.alb-port #Porta de escuta como 80 ou 443
+    to_port = var.alb-port
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -78,6 +79,7 @@ resource "aws_security_group" "ecs-sg" {
   }
 }
 
+#Security Group do RDS permite entrada da porta 3306 vindo da rede da VPC e saída para qualquer destino
 resource "aws_security_group" "rds-sg" {
     vpc_id = aws_vpc.main.id
 
@@ -97,6 +99,7 @@ resource "aws_security_group" "rds-sg" {
   
 }
 
+# Security Group usado no service do ECS. Permite entrada de qualquer porta vindo da rede da VPC
 resource "aws_security_group" "container-sg" {
     vpc_id = aws_vpc.main.id
 
@@ -152,13 +155,13 @@ resource "aws_alb" "this" {
   name = "gregorian-alb"
   internal = false
   load_balancer_type = "application"
-  security_groups = [aws_security_group.ecs-sg.id]
+  security_groups = [aws_security_group.alb-sg.id]
   subnets = [ aws_subnet.public-a.id, aws_subnet.private-b.id ]
 }
 
 resource "aws_alb_target_group" "api-target" {
   name = "api-target"
-  port = var.app-port #api tambem irá escutar na porta 80. Por isso está sendo usado a mesma porta da app
+  port = var.api-port #Porta de escuta do container
   protocol = "HTTP"
   vpc_id = aws_vpc.main.id
   target_type = "ip" #para fargate essa opção é IP para EC2 é instance.
@@ -173,7 +176,7 @@ resource "aws_alb_target_group" "api-target" {
 
 resource "aws_alb_target_group" "app-target" {
   name = "app-target"
-  port = var.app-port
+  port = var.app-port #Porta de escuta do container
   protocol = "HTTP"
   vpc_id = aws_vpc.main.id
   target_type = "ip"
@@ -203,10 +206,10 @@ resource "aws_alb_target_group" "kibana-target" {
   
 }
 
-# Listener na porta 80 com regras que encaminha para o target group correspondente
+# Listener na porta 80 ou 443 com regras que encaminha para o target group correspondente. Se nenhum target der match retorna página de erro 404
 resource "aws_alb_listener" "app-listener" {
   load_balancer_arn = aws_alb.this.arn
-  port = var.app-port
+  port = var.alb-port #Porta do listener como 80 ou 443
   protocol = "HTTP"
   default_action {
     type = "fixed-response"
@@ -218,6 +221,7 @@ resource "aws_alb_listener" "app-listener" {
   }
 }
 
+#Regra que encaminha request da api para o target group da api
 resource "aws_lb_listener_rule" "rule-api" {
     listener_arn = aws_alb_listener.app-listener.arn
     priority = 10
@@ -233,6 +237,7 @@ resource "aws_lb_listener_rule" "rule-api" {
   
 }
 
+#Regra que encaminha request da app para o target group da app
 resource "aws_alb_listener_rule" "rule-app" {
     listener_arn = aws_alb_listener.app-listener.arn
     priority = 20
@@ -264,6 +269,32 @@ resource "aws_alb_listener_rule" "kibana-rule" {
   
 }
 
+# Service discovery para conectar serviços do ecs usando dns local
+#Cria service discovery
+resource "aws_service_discovery_private_dns_namespace" "discovery" {
+  name  = "gregorian.local"
+  description = "DNS privado para conexão dos serviços"
+  vpc = aws_vpc.main.id
+
+}
+#Registra o serviço da api no service discovery
+resource "aws_service_discovery_service" "api" {
+  name = "api" #cria um dns api.gregorian.local
+  namespace_id = aws_service_discovery_private_dns_namespace.discovery.id
+
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.discovery.id
+    routing_policy = "MULTIVALUE" # Retorna mais de um IP se houver
+
+    dns_records {
+      ttl = 10
+      type = "A"
+    }
+  }
+}
+
+#Associal o service discovery ao service do ECS da API"
+
 
 #Cluster ECS 
 resource "aws_ecs_cluster" "gregorian-cluster" {
@@ -292,7 +323,7 @@ resource "aws_ecs_task_definition" "task-api" {
         cpu =    256
         memory = 512
         essential = true
-        portMappings = [{containerPort = "${var.api-port}"}] #Aqui mapeia a porta do container. O target group recebe na porta 80 e aqui redireciona para a 8080
+        portMappings = [{containerPort = "${var.api-port}"}] #Aqui mapeia a porta do container.
         environment = [
             {name = "MYSQL_IP", value = aws_db_instance.mysql.address},
             {name = "MYSQL_USERNAME", value = "${var.mysql-user}"},
@@ -311,6 +342,7 @@ resource "aws_ecs_task_definition" "task-api" {
   
 }
 
+
 resource "aws_ecs_task_definition" "task-app" {
   family = "gregorian-app"
   requires_compatibilities = [ "FARGATE" ]
@@ -321,23 +353,26 @@ resource "aws_ecs_task_definition" "task-app" {
   depends_on = [ aws_alb_target_group.api-target]
   container_definitions = jsonencode([
     {
-        name  = "gregorian-app"
-        image = "guiflauzino18/gregorian-app:latest"
-        cpu =    256
-        memory = 512
-        essential = true
-        portMappings = [{containerPort = "${var.app-port}"}]
-        environment = [
-            {name = "API_URL", value = "${var.api-url}"}
-        ]
-                logConfiguration = {
-          logDriver = "awslogs"
-          options = {
-            awslogs-group = aws_cloudwatch_log_group.frontend_logs.name
-            awslogs-region = var.region
-            awslogs-stream-prefix = "ecs"
-          }
+      name  = "gregorian-app"
+      image = "guiflauzino18/gregorian-app:latest"
+      cpu =    256
+      memory = 512
+      essential = true
+      portMappings = [{containerPort = "${var.app-port}"}]
+      environment = [
+          {name = "API_URL", value = "${var.api-url}:${var.api-port}"},
+          {name = "APP_PORT", value = tostring("${var.app-port}")},
+          {name = "HASH_KEY", value = "b36a57c81dbb4f12d3d156d10a87c9b9"},
+          {name = "BLOCK_KEY", value = "acbb071e530470176e1fdaef787d76f8"}
+      ]
+      logConfiguration = { 
+        logDriver = "awslogs"
+        options = {
+          awslogs-group = aws_cloudwatch_log_group.frontend_logs.name
+          awslogs-region = var.region
+          awslogs-stream-prefix = "ecs"
         }
+      }
     }
   ])
 }
@@ -357,6 +392,11 @@ resource "aws_ecs_service" "service-api" {
       target_group_arn = aws_alb_target_group.api-target.arn
       container_name = "gregorian-api"
       container_port = var.api-port
+    }
+    #Cria o service discovery
+    service_registries {
+      registry_arn = aws_service_discovery_service.api.arn
+      container_name = "gregorian-api" #Nome do container na Task Definition
     }
   
 }

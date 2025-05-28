@@ -26,6 +26,10 @@ variable "api-port" {
   type = number
 }
 
+variable "alb-port"{
+  type = number
+}
+
 variable "app-url" {
   type = string
 }

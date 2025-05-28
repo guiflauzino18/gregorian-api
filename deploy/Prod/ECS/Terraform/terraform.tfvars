@@ -6,11 +6,13 @@ sub-a-cidr = "192.168.0.0/24"
 sub-b-cidr = "192.168.1.0/24"
 sub-c-cidr = "192.168.2.0/24"
 
-api-url = "http://api.gregorian.com"
-api-port = 8080
+api-url = "http://api.gregorian.local"
+api-port = 9090
 
 app-url = "http://cliente.gregorian.com"
-app-port = 80
+app-port = 8080
+
+alb-port = 80
 
 mysql-database = "gregorian"
 #mysql-password = passado via parametro
