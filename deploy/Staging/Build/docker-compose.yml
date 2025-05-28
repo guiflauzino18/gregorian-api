@@ -46,7 +46,7 @@ services:
     container_name: gregorian-app
     restart: always
     environment:
-      - API_URL=http://api.gregorian.com
+      - API_URL=http://gregorian-api:9090
 
     labels:
       - "traefik.http.routers.gregorian-app.rule=Host(`cliente.gregorian.com`)"
