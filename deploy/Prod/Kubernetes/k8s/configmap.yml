@@ -9,6 +9,7 @@ data:
   MYSQL_DATABASE: gregorian
   MYSQL_USER: gregorian
   MYSQL_USERNAME: gregorian
-  API_URL: "http://api.gregorian.com" 
+  API_URL: "http://api.gregorian.com"
+  APP_PORT: 8080
 
 
