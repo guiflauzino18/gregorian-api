@@ -50,8 +50,8 @@ public class AgendamentoController {
     @Autowired
     private TokenService tokenService;
 
-    @PostMapping("/cadastro")
-    public ResponseEntity<Object> agendamentoCadastro(@RequestBody @Valid AgendamentoCadastroDTO agendamentoDTO, HttpServletRequest request){
+    @PostMapping("/create")
+    public ResponseEntity<Object> agendamentoCreate(@RequestBody @Valid AgendamentoCadastroDTO agendamentoDTO, HttpServletRequest request){
         Agendamento agendamento = new Agendamento();
 
         Optional<Profissional> profissional = profissionalService.findById(agendamentoDTO.profissional());

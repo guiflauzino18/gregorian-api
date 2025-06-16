@@ -80,6 +80,7 @@ import com.gregoryan.api.Services.UsuarioEditingService;
 import com.gregoryan.api.Services.AgendaConfigureService;
 import com.gregoryan.api.Services.AgendaCreateService;
 import com.gregoryan.api.Services.AgendaDeletingService;
+import com.gregoryan.api.Services.AgendaEditService;
 import com.gregoryan.api.Services.DiaBloqueadoCreateService;
 import com.gregoryan.api.Services.DiaBloqueadoDeleteService;
 import com.gregoryan.api.Services.DiaBloqueadoEditingService;
@@ -87,6 +88,7 @@ import com.gregoryan.api.Services.DiaEditService;
 import com.gregoryan.api.Services.FeriadoCreateService;
 import com.gregoryan.api.Services.FeriadoDeletingService;
 import com.gregoryan.api.Services.FeriadoEditingService;
+import com.gregoryan.api.Services.HoraDeleteService;
 import com.gregoryan.api.Services.ProfissionalCreateService;
 import com.gregoryan.api.Services.ProfissionalDeletingService;
 import com.gregoryan.api.Services.ProfissionalEditingService;
@@ -114,6 +116,7 @@ import com.gregoryan.api.Services.Interfaces.AgendaConverterInterface;
 import com.gregoryan.api.Services.Interfaces.AgendaListInterface;
 import com.gregoryan.api.Services.Interfaces.DiaBloqueadoConverterInterface;
 import com.gregoryan.api.Services.Interfaces.DiaBloqueadoListInterface;
+import com.gregoryan.api.Services.Interfaces.DiaListInterface;
 import com.gregoryan.api.Services.Interfaces.FeriadoConverterInterface;
 import com.gregoryan.api.Services.Interfaces.FeriadoListInterface;
 import com.gregoryan.api.Services.Interfaces.ProfissionalConverterInterface;
@@ -199,6 +202,8 @@ public class AdminController {
     @Autowired
     private AgendaDeletingService agendaDeleting;
     @Autowired
+    private AgendaEditService agendaEdit;
+    @Autowired
     private AgendaConfigureService agendaConfigure;
     @Autowired
     private AgendaConverterInterface agendaConverter;
@@ -240,6 +245,10 @@ public class AdminController {
     private DiaBloqueadoDeleteService diaBloqueadoDelete;
     @Autowired
     private DiaEditService diaEditService;
+    @Autowired
+    private DiaListInterface diaList;
+    @Autowired
+    private HoraDeleteService horaDelete;
 
     //Injetores realacionados a feriado
     @Autowired
@@ -257,12 +266,12 @@ public class AdminController {
 
     // ================================= Usuários dos Sistema =================================
 
-    @PostMapping("/usuario/cadastro")
+    @PostMapping("/usuario/create")
     @Operation(summary = "Cadastro de usuários", description = "Salva um usuário no Banco de Dados")
     @ApiResponse(responseCode = "201", description = "Usuário salvo com sucesso")
     @ApiResponse(responseCode = "409", description = "Conflito de login")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> saveUsuario(
+    public ResponseEntity<Object> usuarioCreate(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Dados do usuário a ser cadastrado",
             required = true,
@@ -283,12 +292,12 @@ public class AdminController {
         
     }
 
-    @DeleteMapping("/usuario/exclui/{id}")
+    @DeleteMapping("/usuario/delete/{id}")
     @Operation(summary = "Deleta Usuário", description = "Deleta um usuário do Banco de Dados")
     @ApiResponse(responseCode = "200", description = "Usuário deletado com sucesso")
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado para deletar")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> deleteUsuario(
+    public ResponseEntity<Object> usuarioDelete(
         @Parameter(description = "ID do usuário a ser excluído",required = true,example = "123")
         @PathVariable long id, HttpServletRequest request){
 
@@ -309,7 +318,7 @@ public class AdminController {
     @Operation(summary = "Lista usuário da empresa", description = "Lista usuários da empresa da qual o usuário faz parte.")
     @ApiResponse(responseCode = "200", description = "Usuário listado com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> usuarioListByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
+    public ResponseEntity<Object> usuarioByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
         
         try {
 
@@ -328,12 +337,12 @@ public class AdminController {
 
     }
 
-    @GetMapping("/usuario")
-    @Operation(summary = "Busca Us uário por ID", description = "Busca usuário no Banco pelo ID")
+    @GetMapping("/usuario/byid")
+    @Operation(summary = "Busca Usuário por ID", description = "Busca usuário no Banco pelo ID")
     @ApiResponse(responseCode = "200", description = "Usuário localizado é retornado")
     @ApiResponse(responseCode = "404", description = "Usuário não localizado")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> usuarioListById(
+    public ResponseEntity<Object> usuarioById(
         @Parameter(description = "ID do uusário",required = true,example = "123")
         @RequestParam long id, HttpServletRequest request){
 
@@ -352,12 +361,12 @@ public class AdminController {
             
     }
 
-    @GetMapping("/usuario/findlogin")
+    @GetMapping("/usuario/bylogin")
     @Operation(summary = "Busca usuário por Login", description = "Busca usuário no banco pelo login")
     @ApiResponse(responseCode = "200", description = "Usuário localizado é retornado")
     @ApiResponse(responseCode = "404", description = "Usuário não localizado")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> usuarioListByLogin(
+    public ResponseEntity<Object> usuarioByLogin(
         @Parameter(description = "Login do usuário",required = true,example = "maria.jose")
         @RequestParam String login, HttpServletRequest request){
 
@@ -382,7 +391,7 @@ public class AdminController {
     @ApiResponse(responseCode = "200", description = "Usuário salvo com sucesso no Banco de Dados")
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> editUsuario(
+    public ResponseEntity<Object> usuarioEdit(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Dados do usuário editado a ser salvo",
             required = true,
@@ -409,7 +418,7 @@ public class AdminController {
     @ApiResponse(responseCode = "200", description = "Usuário salvo com sucesso no Banco de Dados")
     @ApiResponse(responseCode = "404", description = "Usuário não localizado")
     @ApiResponse(responseCode = "403", description = "Usuário sem premissão para esta operação")
-    public ResponseEntity<Object> usuarioResetPass(
+    public ResponseEntity<Object> usuarioResetPassword(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Dados do usuário como ID e nova senha",
             required = true,
@@ -435,13 +444,13 @@ public class AdminController {
 
     // =============================================== AGENDA ======================================
 
-    @PostMapping("/agenda/cadastro")
+    @PostMapping("/agenda/create")
     @Operation(summary = "Cadastrado de Agenda", description = "Salva uma nova agenda no Banco de Dados")
     @ApiResponse(responseCode = "201", description = "Agenda cadastrada com sucesso")
     @ApiResponse(responseCode = "404", description = "Profissional ou Status para a agenda não foram encontrados")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     @ApiResponse(responseCode = "400", description = "Profissional informado já possui agenda")
-    public ResponseEntity<Object> agendaCadastro(
+    public ResponseEntity<Object> agendaCreate(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Dados da agenda a ser cadastrada",
             required = true,
@@ -470,7 +479,7 @@ public class AdminController {
     @ApiResponse(responseCode = "200", description = "Retorna agendas da empresa com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     @ApiResponse(responseCode = "500", description = "Se houver algum erro na operação")
-    public ResponseEntity<Page<AgendaResponseDTO>> agendaList(
+    public ResponseEntity<Page<AgendaResponseDTO>> agendaByEmpresa(
         @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
         HttpServletRequest request){
 
@@ -544,7 +553,17 @@ public class AdminController {
 
     //Configura Agenda
     @PutMapping("/agenda/config")
-    public ResponseEntity<Object> agendaConfig(@RequestBody @Valid AgendaConfigDTO agendaDTO, HttpServletRequest request){
+    @Operation(summary = "Configura agenda", description = "Configura horários e dias para a agenda")
+    @ApiResponse(responseCode = "201", description = "Agenda configurada com sucesso")
+    @ApiResponse(responseCode = "404", description = "Algum parãmetro da configuração não foi encontrado")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação.")
+    public ResponseEntity<Object> agendaConfig(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Dados da agenda a ser configurada",
+            required = true,
+            content = @Content(schema = @Schema(implementation = AgendaConfigDTO.class))
+        )
+        @RequestBody @Valid AgendaConfigDTO agendaDTO, HttpServletRequest request){
 
         try{
             Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
@@ -557,68 +576,51 @@ public class AdminController {
         }catch(AcessoNegadoException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
-
-        // Optional<StatusHora> statusHora = statusHoraService.findByNome("Ativo");
-        // Optional<StatusDia> statusDia = statusDiaService.findByNome("Ativo");
-        // Optional<Agenda> agenda = agendaService.findById(agendaDTO.idAgenda());
-
-        // Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-
-        // //Se agenda não existe ou empresa da agenda é diferente da empresa do usuário logado retorno 404
-        // if (!agenda.isPresent() || agenda.get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) 
-        //     return new ResponseEntity<>("Agenda não encontrada!", HttpStatus.NOT_FOUND);
-
-        // for (DiaCadastroDTO diaDTO : agendaDTO.dias()) {
-
-        //     Dias dia;
-
-        //     if (diaDTO.id() != 0){
-        //         dia = diasService.findById(diaDTO.id()).get();
-        //     }else {
-        //         dia = new Dias();
-        //     }
-
-        //     dia.setNome(diaDTO.nome());
-            
-        //     dia.setDuracaoSessaoInMinutes(diaDTO.duracaoSessaoInMinutes());
-        //     dia.setIntervaloSessaoInMinutes(diaDTO.intervaloSessaoInMinutes());
-
-        //     LocalTime inicio = LocalTime.of(Integer.parseInt(diaDTO.inrequest
-        //     if (statusHora.isPresent()) dia.createHoras(statusHora.get(), horasService);
-            
-        //     agenda.get().getDias().add(dia);
-        // }
-
-        //agendaService.save(agenda.get());
-
-        // Optional<Profissional> profissional = profissionalService.findById(agendaDTO.idProfissional());
-        // if (profissional.isPresent()) {
-        //     profissional.get().setAgenda(agenda.get());
-        //     profissionalService.save(profissional.get());
-        // }
-        // return new ResponseEntity<>(agenda.get(), HttpStatus.OK);
     }
 
     //Edita Agenda
     @PutMapping("/agenda/edit")
-    public ResponseEntity<Object> agendaEdit(@RequestBody @Valid AgendaEditDTO agendaDTO, HttpServletRequest request){
+    @Operation(summary = "Edita dados da agenda", description = "Altera dados da agenda e salva no banco de dados")
+    @ApiResponse(responseCode = "200", description = "Dados foram alterados com sucesso")
+    @ApiResponse(responseCode = "200", description = "Dados foram alterados com sucesso")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<Object> agendaEdit(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Dados a serem alterados",
+            required = true,
+            content = @Content(schema = @Schema(implementation = AgendaEditDTO.class))
+        )
+        @RequestBody @Valid AgendaEditDTO agendaDTO, HttpServletRequest request){
 
-        Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
 
-        //Se Agenda Não existe e empresa da Agenda é diferente da Empresa do usuário logado retorna 404
-        if(!agendaService.findById(agendaDTO.idAgenda()).isPresent() || agendaService.findById(agendaDTO.idAgenda()).get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) 
-            return new ResponseEntity<>("Agenda não encontrada!", HttpStatus.NOT_FOUND);
+        try{
+            var empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            agendaEdit.edit(agendaDTO, empresa);
+            return new ResponseEntity<>("Agenda atualizada", HttpStatus.OK);
 
-        Agenda agenda = agendaService.findById(agendaDTO.idAgenda()).get();
-        agenda.setNome(agendaDTO.nome());
-        if (statusAgendaService.findById(agendaDTO.idStatusAgenda()).isPresent()) 
-            agenda.setStatusAgenda(statusAgendaService.findById(agendaDTO.idStatusAgenda()).get());
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
-        Optional<Profissional> profissional = profissionalService.findById(agendaDTO.idProfissional());
-        if (profissional.isPresent())
-            agenda.setProfissional(profissional.get());
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+        }
 
-        return new ResponseEntity<>(agendaService.save(agenda),HttpStatus.OK);
+        // Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+
+        // //Se Agenda Não existe e empresa da Agenda é diferente da Empresa do usuário logado retorna 404
+        // if(!agendaService.findById(agendaDTO.idAgenda()).isPresent() || agendaService.findById(agendaDTO.idAgenda()).get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) 
+        //     return new ResponseEntity<>("Agenda não encontrada!", HttpStatus.NOT_FOUND);
+
+        // Agenda agenda = agendaService.findById(agendaDTO.idAgenda()).get();
+        // agenda.setNome(agendaDTO.nome());
+        // if (statusAgendaService.findById(agendaDTO.idStatusAgenda()).isPresent()) 
+        //     agenda.setStatusAgenda(statusAgendaService.findById(agendaDTO.idStatusAgenda()).get());
+
+        // Optional<Profissional> profissional = profissionalService.findById(agendaDTO.idProfissional());
+        // if (profissional.isPresent())
+        //     agenda.setProfissional(profissional.get());
+
+        // return new ResponseEntity<>(agendaService.save(agenda),HttpStatus.OK);
     }
 
     //Edita Dias da Agenda
@@ -689,20 +691,32 @@ public class AdminController {
 
     //Deleta horas da agenda
     @DeleteMapping("/agenda/horas/delete/{id}")
-    public ResponseEntity<Object> agendaHorasDelete(@PathVariable long id){
-        Optional<Horas> hora = horasService.findById(id);
-        if(!hora.isPresent()) return new ResponseEntity<>("Hora não encontrada!", HttpStatus.NOT_FOUND);
+    @Operation(summary = "Deleta hora", description = "Deleta uma hora do Banco de Dados")
+    @ApiResponse(responseCode = "200", description = "Hora deletada com sucesso")
+    @ApiResponse(responseCode = "404", description = "Hora não encontrada para ser deletada")
+    public ResponseEntity<Object> agendaHorasDelete(@Parameter(description = "ID da hora a ser excluída", required = true) @PathVariable long id){
+
+        try{
+            horaDelete.delete(id);
+            return new ResponseEntity<>("Hora excluída", HttpStatus.OK);
+
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+        }
+        // Optional<Horas> hora = horasService.findById(id);
+        // if(!hora.isPresent()) return new ResponseEntity<>("Hora não encontrada!", HttpStatus.NOT_FOUND);
         
-        horasService.delete(hora.get());
-        return new ResponseEntity<>("Hora deletada da Agenda", HttpStatus.OK);
+        // horasService.delete(hora.get());
+        // return new ResponseEntity<>("Hora deletada da Agenda", HttpStatus.OK);
     }
 
     //Cadastro de Status Agenda
-    @PostMapping("/agenda/status/cadastro")
+    @PostMapping("/agenda/status/create")
     @Operation(summary = "Cadastra um StatusAgenda", description = "Cadastra um novo status para a agenda")
     @ApiResponse(responseCode = "201", description = "Status cadastrado com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> statusAgendaCadstro(
+    public ResponseEntity<Object> statusAgendaCreate(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Dados do status a ser cadastrado",
             required = true,
@@ -762,7 +776,7 @@ public class AdminController {
 
 
     //Lista Status da Agenda por ID
-    @GetMapping("/agenda/status")
+    @GetMapping("/agenda/status/byid")
         @Operation(summary = "Lista Status da Agenda", description = "Lista Status das Agendas por ID")
     @ApiResponse(responseCode = "200", description = "Lista status com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
@@ -784,19 +798,38 @@ public class AdminController {
 
 
     //Lista horas por ID do dia
-    @GetMapping("/agenda/horas")
-    public ResponseEntity<Object> listHorasByDia(@RequestParam long id, HttpServletRequest request){
+    @GetMapping("/agenda/horas/byid")
+    @Operation(summary = "Lista hora do dia", description = "Retorna lista de horas do dia")
+    @ApiResponse(responseCode = "200", description = "Retorna horas do dia")
+    @ApiResponse(responseCode = "404", description = "Dia não encontrado")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<Object> horasByDia(@Parameter(description = "ID do dia", required = true) @RequestParam long id, HttpServletRequest request){
 
 
-        Optional<Dias> dia = diasService.findById(id);
+        try{
+            var empresa = tokenService.getEmpresaFromToken(request, usuarioService);
+            var dia = diaList.list(id, empresa);
 
-        if (!dia.isPresent()){
-            return new ResponseEntity<>("Dia não encontrado", HttpStatus.NOT_FOUND);
+            var horas = dia.getHoras();
+
+            return new ResponseEntity<>(horas, HttpStatus.OK);
+
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
 
-        List<Horas> horas = dia.get().getHoras();
+        // Optional<Dias> dia = diasService.findById(id);
 
-        return new ResponseEntity<>(horas, HttpStatus.OK);
+        // if (!dia.isPresent()){
+        //     return new ResponseEntity<>("Dia não encontrado", HttpStatus.NOT_FOUND);
+        // }
+
+        // List<Horas> horas = dia.get().getHoras();
+
+        // return new ResponseEntity<>(horas, HttpStatus.OK);
     }
 
 
@@ -804,7 +837,7 @@ public class AdminController {
     @GetMapping("/agenda/horas/status")
     @Operation(summary = "Lista Status da Hora", description = "Lista status por empresa")
     @ApiResponse(responseCode = "200", description = "Lista status encontrados ou lista vazia;")
-    public ResponseEntity<Object> listaStatusHora(
+    public ResponseEntity<Object> statusHoraByEmpresa(
         HttpServletRequest request,
         @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
         
@@ -821,11 +854,11 @@ public class AdminController {
     }
 
     //Cadastra Status Hora
-    @PostMapping("/agenda/horas/status")
-    @Operation(summary = "Deleta StatusHora", description = "Deleta status para as horas")
+    @PostMapping("/agenda/horas/status/create")
+    @Operation(summary = "Cadastra StatusHora", description = "Cadsatra status para as horas")
     @ApiResponse(responseCode = "201", description = "Status cadastrado com sucesso")
     @ApiResponse(responseCode = "409", description = "Já existe status com esse nome")
-    public ResponseEntity<Object> cadastraStatusHora(
+    public ResponseEntity<Object> statusHoraCreate(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Dados a serem cadastrados", required = true,
         content = @Content(schema = @Schema(implementation = StatusHoraCadastroDTO.class)))
         @RequestBody @Valid StatusHoraCadastroDTO statusHoraDTO, HttpServletRequest request){
@@ -845,12 +878,12 @@ public class AdminController {
    
    
     //Deleta status da hora
-    @DeleteMapping("/agenda/horas/status/{id}")
+    @DeleteMapping("/agenda/horas/status/delete/{id}")
     @Operation(summary = "Exclui Status Hora", description = "Exclui um status hora do Banco de Dados")
     @ApiResponse(responseCode = "200", description = "Status excluído com sucesso")
     @ApiResponse(responseCode = "404", description = "Status não encontrado")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação;")
-    public ResponseEntity<String> deletaStatusHora(@PathVariable long id, HttpServletRequest request){
+    public ResponseEntity<String> statusHoraDelete(@PathVariable long id, HttpServletRequest request){
 
         try{
             Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
@@ -869,7 +902,7 @@ public class AdminController {
     @GetMapping("/agenda/dia/status")
     @Operation(summary = "Lista Status Dia", description = "Lista Status Dia por empresa")
     @ApiResponse(responseCode = "200", description = "Retorna lista com status dia por empresa com sucesso")
-    public ResponseEntity<Page<StatusDiaResponseDTO>> listaStatusDiaByEmpresa(
+    public ResponseEntity<Page<StatusDiaResponseDTO>> statusDiaByEmpresa(
         HttpServletRequest request,
         @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
     ){
@@ -887,11 +920,11 @@ public class AdminController {
     }
 
     //Cadastra Status Dia
-    @PostMapping("/agenda/dia/status")
+    @PostMapping("/agenda/dia/status/create")
     @Operation(summary = "Cadastra um Status Dia", description = "Insere um novo status dia no Banco de Dados")
     @ApiResponse(responseCode = "201", description = "Status cadastrado com sucesso")
     @ApiResponse(responseCode = "403", description = "Já existe um status com este nome")
-    public ResponseEntity<Object> cadastraStatusDia(
+    public ResponseEntity<Object> statusDiaCreate(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Dados a serem cadastrados",
             required = true,
@@ -910,12 +943,12 @@ public class AdminController {
     }
 
     //Edita Status Dia
-    @PutMapping("/agenda/dia/status")
+    @PutMapping("/agenda/dia/status/edit")
     @Operation(summary = "Edita Status Dia", description = "Edita nome de um status dia")
     @ApiResponse(responseCode = "200", description = "Edição do status realizado com sucesso")
     @ApiResponse(responseCode = "409", description = "Já esite um status com esse nome")
     @ApiResponse(responseCode = "404", description = "Status não encontrado para edição")
-    public ResponseEntity<Object> editaStatusDia(
+    public ResponseEntity<Object> statusDiaEdit(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Dados a serem editados",
             required = true,
@@ -941,12 +974,12 @@ public class AdminController {
 
 
     //Deleta Status Dia
-    @DeleteMapping("/agenda/dia/status/{id}")
+    @DeleteMapping("/agenda/dia/status/delete/{id}")
     @Operation(summary = "Deleta Status Dia", description = "Deleta um status dia do Banco de Dados")
     @ApiResponse(responseCode = "200", description = "Exclusão realizada com sucesso")
     @ApiResponse(responseCode = "404", description = "Status não encontrado para exclusão")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> deletaStatusDia(@PathVariable long id, HttpServletRequest request){
+    public ResponseEntity<Object> statusDiaDelete(@PathVariable long id, HttpServletRequest request){
         
         try{
             Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
@@ -1043,13 +1076,13 @@ public class AdminController {
     //=============================================== PROFISSIONAL =======================================================
 
     //Cadastro de Profissional
-    @PostMapping("/profissional/cadastro")
+    @PostMapping("/profissional/create")
     @Operation(summary = "Cadastro de Profissional", description = "Insere um novo Profissional no Banco de Dados")
     @ApiResponse(responseCode = "201", description = "Cadastro do usuário realizado com sucesso")
     @ApiResponse(responseCode = "404", description = "Usuário do profissional não encontrado")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     @ApiResponse(responseCode = "409", description = "Usuário do profissional já vinculado com outro Profissional")
-    public ResponseEntity<Object> profissionalCadastro(
+    public ResponseEntity<Object> profissionalCreate(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Dados a serem cadastrados",
             required = true,
@@ -1080,7 +1113,7 @@ public class AdminController {
     @ApiResponse(responseCode = "200", description = "Edição do profissional ocoreu com sucesso")
     @ApiResponse(responseCode = "400", description = "Profissional não encontrado para edição")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> profissionalEditar(
+    public ResponseEntity<Object> profissionalEdit(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Dados editados",
             required = true,
@@ -1136,7 +1169,7 @@ public class AdminController {
     @Operation(summary = "Lista profissionais da Empresa")
     @ApiResponse(responseCode = "200", description = "Lista profissionais com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuario sem permissão para esta operação")
-    public ResponseEntity<Page<ProfissionalResponseDTO>> profissionalListByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
+    public ResponseEntity<Page<ProfissionalResponseDTO>> profissionalByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
 
         Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
         List<ProfissionalResponseDTO> listDTO = profissionalList.list(empresa, pageable).getContent().stream().map(profissional -> {
@@ -1153,7 +1186,7 @@ public class AdminController {
     @GetMapping("/profissionais")
     @Operation(summary = "Lista nome e id de profissionais", description = "Retorna lista com Nome e ID de Profissionais da Empresa.")
     @ApiResponse(responseCode = "200", description = "Retorna usuários encontrado com sucesso")
-    public ResponseEntity<List<ProfissionalListDTO>> profissionalListNameAndId(HttpServletRequest request,
+    public ResponseEntity<List<ProfissionalListDTO>> profissionalNameAndId(HttpServletRequest request,
     @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
 
         Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
@@ -1167,12 +1200,12 @@ public class AdminController {
         return new ResponseEntity<List<ProfissionalListDTO>>(listDTO, HttpStatus.OK);
     }
 
-    @GetMapping("/profissional/findbyid")
+    @GetMapping("/profissional/byid")
     @Operation(summary = "Lista profissional pelo ID", description = "Busca profissional pelo ID no Banco de Dados")
     @ApiResponse(responseCode = "200", description = "Profissional encontrado é retornado")
     @ApiResponse(responseCode = "404", description = "Profissional não encontrado")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> profissionalFindById(
+    public ResponseEntity<Object> profissionalById(
         @Parameter(description = "ID do Profissional a ser buscado", required = true, example = "123")
         @RequestParam long id, HttpServletRequest request){
 
@@ -1197,11 +1230,11 @@ public class AdminController {
 
 
     // ========================================== FERIADOS =============================================================
-    @PostMapping("/feriado/cadastro")
+    @PostMapping("/feriado/create")
     @Operation(summary = "Cadastra Feriado", description = "Insere um novo feriado no Bando de Dados")
     @ApiResponse(responseCode = "201", description = "Feriado cadastrado com sucesso")
     @ApiResponse(responseCode = "409", description = "Feriado já existe")
-    public ResponseEntity<Object> feriadoCadastro(
+    public ResponseEntity<Object> feriadoCreate(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Dados a serem cadastrados",
             required = true,
@@ -1315,7 +1348,7 @@ public class AdminController {
     @Operation(summary = "Lista feriados", description = "Lista feriados da Empresa")
     @ApiResponse(responseCode = "200", description = "Retorna feriados com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Page<FeriadoResponseDTO>> feriadoListByEmpresa(
+    public ResponseEntity<Page<FeriadoResponseDTO>> feriadoByEmpresa(
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) 
             Pageable pageable, HttpServletRequest request){
                
@@ -1330,12 +1363,12 @@ public class AdminController {
                 return new ResponseEntity<>(new PageImpl<FeriadoResponseDTO>(listDTO), HttpStatus.OK);
             }
 
-    @GetMapping("/feriado")
+    @GetMapping("/feriado/byid")
     @Operation(summary = "Busca feriado", description = "Busca feriado da empresa pelo ID")
     @ApiResponse(responseCode = "200", description = "Feriado encontrado é retornado")
     @ApiResponse(responseCode = "404", description = "Feriado não encontrado")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> feriadoListById(@RequestParam long id, HttpServletRequest request){
+    public ResponseEntity<Object> feriadoById(@RequestParam long id, HttpServletRequest request){
         try{
             Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
             Feriado feriado = feriadoList.list(id, empresa);
@@ -1352,10 +1385,10 @@ public class AdminController {
 
 
     // ======================================================= DIAS BLOQUEADOS ==============================================
-    @PostMapping("diabloqueado/cadastro")
+    @PostMapping("diabloqueado/create")
     @Operation(summary = "Cadastra um bloqueio para um dia", description = "Cadastra um bloqueio de dia no Banco de Dados")
     @ApiResponse(responseCode = "200", description = "Bloqueio editado com sucesso")
-    public ResponseEntity<Object> diaBloqueadoCadastro(
+    public ResponseEntity<Object> diaBloqueadoCreate(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Dados a serem editados",
             required = true,
@@ -1422,7 +1455,7 @@ public class AdminController {
     @GetMapping("/diabloqueado/list")
     @Operation(summary = "Lista bloqueios de dia", description = "Lista bloqueios para a empresa")
     @ApiResponse(responseCode = "200", description = "Retorna dados com sucesso")
-    public ResponseEntity<Object> diaBloqueadoListByEmpresa(
+    public ResponseEntity<Object> diaBloqueadoByEmpresa(
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
             HttpServletRequest request){
 
@@ -1442,10 +1475,10 @@ public class AdminController {
 
     // ================================= PLANO PACIENTE ==================================
 
-    @PostMapping("/planopaciente/cadastro")
+    @PostMapping("/planopaciente/create")
     @Operation(summary = "Cadastro de plano paciente", description = "Salvar um plano para paciente no Banco")
     @ApiResponse(responseCode = "200", description = "Cadastro realizado com sucesso.")
-    public ResponseEntity<PlanoPaciente> planoPacienteCadastro(@RequestBody planoPacienteCadastroDTO planoPacienteDTO, HttpServletRequest request){ 
+    public ResponseEntity<PlanoPaciente> planoPacienteCreate(@RequestBody planoPacienteCadastroDTO planoPacienteDTO, HttpServletRequest request){ 
         PlanoPaciente planoPaciente = new PlanoPaciente();
 
         BeanUtils.copyProperties(planoPacienteDTO, planoPaciente);

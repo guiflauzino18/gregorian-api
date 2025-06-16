@@ -59,4 +59,6 @@ public class Empresa {
     @ManyToOne
     @JoinColumn(name = "plano_empresa_fk", referencedColumnName = "id")
     private PlanoEmpresa PlanoEmpresa;
+    
+
 }
