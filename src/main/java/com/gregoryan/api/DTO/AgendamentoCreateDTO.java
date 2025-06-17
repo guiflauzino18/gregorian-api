@@ -1,6 +1,6 @@
 package com.gregoryan.api.DTO;
 
-public record AgendamentoCadastroDTO(
+public record AgendamentoCreateDTO(
     long profissional,
     long paciente,
     String data,

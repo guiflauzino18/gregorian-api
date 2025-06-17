@@ -8,7 +8,6 @@ import com.gregoryan.api.DTO.DiaBloqueadoEditDTO;
 import com.gregoryan.api.DTO.DiaBloqueadoResponseDTO;
 import com.gregoryan.api.Models.DiaBloqueado;
 import com.gregoryan.api.Models.Empresa;
-import com.gregoryan.api.Services.Crud.DiaBloqueadoService;
 import com.gregoryan.api.Services.Interfaces.DiaBloqueadoConverterInterface;
 import com.gregoryan.api.Services.Interfaces.DiaBloqueadoListInterface;
 
@@ -16,7 +15,7 @@ import com.gregoryan.api.Services.Interfaces.DiaBloqueadoListInterface;
 public class DiaBloqueadoConverterService implements DiaBloqueadoConverterInterface{
 
     @Autowired
-    private DataConverter dataConverter;
+    private DateConverterService dataConverter;
     @Autowired
     private DiaBloqueadoListInterface diaBloqueadoList;
 

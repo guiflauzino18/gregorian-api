@@ -7,7 +7,7 @@ import com.gregoryan.api.DTO.UsuarioCadastroDTO;
 import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.Usuario;
 import com.gregoryan.api.Services.Crud.UsuarioService;
-import com.gregoryan.api.Services.Interfaces.DataConverterInterface;
+import com.gregoryan.api.Services.Interfaces.DateConverterInterface;
 import com.gregoryan.api.Services.Interfaces.UsuarioValidateInterface;
 
 @Service
@@ -20,7 +20,7 @@ public class UsuarioCreateService{
     @Autowired
     private UsuarioValidateInterface validateUsuario;
     @Autowired
-    private DataConverterInterface dataConverter;
+    private DateConverterInterface dataConverter;
 
     
     public Usuario cadastrar(UsuarioCadastroDTO dto, Empresa empresa){

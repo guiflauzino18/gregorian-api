@@ -8,7 +8,7 @@ import com.gregoryan.api.DTO.FeriadoEditDTO;
 import com.gregoryan.api.DTO.FeriadoResponseDTO;
 import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.Feriado;
-import com.gregoryan.api.Services.Interfaces.DataConverterInterface;
+import com.gregoryan.api.Services.Interfaces.DateConverterInterface;
 import com.gregoryan.api.Services.Interfaces.FeriadoConverterInterface;
 import com.gregoryan.api.Services.Interfaces.FeriadoListInterface;
 
@@ -16,7 +16,7 @@ import com.gregoryan.api.Services.Interfaces.FeriadoListInterface;
 public class FeriadoConverterService implements FeriadoConverterInterface{
 
     @Autowired
-    private DataConverterInterface dataConverter;
+    private DateConverterInterface dataConverter;
     @Autowired
     private FeriadoListInterface feriadoList;
 

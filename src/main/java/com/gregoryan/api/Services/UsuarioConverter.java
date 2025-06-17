@@ -1,20 +1,12 @@
 package com.gregoryan.api.Services;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.gregoryan.api.DTO.UsuarioCadastroDTO;
 import com.gregoryan.api.DTO.UsuarioEditDTO;
 import com.gregoryan.api.DTO.UsuarioResponseDTO;
 import com.gregoryan.api.Models.Empresa;
-import com.gregoryan.api.Models.UserRole;
 import com.gregoryan.api.Models.Usuario;
-import com.gregoryan.api.Models.Usuario.StatusUsuario;
 import com.gregoryan.api.Services.Interfaces.UsuarioConverterInterface;
 import com.gregoryan.api.Services.Interfaces.UsuarioListInterface;
 
@@ -22,7 +14,7 @@ import com.gregoryan.api.Services.Interfaces.UsuarioListInterface;
 public class UsuarioConverter implements UsuarioConverterInterface{
 
     @Autowired
-    private DataConverter dataConverter;
+    private DateConverterService dataConverter;
     @Autowired
     private CriptografarSenha criptografarSenha;
     @Autowired

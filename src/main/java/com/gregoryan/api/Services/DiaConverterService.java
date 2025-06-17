@@ -16,7 +16,7 @@ import com.gregoryan.api.Services.Interfaces.StatusDiaConverterInterface;
 public class DiaConverterService implements DiaConverterInterface{
 
     @Autowired
-    private DataConverter dataConverter;
+    private DateConverterService dataConverter;
     @Autowired
     private DiaListInterface diaList;
     @Autowired

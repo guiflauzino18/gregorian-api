@@ -9,10 +9,10 @@ import java.util.TimeZone;
 
 import org.springframework.stereotype.Service;
 
-import com.gregoryan.api.Services.Interfaces.DataConverterInterface;
+import com.gregoryan.api.Services.Interfaces.DateConverterInterface;
 
 @Service
-public class DataConverter implements DataConverterInterface{
+public class DateConverterService implements DateConverterInterface{
 
 
     @Override
@@ -24,17 +24,17 @@ public class DataConverter implements DataConverterInterface{
     //Cria um Calendar com o dia da string no formato yyyy-MM-dd;
     @Override
     public Calendar toCalendar(String data) {
-        Calendar nascimento = Calendar.getInstance();
+        Calendar calendar = Calendar.getInstance();
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         
         try {
-            nascimento.setTime(dateFormat.parse(data));
+            calendar.setTime(dateFormat.parse(data));
         } catch (ParseException e) {
             
             e.printStackTrace();
         }
 
-        return nascimento;
+        return calendar;
     }
 
     @Override
@@ -46,6 +46,19 @@ public class DataConverter implements DataConverterInterface{
             
     }
 
-    
-    
+    @Override
+    public Calendar toCalendar(String date, String time) {
+        Calendar calendar = Calendar.getInstance();
+        int ano = Integer.parseInt(date.split("-")[0]);
+        int mes = Integer.parseInt(date.split("-")[1]);
+        int dia = Integer.parseInt(date.split("-")[2]);
+
+        int hora = Integer.parseInt(time.split(":")[0]);
+        int min = Integer.parseInt(time.split(":")[1]);
+
+        calendar.set(ano, mes, dia, hora, min);
+
+        return calendar;
+        
+    }
 }
