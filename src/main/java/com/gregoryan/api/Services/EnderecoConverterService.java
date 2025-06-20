@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.gregoryan.api.DTO.EnderecoEditDTO;
 import com.gregoryan.api.Models.Endereco;
-import com.gregoryan.api.Services.Interfaces.EnderecoConverterInterface;
+import com.gregoryan.api.Interfaces.EnderecoConverterInterface;
 
 @Service
 public class EnderecoConverterService implements EnderecoConverterInterface{

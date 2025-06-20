@@ -15,7 +15,7 @@ import com.gregoryan.api.Services.PacienteCreateService;
 import com.gregoryan.api.Services.PacienteDeleteService;
 import com.gregoryan.api.Services.PacienteEditService;
 import com.gregoryan.api.Services.Crud.UsuarioService;
-import com.gregoryan.api.Services.Interfaces.PacienteListInterface;
+import com.gregoryan.api.Interfaces.PacienteListInterface;
 import com.gregoryan.api.Services.Security.TokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -57,12 +57,12 @@ public class AtendimentoController {
     
     //================================== PACIENTE =======================================
 
-    @GetMapping("/paciente/byempresa")
+    @GetMapping("/paciente/byusuarioLogado")
     public ResponseEntity<?> pacienteByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
 
         try {
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            var pacientes = pacienteList.list(empresa, pageable);
+            Empresa usuarioLogado = tokenService.getEmpresaFromToken(request, usuarioService);
+            var pacientes = pacienteList.list(usuarioLogado, pageable);
 
             return new ResponseEntity<>(pacientes, HttpStatus.OK);
 
@@ -79,8 +79,8 @@ public class AtendimentoController {
     public ResponseEntity<?> pacienteCreate(@RequestBody @Valid PacienteCadastroDTO pacienteDTO, HttpServletRequest request){
 
         try {
-            var empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            pacienteCreate.create(pacienteDTO, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            pacienteCreate.create(pacienteDTO, usuarioLogado);
             return new ResponseEntity<>("Paciente cadastrado", HttpStatus.CREATED);
 
         }catch(ConflictException e){
@@ -117,8 +117,8 @@ public class AtendimentoController {
 
         try {
 
-            var empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            pacienteEdit.edit(pacienteDTO, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            pacienteEdit.edit(pacienteDTO, usuarioLogado);
             return new ResponseEntity<>("Paciente editado com sucesso", HttpStatus.OK);
 
         }catch(ConflictException e){
@@ -147,8 +147,8 @@ public class AtendimentoController {
     public ResponseEntity<String> pacienteDelete(@PathVariable(name = "id") long id, HttpServletRequest request){
 
         try{
-            var empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            pacienteDelete.delete(id, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            pacienteDelete.delete(id, usuarioLogado);
             return new ResponseEntity<>("Paciente excluído",HttpStatus.OK);
 
         }catch(AcessoNegadoException e){

@@ -1,6 +1,5 @@
 package com.gregoryan.api.Controllers;
 
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -55,7 +54,7 @@ import com.gregoryan.api.DTO.StatusDiaEditDTO;
 import com.gregoryan.api.DTO.StatusDiaResponseDTO;
 import com.gregoryan.api.DTO.StatusHoraCadastroDTO;
 import com.gregoryan.api.DTO.StatusHoraResponseDTO;
-import com.gregoryan.api.DTO.UsuarioCadastroDTO;
+import com.gregoryan.api.DTO.UsuarioCreateDTO;
 import com.gregoryan.api.DTO.UsuarioEditDTO;
 import com.gregoryan.api.DTO.planoPacienteCadastroDTO;
 import com.gregoryan.api.DTO.UsuarioResetSenhaDTO;
@@ -66,7 +65,6 @@ import com.gregoryan.api.Exception.ConflictException;
 import com.gregoryan.api.Models.Agenda;
 import com.gregoryan.api.Models.DiaBloqueado;
 import com.gregoryan.api.Models.Dias;
-import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.Feriado;
 import com.gregoryan.api.Models.Horas;
 import com.gregoryan.api.Models.PlanoPaciente;
@@ -75,28 +73,28 @@ import com.gregoryan.api.Models.StatusAgenda;
 import com.gregoryan.api.Models.StatusDia;
 import com.gregoryan.api.Models.StatusHora;
 import com.gregoryan.api.Models.Usuario;
-import com.gregoryan.api.Services.UsuarioDeletingService;
-import com.gregoryan.api.Services.UsuarioEditingService;
+import com.gregoryan.api.Services.UsuarioDeleteService;
+import com.gregoryan.api.Services.UsuarioEditService;
 import com.gregoryan.api.Services.AgendaConfigureService;
 import com.gregoryan.api.Services.AgendaCreateService;
-import com.gregoryan.api.Services.AgendaDeletingService;
+import com.gregoryan.api.Services.AgendaDeleteService;
 import com.gregoryan.api.Services.AgendaEditService;
 import com.gregoryan.api.Services.DiaBloqueadoCreateService;
 import com.gregoryan.api.Services.DiaBloqueadoDeleteService;
 import com.gregoryan.api.Services.DiaBloqueadoEditingService;
 import com.gregoryan.api.Services.DiaEditService;
 import com.gregoryan.api.Services.FeriadoCreateService;
-import com.gregoryan.api.Services.FeriadoDeletingService;
-import com.gregoryan.api.Services.FeriadoEditingService;
+import com.gregoryan.api.Services.FeriadoDeleteService;
+import com.gregoryan.api.Services.FeriadoEditService;
 import com.gregoryan.api.Services.HoraDeleteService;
 import com.gregoryan.api.Services.ProfissionalCreateService;
-import com.gregoryan.api.Services.ProfissionalDeletingService;
+import com.gregoryan.api.Services.ProfissionalDeleteService;
 import com.gregoryan.api.Services.ProfissionalEditingService;
 import com.gregoryan.api.Services.StatusAgendaCreateService;
-import com.gregoryan.api.Services.StatusAgendaDeletingService;
+import com.gregoryan.api.Services.StatusAgendaDeleteService;
 import com.gregoryan.api.Services.StatusDiaCreateService;
-import com.gregoryan.api.Services.StatusDiaDeletingService;
-import com.gregoryan.api.Services.StatusDiaEditingService;
+import com.gregoryan.api.Services.StatusDiaDeleteService;
+import com.gregoryan.api.Services.StatusDiaEditService;
 import com.gregoryan.api.Services.StatusHoraCreateService;
 import com.gregoryan.api.Services.StatusHoraDeleteService;
 import com.gregoryan.api.Services.UsuarioCreateService;
@@ -104,7 +102,6 @@ import com.gregoryan.api.Services.UsuarioResetSenha;
 import com.gregoryan.api.Services.Crud.AgendaService;
 import com.gregoryan.api.Services.Crud.DiaBloqueadoService;
 import com.gregoryan.api.Services.Crud.DiasService;
-import com.gregoryan.api.Services.Crud.FeriadoService;
 import com.gregoryan.api.Services.Crud.HorasService;
 import com.gregoryan.api.Services.Crud.PlanoPacienteService;
 import com.gregoryan.api.Services.Crud.ProfissionalService;
@@ -112,24 +109,23 @@ import com.gregoryan.api.Services.Crud.StatusAgendaService;
 import com.gregoryan.api.Services.Crud.StatusDiaService;
 import com.gregoryan.api.Services.Crud.StatusHoraService;
 import com.gregoryan.api.Services.Crud.UsuarioService;
-import com.gregoryan.api.Services.Interfaces.AgendaConverterInterface;
-import com.gregoryan.api.Services.Interfaces.AgendaListInterface;
-import com.gregoryan.api.Services.Interfaces.DiaBloqueadoConverterInterface;
-import com.gregoryan.api.Services.Interfaces.DiaBloqueadoListInterface;
-import com.gregoryan.api.Services.Interfaces.DiaListInterface;
-import com.gregoryan.api.Services.Interfaces.FeriadoConverterInterface;
-import com.gregoryan.api.Services.Interfaces.FeriadoListInterface;
-import com.gregoryan.api.Services.Interfaces.ProfissionalConverterInterface;
-import com.gregoryan.api.Services.Interfaces.ProfissionalListInterface;
-import com.gregoryan.api.Services.Interfaces.StatusAgendaConverterInterface;
-import com.gregoryan.api.Services.Interfaces.StatusAgendaListInterface;
-import com.gregoryan.api.Services.Interfaces.StatusDiaConverterInterface;
-import com.gregoryan.api.Services.Interfaces.StatusDiaListInterface;
-import com.gregoryan.api.Services.Interfaces.StatusHoraConverterInterface;
-import com.gregoryan.api.Services.Interfaces.StatusHoraListInterface;
-import com.gregoryan.api.Services.Interfaces.UsuarioConverterInterface;
-import com.gregoryan.api.Services.Interfaces.UsuarioListInterface;
-import com.gregoryan.api.Services.Interfaces.UsuarioValidateInterface;
+import com.gregoryan.api.Interfaces.AgendaConverterInterface;
+import com.gregoryan.api.Interfaces.AgendaListInterface;
+import com.gregoryan.api.Interfaces.DiaBloqueadoConverterInterface;
+import com.gregoryan.api.Interfaces.DiaBloqueadoListInterface;
+import com.gregoryan.api.Interfaces.DiaListInterface;
+import com.gregoryan.api.Interfaces.FeriadoConverterInterface;
+import com.gregoryan.api.Interfaces.FeriadoListInterface;
+import com.gregoryan.api.Interfaces.ProfissionalConverterInterface;
+import com.gregoryan.api.Interfaces.ProfissionalListInterface;
+import com.gregoryan.api.Interfaces.StatusAgendaConverterInterface;
+import com.gregoryan.api.Interfaces.StatusAgendaListInterface;
+import com.gregoryan.api.Interfaces.StatusDiaConverterInterface;
+import com.gregoryan.api.Interfaces.StatusDiaListInterface;
+import com.gregoryan.api.Interfaces.StatusHoraConverterInterface;
+import com.gregoryan.api.Interfaces.StatusHoraListInterface;
+import com.gregoryan.api.Interfaces.UsuarioConverterInterface;
+import com.gregoryan.api.Interfaces.UsuarioListInterface;
 import com.gregoryan.api.Services.Security.TokenService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -144,7 +140,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("/api/admin")
 @Tag(name = "Administradores", description = "Operações relacionadas a Administradores do sistema")
 public class AdminController {
-    
+
     @Autowired
     private PlanoPacienteService planoPacienteService;
     @Autowired
@@ -172,11 +168,11 @@ public class AdminController {
     @Autowired
     private UsuarioCreateService usuarioCreate;
     @Autowired
-    private UsuarioDeletingService usuarioDeleting;
+    private UsuarioDeleteService usuarioDeleting;
     @Autowired
-    private UsuarioListInterface usuarioListing;
+    private UsuarioListInterface usuarioList;
     @Autowired
-    private UsuarioEditingService usuarioEditing;
+    private UsuarioEditService userEdit;
     @Autowired
     private UsuarioResetSenha resetSenha;
     @Autowired
@@ -188,7 +184,7 @@ public class AdminController {
     @Autowired
     private ProfissionalEditingService profissionalEditing;
     @Autowired
-    private ProfissionalDeletingService profissionalDeleting;
+    private ProfissionalDeleteService profissionalDeleting;
     @Autowired
     private ProfissionalListInterface profissionalList;
     @Autowired
@@ -200,7 +196,7 @@ public class AdminController {
     @Autowired
     private AgendaListInterface agendaList;
     @Autowired
-    private AgendaDeletingService agendaDeleting;
+    private AgendaDeleteService agendaDeleting;
     @Autowired
     private AgendaEditService agendaEdit;
     @Autowired
@@ -212,7 +208,7 @@ public class AdminController {
     @Autowired
     private StatusAgendaListInterface statusAgendaList;
     @Autowired
-    private StatusAgendaDeletingService statusAgendaDeleting;
+    private StatusAgendaDeleteService statusAgendaDeleting;
     @Autowired
     private StatusAgendaConverterInterface statusAgendaConverter;
     @Autowired
@@ -230,9 +226,9 @@ public class AdminController {
     @Autowired
     private StatusDiaCreateService statusDiaCreate;
     @Autowired
-    private StatusDiaEditingService statusDiaEditing;
+    private StatusDiaEditService statusDiaEditing;
     @Autowired
-    private StatusDiaDeletingService statusDiaDeleting;
+    private StatusDiaDeleteService statusDiaDeleting;
     @Autowired
     private DiaBloqueadoListInterface diaBloqueadoList;
     @Autowired
@@ -254,56 +250,58 @@ public class AdminController {
     @Autowired
     private FeriadoCreateService feriadoCreate;
     @Autowired
-    FeriadoEditingService feriadoEditing;
+    FeriadoEditService feriadoEditing;
     @Autowired
-    private FeriadoDeletingService feriadoDeleting;
+    private FeriadoDeleteService feriadoDeleting;
     @Autowired
     private FeriadoListInterface feriadoList;
     @Autowired
     private FeriadoConverterInterface feriadoConverter;
 
-    
+
 
     // ================================= Usuários dos Sistema =================================
 
-    @PostMapping("/usuario/create")
+    //OK
+    @PostMapping("/user/create")
     @Operation(summary = "Cadastro de usuários", description = "Salva um usuário no Banco de Dados")
     @ApiResponse(responseCode = "201", description = "Usuário salvo com sucesso")
     @ApiResponse(responseCode = "409", description = "Conflito de login")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> usuarioCreate(
-        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+    public ResponseEntity<?> userCreate(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Dados do usuário a ser cadastrado",
             required = true,
-            content = @Content(schema = @Schema(implementation = UsuarioCadastroDTO.class))
+            content = @Content(schema = @Schema(implementation = UsuarioCreateDTO.class))
         )
-        @RequestBody @Valid UsuarioCadastroDTO usuarioDTO, HttpServletRequest request) throws ParseException {
-        
+        @RequestBody @Valid UsuarioCreateDTO usuarioDTO, HttpServletRequest request) throws ParseException {
+
         try {
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            usuarioCreate.cadastrar(usuarioDTO, empresa);
-            
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            usuarioCreate.create(usuarioDTO, usuarioLogado);
+
             return new ResponseEntity<>("Usuário cadastrado com sucesso", HttpStatus.CREATED);
 
         }catch (ConflictException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
 
         }
-        
+
     }
 
-    @DeleteMapping("/usuario/delete/{id}")
+    //OK
+    @DeleteMapping("/user/delete/{id}")
     @Operation(summary = "Deleta Usuário", description = "Deleta um usuário do Banco de Dados")
     @ApiResponse(responseCode = "200", description = "Usuário deletado com sucesso")
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado para deletar")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> usuarioDelete(
+    public ResponseEntity<?> userDelete(
         @Parameter(description = "ID do usuário a ser excluído",required = true,example = "123")
         @PathVariable long id, HttpServletRequest request){
 
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            usuarioDeleting.delete(id, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            usuarioDeleting.delete(id, usuarioLogado);
             return new ResponseEntity<>("Usuário excluído do sistema", HttpStatus.OK);
 
         } catch(EntityDontExistException e) {
@@ -314,21 +312,22 @@ public class AdminController {
         }
     }
 
-    @GetMapping("/usuario/list")
-    @Operation(summary = "Lista usuário da empresa", description = "Lista usuários da empresa da qual o usuário faz parte.")
+    //OK
+    @GetMapping("/user/list")
+    @Operation(summary = "Lista usuário da usuario", description = "Lista usuários da usuario da qual o usuário faz parte.")
     @ApiResponse(responseCode = "200", description = "Usuário listado com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> usuarioByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
-        
+    public ResponseEntity<?> userByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
+
         try {
 
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            
-            List<UsuarioResponseDTO> listDTO = usuarioListing.list(empresa, pageable).getContent().stream().map(usuario -> {
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+
+            List<UsuarioResponseDTO> listDTO = usuarioList.list(usuarioLogado.getEmpresa(), pageable).getContent().stream().map(usuario -> {
                 UsuarioResponseDTO dto = usuarioConverter.toUsuarioResponseDTO(usuario);
                 return dto;
             }).collect(Collectors.toList());
-            
+
             return new ResponseEntity<>(new PageImpl<UsuarioResponseDTO>(listDTO), HttpStatus.OK);
 
         }catch(BeansException e){
@@ -337,18 +336,19 @@ public class AdminController {
 
     }
 
-    @GetMapping("/usuario/byid")
+    //OK
+    @GetMapping("/user/byid")
     @Operation(summary = "Busca Usuário por ID", description = "Busca usuário no Banco pelo ID")
     @ApiResponse(responseCode = "200", description = "Usuário localizado é retornado")
     @ApiResponse(responseCode = "404", description = "Usuário não localizado")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> usuarioById(
+    public ResponseEntity<?> userById(
         @Parameter(description = "ID do uusário",required = true,example = "123")
         @RequestParam long id, HttpServletRequest request){
 
         try {
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            Usuario usuario = usuarioListing.list(id, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            Usuario usuario = usuarioList.list(id, usuarioLogado);
             UsuarioResponseDTO dto = usuarioConverter.toUsuarioResponseDTO(usuario);
             return new ResponseEntity<>(dto, HttpStatus.OK);
 
@@ -358,21 +358,22 @@ public class AdminController {
         }catch(AcessoNegadoException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
-            
+
     }
 
-    @GetMapping("/usuario/bylogin")
+    //OK
+    @GetMapping("/user/bylogin")
     @Operation(summary = "Busca usuário por Login", description = "Busca usuário no banco pelo login")
     @ApiResponse(responseCode = "200", description = "Usuário localizado é retornado")
     @ApiResponse(responseCode = "404", description = "Usuário não localizado")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> usuarioByLogin(
+    public ResponseEntity<Object> userByLogin(
         @Parameter(description = "Login do usuário",required = true,example = "maria.jose")
         @RequestParam String login, HttpServletRequest request){
 
         try {
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            Usuario usuario = usuarioListing.list(login, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            Usuario usuario = usuarioList.list(login, usuarioLogado);
 
             UsuarioResponseDTO dto = usuarioConverter.toUsuarioResponseDTO(usuario);
             return new ResponseEntity<>(dto, HttpStatus.OK);
@@ -383,15 +384,16 @@ public class AdminController {
         }catch(AcessoNegadoException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
-            
+
     }
 
-    @PutMapping("/usuario/edit")
+    //OK
+    @PutMapping("/user/edit")
     @Operation(summary = "Edita dados de usuário", description = "Salva dados editados do usuário no Banco de Dados")
     @ApiResponse(responseCode = "200", description = "Usuário salvo com sucesso no Banco de Dados")
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> usuarioEdit(
+    public ResponseEntity<Object> userEdit(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Dados do usuário editado a ser salvo",
             required = true,
@@ -400,8 +402,8 @@ public class AdminController {
         @RequestBody @Valid UsuarioEditDTO usuarioDTO, HttpServletRequest request) throws ParseException{
 
         try {
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            usuarioEditing.edit(usuarioDTO, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            userEdit.edit(usuarioDTO, usuarioLogado);
             return new ResponseEntity<>("Usuario Editado", HttpStatus.OK);
 
         }catch (EntityDontExistException e){
@@ -409,16 +411,18 @@ public class AdminController {
 
         }catch (AcessoNegadoException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+
         }
-        
+
     }
 
-    @PutMapping("/usuario/resetsenha")
+    //OK
+    @PutMapping("/user/resetsenha")
     @Operation(summary = "Reseta senha de usuário", description = "Define uma nova senha para o usuário passado como parâmetro")
     @ApiResponse(responseCode = "200", description = "Usuário salvo com sucesso no Banco de Dados")
     @ApiResponse(responseCode = "404", description = "Usuário não localizado")
     @ApiResponse(responseCode = "403", description = "Usuário sem premissão para esta operação")
-    public ResponseEntity<Object> usuarioResetPassword(
+    public ResponseEntity<Object> userResetPassword(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Dados do usuário como ID e nova senha",
             required = true,
@@ -426,11 +430,10 @@ public class AdminController {
         )
         @RequestBody @Valid UsuarioResetSenhaDTO usuarioDTO, HttpServletRequest request){
 
-        
         try {
 
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            resetSenha.reset(usuarioDTO, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            resetSenha.reset(usuarioDTO, usuarioLogado);
             return new ResponseEntity<>("Senha Resetada", HttpStatus.OK);
 
         }catch(EntityDontExistException e){
@@ -459,14 +462,16 @@ public class AdminController {
         @RequestBody @Valid AgendaCadastroDTO agendaDTO, HttpServletRequest request){
 
         try {
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-
-            agendaCreate.cadastrar(agendaDTO, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            agendaCreate.create(agendaDTO, usuarioLogado);
 
             return new ResponseEntity<>("Agenda cadastrada", HttpStatus.CREATED);
 
-        }catch (EntityDontExistException e){
+        }catch (EntityDontExistException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+        }catch(ConflictException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
 
         }catch(DataIntegrityViolationException e){
             return new ResponseEntity<>("Este profissional já possui agenda", HttpStatus.BAD_REQUEST);
@@ -475,17 +480,17 @@ public class AdminController {
     }
 
     @GetMapping("/agenda/list")
-    @Operation(summary = "Lista agendas da Empresa", description = "Lista agendas da empresa pegando a empresa do usuário logado")
-    @ApiResponse(responseCode = "200", description = "Retorna agendas da empresa com sucesso")
+    @Operation(summary = "Lista agendas da usuario", description = "Lista agendas da usuario pegando a usuario do usuário logado")
+    @ApiResponse(responseCode = "200", description = "Retorna agendas da usuario com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     @ApiResponse(responseCode = "500", description = "Se houver algum erro na operação")
-    public ResponseEntity<Page<AgendaResponseDTO>> agendaByEmpresa(
+    public ResponseEntity<Page<AgendaResponseDTO>> agendaByusuario(
         @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
         HttpServletRequest request){
 
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            List<Agenda> agendas = agendaList.list(empresa, pageable).getContent();
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            List<Agenda> agendas = agendaList.list(usuarioLogado.getEmpresa(), pageable).getContent();
 
             List<AgendaResponseDTO> listDTO = agendas.stream().map(agenda -> {
                 AgendaResponseDTO dto = agendaConverter.toResponseDTO(agenda);
@@ -493,7 +498,7 @@ public class AdminController {
             }).collect(Collectors.toList());
 
             return new ResponseEntity<>(new PageImpl<AgendaResponseDTO>(listDTO), HttpStatus.OK);
-            
+
 
         }catch(Exception e){
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -510,10 +515,10 @@ public class AdminController {
     public ResponseEntity<Object> agendaById(
         @Parameter(description = "ID da Agenda a ser buscada",required = true,example = "123")
         @PathVariable long id , HttpServletRequest request){
- 
+
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            Agenda agenda = agendaList.list(id, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            Agenda agenda = agendaList.list(id, usuarioLogado);
             AgendaResponseDTO dto = agendaConverter.toResponseDTO(agenda);
             return new ResponseEntity<>(dto, HttpStatus.OK);
 
@@ -535,8 +540,8 @@ public class AdminController {
     public ResponseEntity<String> agendaDelete(@PathVariable long id, HttpServletRequest request){
 
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            agendaDeleting.deletar(empresa, id);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            agendaDeleting.deletar(usuarioLogado, id);
             return new ResponseEntity<>("Agenda deletada", HttpStatus.OK);
 
         }catch(EntityDontExistException e){
@@ -566,8 +571,8 @@ public class AdminController {
         @RequestBody @Valid AgendaConfigDTO agendaDTO, HttpServletRequest request){
 
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            agendaConfigure.configure(agendaDTO, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            agendaConfigure.configure(agendaDTO, usuarioLogado);
             return new ResponseEntity<>("Agenda configurada com sucesso", HttpStatus.CREATED);
 
         }catch(EntityDontExistException e){
@@ -594,8 +599,8 @@ public class AdminController {
 
 
         try{
-            var empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            agendaEdit.edit(agendaDTO, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            agendaEdit.edit(agendaDTO, usuarioLogado);
             return new ResponseEntity<>("Agenda atualizada", HttpStatus.OK);
 
         }catch(EntityDontExistException e){
@@ -607,13 +612,13 @@ public class AdminController {
 
         // Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
 
-        // //Se Agenda Não existe e empresa da Agenda é diferente da Empresa do usuário logado retorna 404
-        // if(!agendaService.findById(agendaDTO.idAgenda()).isPresent() || agendaService.findById(agendaDTO.idAgenda()).get().getEmpresa().getId() != usuarioLogado.getEmpresa().getId()) 
+        // //Se Agenda Não existe e usuario da Agenda é diferente da usuario do usuário logado retorna 404
+        // if(!agendaService.findById(agendaDTO.idAgenda()).isPresent() || agendaService.findById(agendaDTO.idAgenda()).get().getusuario().getId() != usuarioLogado.getusuario().getId())
         //     return new ResponseEntity<>("Agenda não encontrada!", HttpStatus.NOT_FOUND);
 
         // Agenda agenda = agendaService.findById(agendaDTO.idAgenda()).get();
         // agenda.setNome(agendaDTO.nome());
-        // if (statusAgendaService.findById(agendaDTO.idStatusAgenda()).isPresent()) 
+        // if (statusAgendaService.findById(agendaDTO.idStatusAgenda()).isPresent())
         //     agenda.setStatusAgenda(statusAgendaService.findById(agendaDTO.idStatusAgenda()).get());
 
         // Optional<Profissional> profissional = profissionalService.findById(agendaDTO.idProfissional());
@@ -628,8 +633,8 @@ public class AdminController {
     public ResponseEntity<Object> agendaEditDia(@RequestBody @Valid DiaEditDTO diaDTO, HttpServletRequest request){
 
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            diaEditService.editar(empresa, diaDTO);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            diaEditService.editar(usuarioLogado, diaDTO);
             return new ResponseEntity<>("Dia editado com sucesso", HttpStatus.OK);
 
         }catch(EntityDontExistException e){
@@ -656,26 +661,26 @@ public class AdminController {
         //     dia.get().setInicio(inicio);
         //     dia.get().setFim(fim);
 
-            
+
         //     if (duracaoSessaoBeforeEdit != dia.get().getDuracaoSessaoInMinutes() ||
         //         intervaloSessaoBeforeEdit != dia.get().getIntervaloSessaoInMinutes()||
         //         !inicio.equals(inicioBeforeEdit) || !fim.equals(fimBeforeEdit)) {
-                    
+
         //         StatusHora statusHora = statusHoraService.findByNome("Ativo").get();
 
         //         dia.get().createHoras(statusHora, horasService);
         //     }
-            
+
         //     return new ResponseEntity<>(diasService.save(dia.get()), HttpStatus.OK);
 
         // } else return new ResponseEntity<>("Dia não encontrado!", HttpStatus.NOT_FOUND);
-    
+
     }
 
     //Edit Horas do dia da Agenda
     @PutMapping("/agenda/edit/horas")
     public ResponseEntity<Object> agendaEditHoras(@RequestBody @Valid HorasEditDTO horaDTO){
-        
+
         Optional<Horas> hora = horasService.findById(horaDTO.idHora());
         if (hora.isPresent()){
             Optional<StatusHora> statusHora = statusHoraService.findById(horaDTO.idStatusHora());
@@ -685,7 +690,7 @@ public class AdminController {
             return new ResponseEntity<>(horasService.save(hora.get()), HttpStatus.OK);
 
         } else return new ResponseEntity<>("Hora não encontrada!", HttpStatus.NOT_FOUND);
-                
+
 
     }
 
@@ -706,7 +711,7 @@ public class AdminController {
         }
         // Optional<Horas> hora = horasService.findById(id);
         // if(!hora.isPresent()) return new ResponseEntity<>("Hora não encontrada!", HttpStatus.NOT_FOUND);
-        
+
         // horasService.delete(hora.get());
         // return new ResponseEntity<>("Hora deletada da Agenda", HttpStatus.OK);
     }
@@ -723,18 +728,18 @@ public class AdminController {
             content = @Content(schema = @Schema(implementation = StatusAgendaCadastroDTO.class))
         )
         @RequestBody @Valid StatusAgendaCadastroDTO statusAgendaDTO, HttpServletRequest request){
-        
+
         try{
-            
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            statusAgendaCreate.create(statusAgendaDTO, empresa);
+
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            statusAgendaCreate.create(statusAgendaDTO, usuarioLogado.getEmpresa());
             return new ResponseEntity<>("Status de Agenda cadastrado com sucesso", HttpStatus.CREATED);
         }catch(EntityDontExistException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         }
-        
+
     }
-    
+
     //Deleta um status da Agenda
     @DeleteMapping("agenda/status/delete/{id}")
     @Operation(summary = "Exclui um StatusAgenda", description = "Exclui um status da agenda")
@@ -746,8 +751,8 @@ public class AdminController {
         @PathVariable long id , HttpServletRequest request){
 
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            statusAgendaDeleting.delete(id, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            statusAgendaDeleting.delete(id, usuarioLogado);
             return new ResponseEntity<>("Status Excluída", HttpStatus.OK);
 
         }catch(EntityDontExistException e){
@@ -758,15 +763,15 @@ public class AdminController {
         }
     }
 
-    //Lista Status da Agenda por Empresa;
-    @GetMapping("/agenda/status/empresa")
-    @Operation(summary = "Lista Status da Agenda", description = "Lista Status das Agendas por Empresa")
+    //Lista Status da Agenda por usuario;
+    @GetMapping("/agenda/status/usuario")
+    @Operation(summary = "Lista Status da Agenda", description = "Lista Status das Agendas por usuario")
     @ApiResponse(responseCode = "200", description = "Lista status com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Page<StatusAgendaResponseDTO>> statusAgendaByEmpresa(HttpServletRequest request, @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
-        
-        Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-        List<StatusAgendaResponseDTO> listDTO = statusAgendaList.list(empresa, pageable).getContent().stream().map(status -> {
+    public ResponseEntity<Page<StatusAgendaResponseDTO>> statusAgendaByusuario(HttpServletRequest request, @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
+
+        var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+        List<StatusAgendaResponseDTO> listDTO = statusAgendaList.list(usuarioLogado.getEmpresa(), pageable).getContent().stream().map(status -> {
             StatusAgendaResponseDTO dto = statusAgendaConverter.toResponseDTO(status);
             return dto;
         }).collect(Collectors.toList());
@@ -783,8 +788,8 @@ public class AdminController {
     @ApiResponse(responseCode = "404", description = "Status não encontrado")
     public ResponseEntity<Object> statusAgendaById(@RequestParam long id, HttpServletRequest request){
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            StatusAgenda statusAgenda = statusAgendaList.list(id, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            StatusAgenda statusAgenda = statusAgendaList.list(id, usuarioLogado);
             StatusAgendaResponseDTO dto = statusAgendaConverter.toResponseDTO(statusAgenda);
             return new ResponseEntity<>(dto,HttpStatus.OK);
 
@@ -807,8 +812,8 @@ public class AdminController {
 
 
         try{
-            var empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            var dia = diaList.list(id, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            var dia = diaList.list(id, usuarioLogado);
 
             var horas = dia.getHoras();
 
@@ -833,16 +838,16 @@ public class AdminController {
     }
 
 
-    //Lista Status da Hora por empresa
+    //Lista Status da Hora por usuario
     @GetMapping("/agenda/horas/status")
-    @Operation(summary = "Lista Status da Hora", description = "Lista status por empresa")
+    @Operation(summary = "Lista Status da Hora", description = "Lista status por usuario")
     @ApiResponse(responseCode = "200", description = "Lista status encontrados ou lista vazia;")
-    public ResponseEntity<Object> statusHoraByEmpresa(
+    public ResponseEntity<Object> statusHoraByusuario(
         HttpServletRequest request,
         @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
-        
-        Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-        List<StatusHora> statusHoras = statusHoraList.list(empresa, pageable).getContent();
+
+        var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+        List<StatusHora> statusHoras = statusHoraList.list(usuarioLogado.getEmpresa(), pageable).getContent();
 
         List<StatusHoraResponseDTO> listDTO = statusHoras.stream().map(status -> {
             StatusHoraResponseDTO dto = statusHoraConverter.toResponseDTO(status);
@@ -865,18 +870,18 @@ public class AdminController {
 
         try{
 
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            statusHoraCreate.create(statusHoraDTO, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            statusHoraCreate.create(statusHoraDTO, usuarioLogado);
             return new ResponseEntity<>("Status cadastrado com sucesso", HttpStatus.CREATED);
-            
+
         }catch(ConflictException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
 
         }
 
     }
-   
-   
+
+
     //Deleta status da hora
     @DeleteMapping("/agenda/horas/status/delete/{id}")
     @Operation(summary = "Exclui Status Hora", description = "Exclui um status hora do Banco de Dados")
@@ -886,8 +891,8 @@ public class AdminController {
     public ResponseEntity<String> statusHoraDelete(@PathVariable long id, HttpServletRequest request){
 
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            statusHoraDelete.delete(id, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            statusHoraDelete.delete(id, usuarioLogado);
             return new ResponseEntity<>("Status excluído", HttpStatus.OK);
 
         }catch(EntityDontExistException e){
@@ -897,18 +902,18 @@ public class AdminController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
     }
-   
+
     //Lista Status do dia
     @GetMapping("/agenda/dia/status")
-    @Operation(summary = "Lista Status Dia", description = "Lista Status Dia por empresa")
-    @ApiResponse(responseCode = "200", description = "Retorna lista com status dia por empresa com sucesso")
-    public ResponseEntity<Page<StatusDiaResponseDTO>> statusDiaByEmpresa(
+    @Operation(summary = "Lista Status Dia", description = "Lista Status Dia por usuario")
+    @ApiResponse(responseCode = "200", description = "Retorna lista com status dia por usuario com sucesso")
+    public ResponseEntity<Page<StatusDiaResponseDTO>> statusDiaByusuario(
         HttpServletRequest request,
         @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
     ){
-        
-        Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-        List<StatusDia> statusDias = statusDiaList.list(empresa, pageable).getContent();
+
+        var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+        List<StatusDia> statusDias = statusDiaList.list(usuarioLogado.getEmpresa(), pageable).getContent();
 
         List<StatusDiaResponseDTO> listDTO = statusDias.stream().map(item -> {
             StatusDiaResponseDTO dto = statusDiaConverter.toResponseDTO(item);
@@ -931,12 +936,12 @@ public class AdminController {
             content = @Content(schema = @Schema(implementation = StatusDiaCadastroDTO.class))
         )
         @RequestBody StatusDiaCadastroDTO dto, HttpServletRequest request){
-        
+
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            statusDiaCreate.create(dto, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            statusDiaCreate.create(dto, usuarioLogado);
             return new ResponseEntity<>("Status cadastrado com sucesso", HttpStatus.CREATED);
-        
+
         }catch(ConflictException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         }
@@ -955,10 +960,10 @@ public class AdminController {
             content = @Content(schema = @Schema(implementation = StatusDiaEditDTO.class))
         )
         @RequestBody StatusDiaEditDTO dto, HttpServletRequest request){
-        
+
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            statusDiaEditing.edit(dto, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            statusDiaEditing.edit(dto, usuarioLogado);
             return new ResponseEntity<>("Status editado com sucesso", HttpStatus.OK);
 
         }catch(ConflictException e){
@@ -980,10 +985,10 @@ public class AdminController {
     @ApiResponse(responseCode = "404", description = "Status não encontrado para exclusão")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     public ResponseEntity<Object> statusDiaDelete(@PathVariable long id, HttpServletRequest request){
-        
+
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            statusDiaDeleting.delete(id, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            statusDiaDeleting.delete(id, usuarioLogado);
             return new ResponseEntity<>("Status excluído com sucesso", HttpStatus.OK);
 
         }catch(EntityDontExistException e){
@@ -1029,7 +1034,7 @@ public class AdminController {
             Dias newDia  = new Dias();
 
             newDia.setNome(nome);
-            
+
             return newDia;
 
         }).collect(Collectors.toList()); // converte Stream para List
@@ -1062,7 +1067,7 @@ public class AdminController {
                 horasAlvo.setStatusHora(hora.getStatusHora());
 
                 horasNovas.add(hora);
-                
+
             }); // Fim Foreach hora do diaOrigem
 
             dia.setHoras(horasNovas);
@@ -1091,8 +1096,8 @@ public class AdminController {
         @RequestBody @Valid ProfissionalCadastroDTO profissionalDTO, HttpServletRequest request){
 
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            profissionalCreate.create(profissionalDTO, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            profissionalCreate.create(profissionalDTO, usuarioLogado);
             return new ResponseEntity<>("Profissional cadastrado com sucesso", HttpStatus.CREATED);
 
 
@@ -1120,10 +1125,10 @@ public class AdminController {
             content = @Content(schema = @Schema(implementation = ProfissionalEditDTO.class))
         )
         @RequestBody @Valid ProfissionalEditDTO profissionalDTO, HttpServletRequest request) throws Exception{
-        
+
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            profissionalEditing.edit(profissionalDTO, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            profissionalEditing.edit(profissionalDTO, usuarioLogado);
             return new ResponseEntity<>("Profissional editado com sucesso", HttpStatus.OK);
 
         }catch(EntityDontExistException e){
@@ -1148,8 +1153,8 @@ public class AdminController {
         )
         @PathVariable long id, HttpServletRequest request){
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            profissionalDeleting.delete(id, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            profissionalDeleting.delete(id, usuarioLogado);
             return new ResponseEntity<>("Profissional deletado", HttpStatus.OK);
 
         }catch(EntityDontExistException e){
@@ -1164,33 +1169,33 @@ public class AdminController {
         }
     }
 
-    //Lista Profissoinal por empresa
+    //Lista Profissoinal por usuario
     @GetMapping("/profissional/list")
-    @Operation(summary = "Lista profissionais da Empresa")
+    @Operation(summary = "Lista profissionais da usuario")
     @ApiResponse(responseCode = "200", description = "Lista profissionais com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuario sem permissão para esta operação")
-    public ResponseEntity<Page<ProfissionalResponseDTO>> profissionalByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
+    public ResponseEntity<Page<ProfissionalResponseDTO>> profissionalByusuario(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
 
-        Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-        List<ProfissionalResponseDTO> listDTO = profissionalList.list(empresa, pageable).getContent().stream().map(profissional -> {
+        var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+        List<ProfissionalResponseDTO> listDTO = profissionalList.list(usuarioLogado.getEmpresa(), pageable).getContent().stream().map(profissional -> {
             ProfissionalResponseDTO dto = profissionalConverter.toResponseDTO(profissional);
             return dto;
         }).collect(Collectors.toList());
 
         return new ResponseEntity<>(new PageImpl<ProfissionalResponseDTO>(listDTO), HttpStatus.OK);
-    
+
     }
 
 
     //Lista Profissional por Nome e ID
     @GetMapping("/profissionais")
-    @Operation(summary = "Lista nome e id de profissionais", description = "Retorna lista com Nome e ID de Profissionais da Empresa.")
+    @Operation(summary = "Lista nome e id de profissionais", description = "Retorna lista com Nome e ID de Profissionais da usuario.")
     @ApiResponse(responseCode = "200", description = "Retorna usuários encontrado com sucesso")
     public ResponseEntity<List<ProfissionalListDTO>> profissionalNameAndId(HttpServletRequest request,
     @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
 
-        Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-        List<Profissional> profissionals = profissionalList.list(empresa, pageable).getContent();
+        var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+        List<Profissional> profissionals = profissionalList.list(usuarioLogado.getEmpresa(), pageable).getContent();
 
         List<ProfissionalListDTO> listDTO = profissionals.stream().map(item -> {
             ProfissionalListDTO dto = profissionalConverter.toListDTO(item);
@@ -1211,12 +1216,12 @@ public class AdminController {
 
 
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            Profissional profissional = profissionalList.list(id, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            Profissional profissional = profissionalList.list(id, usuarioLogado);
             ProfissionalResponseDTO dto = profissionalConverter.toResponseDTO(profissional);
 
             return new ResponseEntity<>(dto, HttpStatus.OK);
-        
+
         }catch(EntityDontExistException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
@@ -1224,8 +1229,8 @@ public class AdminController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
 
-        
-        
+
+
     }
 
 
@@ -1243,8 +1248,8 @@ public class AdminController {
         @RequestBody @Valid FeriadoCadastroDTO feriadoDTO, HttpServletRequest request){
         System.out.println("------------------------");
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            feriadoCreate.create(feriadoDTO, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            feriadoCreate.create(feriadoDTO, usuarioLogado);
             return new ResponseEntity<>("Feriado cadastrado com sucesso", HttpStatus.CREATED);
 
         }catch(ConflictException e){
@@ -1264,7 +1269,7 @@ public class AdminController {
         // feriado.setDia(calendar);
 
         // Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-        // feriado.setEmpresa(usuario.getEmpresa());
+        // feriado.setusuario(usuario.getusuario());
         // return new ResponseEntity<>(feriadoService.save(feriado), HttpStatus.CREATED);
     }
 
@@ -1283,8 +1288,8 @@ public class AdminController {
         @RequestBody @Valid FeriadoEditDTO feriadoDTO, HttpServletRequest request){
 
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            feriadoEditing.edit(feriadoDTO, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            feriadoEditing.edit(feriadoDTO, usuarioLogado);
             return new ResponseEntity<>("Feriado editado com sucesso", HttpStatus.OK);
 
         }catch(EntityDontExistException e){
@@ -1301,21 +1306,21 @@ public class AdminController {
 
         // Optional<Feriado> feriado = feriadoService.findById(feriadoDTO.id());
 
-        // //SOmente edita feriado se Empresa do feriado for a memsa do usuario logado.
-        // if (feriado.isPresent() && feriado.get().getEmpresa().getId() == usuarioLogado.getEmpresa().getId()){
+        // //SOmente edita feriado se usuario do feriado for a memsa do usuario logado.
+        // if (feriado.isPresent() && feriado.get().getusuario().getId() == usuarioLogado.getusuario().getId()){
         //     Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT-3:00"), new Locale("pt-BR"));
         //     int ano = Integer.parseInt(feriadoDTO.data().split("-")[0]);
         //     int mes = Integer.parseInt(feriadoDTO.data().split("-")[1]);
-        //     int dia = Integer.parseInt(feriadoDTO.data().split("-")[2]); 
+        //     int dia = Integer.parseInt(feriadoDTO.data().split("-")[2]);
         //     calendar.set(ano, mes, dia);
 
         //     feriado.get().setNome(feriadoDTO.nome());
         //     feriado.get().setDia(calendar);
 
         //     return new ResponseEntity<>(feriadoService.save(feriado.get()), HttpStatus.OK);
-        
+
         // } else return new ResponseEntity<>("Feriado não encontrado!", HttpStatus.NOT_FOUND);
-        
+
     }
 
     @DeleteMapping("/feriado/delete/{id}")
@@ -1326,10 +1331,10 @@ public class AdminController {
     public ResponseEntity<Object> feriadoDelete(
         @Parameter(description = "Id do feriado", required = true, example = "123")
         @PathVariable (name = "id") long id, HttpServletRequest request){
-        
+
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            feriadoDeleting.delete(id, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            feriadoDeleting.delete(id, usuarioLogado);
             return new ResponseEntity<>("Feriado excluído com sucesso", HttpStatus.OK);
 
         }catch(AcessoNegadoException e){
@@ -1339,21 +1344,21 @@ public class AdminController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
         }
-        
-        
+
+
     }
 
-    
+
     @GetMapping("/feriado/list")
-    @Operation(summary = "Lista feriados", description = "Lista feriados da Empresa")
+    @Operation(summary = "Lista feriados", description = "Lista feriados da usuario")
     @ApiResponse(responseCode = "200", description = "Retorna feriados com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Page<FeriadoResponseDTO>> feriadoByEmpresa(
-            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) 
+    public ResponseEntity<Page<FeriadoResponseDTO>> feriadoByusuario(
+            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC)
             Pageable pageable, HttpServletRequest request){
-               
-                Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-                List<Feriado> feriados = feriadoList.list(empresa, pageable).getContent();
+
+                var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+                List<Feriado> feriados = feriadoList.list(usuarioLogado.getEmpresa(), pageable).getContent();
                 List<FeriadoResponseDTO> listDTO = feriados.stream().map(feriado -> {
                     FeriadoResponseDTO dto = feriadoConverter.toResponseDTO(feriado);
                     return dto;
@@ -1364,14 +1369,14 @@ public class AdminController {
             }
 
     @GetMapping("/feriado/byid")
-    @Operation(summary = "Busca feriado", description = "Busca feriado da empresa pelo ID")
+    @Operation(summary = "Busca feriado", description = "Busca feriado da usuario pelo ID")
     @ApiResponse(responseCode = "200", description = "Feriado encontrado é retornado")
     @ApiResponse(responseCode = "404", description = "Feriado não encontrado")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     public ResponseEntity<Object> feriadoById(@RequestParam long id, HttpServletRequest request){
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            Feriado feriado = feriadoList.list(id, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            Feriado feriado = feriadoList.list(id, usuarioLogado);
             FeriadoResponseDTO dto = feriadoConverter.toResponseDTO(feriado);
             return new ResponseEntity<>(dto, HttpStatus.OK);
 
@@ -1395,11 +1400,11 @@ public class AdminController {
             content = @Content(schema = @Schema(implementation = DiaBloqueadoCadastroDTO.class))
         )
         @RequestBody @Valid DiaBloqueadoCadastroDTO diaBloqueado, HttpServletRequest request){
-        
-        Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-        diaBloqueadoCreate.create(diaBloqueado, empresa);
+
+        var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+        diaBloqueadoCreate.create(diaBloqueado, usuarioLogado);
         return new ResponseEntity<>("Bloquio do dia cadastrado com sucesso", HttpStatus.CREATED);
- 
+
     }
 
 
@@ -1417,8 +1422,8 @@ public class AdminController {
         @RequestBody @Valid DiaBloqueadoEditDTO diaBloqueado, HttpServletRequest request){
 
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            diaBloqueadoEditing.edit(diaBloqueado, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            diaBloqueadoEditing.edit(diaBloqueado, usuarioLogado);
             return new ResponseEntity<>("Bloqueio do dia editado com sucesso", HttpStatus.OK);
 
         }catch(EntityDontExistException e){
@@ -1427,7 +1432,7 @@ public class AdminController {
         }catch(AcessoNegadoException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
-       
+
     }
 
     @DeleteMapping("/diabloqueado/delete/{id}")
@@ -1440,8 +1445,8 @@ public class AdminController {
         @PathVariable(name = "id") long id, HttpServletRequest request){
 
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            diaBloqueadoDelete.delete(id, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            diaBloqueadoDelete.delete(id, usuarioLogado);
             return new ResponseEntity<>("Bloqueio do dia excluído com sucesso", HttpStatus.OK);
 
         }catch(EntityDontExistException e){
@@ -1453,14 +1458,14 @@ public class AdminController {
     }
 
     @GetMapping("/diabloqueado/list")
-    @Operation(summary = "Lista bloqueios de dia", description = "Lista bloqueios para a empresa")
+    @Operation(summary = "Lista bloqueios de dia", description = "Lista bloqueios para a usuario")
     @ApiResponse(responseCode = "200", description = "Retorna dados com sucesso")
-    public ResponseEntity<Object> diaBloqueadoByEmpresa(
+    public ResponseEntity<Object> diaBloqueadoByusuario(
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
             HttpServletRequest request){
 
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            List<DiaBloqueado> diaBloqueados = diaBloqueadoList.list(empresa, pageable).getContent();
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            List<DiaBloqueado> diaBloqueados = diaBloqueadoList.list(usuarioLogado.getEmpresa(), pageable).getContent();
 
             List<DiaBloqueadoResponseDTO> listDTO = diaBloqueados.stream().map(item -> {
                 DiaBloqueadoResponseDTO dto = diaBloqueadoConverter.toResponseDTO(item);
@@ -1478,7 +1483,7 @@ public class AdminController {
     @PostMapping("/planopaciente/create")
     @Operation(summary = "Cadastro de plano paciente", description = "Salvar um plano para paciente no Banco")
     @ApiResponse(responseCode = "200", description = "Cadastro realizado com sucesso.")
-    public ResponseEntity<PlanoPaciente> planoPacienteCreate(@RequestBody planoPacienteCadastroDTO planoPacienteDTO, HttpServletRequest request){ 
+    public ResponseEntity<PlanoPaciente> planoPacienteCreate(@RequestBody planoPacienteCadastroDTO planoPacienteDTO, HttpServletRequest request){
         PlanoPaciente planoPaciente = new PlanoPaciente();
 
         BeanUtils.copyProperties(planoPacienteDTO, planoPaciente);
@@ -1487,7 +1492,7 @@ public class AdminController {
 
         planoPaciente.setDataRegistro(now);
 
-        Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+        Usuario usuario = tokenService.getUserLogado(request, usuarioService);
         planoPaciente.setEmpresa(usuario.getEmpresa());
 
         planoPaciente.setStatus(PlanoPaciente.PLANO_STATUS_ATIVO);

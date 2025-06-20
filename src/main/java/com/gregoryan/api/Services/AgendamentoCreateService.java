@@ -1,14 +1,14 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Models.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.gregoryan.api.DTO.AgendamentoCreateDTO;
 import com.gregoryan.api.Models.Agendamento;
-import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Services.Crud.AgendamentoService;
-import com.gregoryan.api.Services.Interfaces.AgendamentoConverterInterface;
-import com.gregoryan.api.Services.Interfaces.DateConverterInterface;
+import com.gregoryan.api.Interfaces.AgendamentoConverterInterface;
+import com.gregoryan.api.Interfaces.DateConverterInterface;
 
 @Service
 public class AgendamentoCreateService {
@@ -19,11 +19,11 @@ public class AgendamentoCreateService {
     @Autowired
     private DateConverterInterface dateConverter;
 
-    public Agendamento create(AgendamentoCreateDTO dto, Empresa empresa){
+    public Agendamento create(AgendamentoCreateDTO dto, Usuario usuario){
 
-        var agendamento = agendamentoConverter.toAgendamento(dto, empresa);
+        var agendamento = agendamentoConverter.toAgendamento(dto, usuario);
 
-        agendamento.setEmpresa(empresa);
+        agendamento.setEmpresa(usuario.getEmpresa());
         var dataRegistro = dateConverter.getDateCurrent();
 
         agendamento.setDataRegistro(dataRegistro);

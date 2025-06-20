@@ -1,14 +1,14 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Components.UsuarioValidateConflict;
+import com.gregoryan.api.Interfaces.UsuarioValidateInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.gregoryan.api.DTO.UsuarioCadastroDTO;
-import com.gregoryan.api.Models.Empresa;
+import com.gregoryan.api.DTO.UsuarioCreateDTO;
 import com.gregoryan.api.Models.Usuario;
 import com.gregoryan.api.Services.Crud.UsuarioService;
-import com.gregoryan.api.Services.Interfaces.DateConverterInterface;
-import com.gregoryan.api.Services.Interfaces.UsuarioValidateInterface;
+import com.gregoryan.api.Interfaces.DateConverterInterface;
+import java.util.List;
 
 @Service
 public class UsuarioCreateService{
@@ -18,21 +18,19 @@ public class UsuarioCreateService{
     @Autowired
     private UsuarioConverter usuarioConverter;
     @Autowired
-    private UsuarioValidateInterface validateUsuario;
+    private UsuarioValidateConflict usuarioValidateConflict;
     @Autowired
     private DateConverterInterface dataConverter;
 
     
-    public Usuario cadastrar(UsuarioCadastroDTO dto, Empresa empresa){
-        validateUsuario.jaExiste(dto.login());
+    public Usuario create(UsuarioCreateDTO dto, Usuario usuario){
 
-        Usuario usuario = usuarioConverter.toUsuario(dto);
-        usuario.setDataRegistro(dataConverter.getDateCurrent());
-        usuario.setEmpresa(empresa);
-        usuario.setStatus(Usuario.StatusUsuario.ATIVO);
+        Usuario usuarioCreate = usuarioConverter.toUsuario(dto);
+        usuarioCreate.setDataRegistro(dataConverter.getDateCurrent());
+        usuarioCreate.setEmpresa(usuario.getEmpresa());
+        usuarioCreate.setStatus(Usuario.StatusUsuario.ATIVO);
+        usuarioValidateConflict.validate(usuarioCreate, usuarioCreate.getEmpresa());
 
-        return usuarioService.save(usuario);
+        return usuarioService.save(usuarioCreate);
     }
-
-    
 }

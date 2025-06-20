@@ -1,13 +1,11 @@
 package com.gregoryan.api.Services;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.gregoryan.api.DTO.PacienteCadastroDTO;
 import com.gregoryan.api.DTO.PacienteEditDTO;
 import com.gregoryan.api.Models.Paciente;
-import com.gregoryan.api.Services.Interfaces.PacienteConverterInterface;
-import com.gregoryan.api.Services.Interfaces.PlanoPacienteListInterface;
+import com.gregoryan.api.Interfaces.PacienteConverterInterface;
 
 @Service
 public class PacienteConverterService implements PacienteConverterInterface{

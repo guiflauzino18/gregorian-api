@@ -1,14 +1,14 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Models.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.gregoryan.api.DTO.AgendamentoEditDTO;
 import com.gregoryan.api.Models.Agendamento;
-import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Services.Crud.AgendamentoService;
-import com.gregoryan.api.Services.Interfaces.AgendamentoConverterInterface;
-import com.gregoryan.api.Services.Interfaces.AgendamentoListInterface;
+import com.gregoryan.api.Interfaces.AgendamentoConverterInterface;
+import com.gregoryan.api.Interfaces.AgendamentoListInterface;
 
 @Service
 public class AgendamentoEditService {
@@ -20,9 +20,9 @@ public class AgendamentoEditService {
     private AgendamentoService agendamentoService;
 
 
-    public Agendamento edit(AgendamentoEditDTO dto, Empresa empresa){
-        var agendamento = agendamentolist.list(dto.id(), empresa);
-        var agendamentoNew = agendamentoConverter.toAgendamento(dto, empresa);
+    public Agendamento edit(AgendamentoEditDTO dto, Usuario usuario){
+        var agendamento = agendamentolist.list(dto.id(), usuario);
+        var agendamentoNew = agendamentoConverter.toAgendamento(dto, usuario);
 
         agendamento.setProfissional(agendamentoNew.getProfissional());
         agendamento.setPaciente(agendamentoNew.getPaciente());

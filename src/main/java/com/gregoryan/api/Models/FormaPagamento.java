@@ -20,9 +20,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FormaPagamento {
-
-    public static final int STATUS_ATIVO = 1;
-    public static final int STATUS_INATIVO = 0;
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,10 +29,25 @@ public class FormaPagamento {
     private String nome;
 
     @Column(nullable = false, length = 2)
-    private int status;
+    private FormaPagamentoStatusEnum status;
 
     @ManyToOne
     @JoinColumn(name = "empresa_fk")
     private Empresa empresa;
+
+    
+    public enum FormaPagamentoStatusEnum {
+        ATIVO(1), INATIVO(0);
+        private final int status;
+
+        private FormaPagamentoStatusEnum (int status){
+            this.status = status;
+        }
+
+        public int getStatus(){
+            return status;
+        }
+
+    }
 
 }

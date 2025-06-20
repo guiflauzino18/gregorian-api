@@ -1,18 +1,15 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.gregoryan.api.DTO.DiaCadastroDTO;
-import com.gregoryan.api.Models.Dias;
-import com.gregoryan.api.Models.Empresa;
-import com.gregoryan.api.Models.StatusDia;
-import com.gregoryan.api.Models.StatusHora;
 import com.gregoryan.api.Services.Crud.DiasService;
 import com.gregoryan.api.Services.Crud.HorasService;
-import com.gregoryan.api.Services.Interfaces.DiaConverterInterface;
-import com.gregoryan.api.Services.Interfaces.StatusDiaListInterface;
-import com.gregoryan.api.Services.Interfaces.StatusHoraListInterface;
+import com.gregoryan.api.Interfaces.DiaConverterInterface;
+import com.gregoryan.api.Interfaces.StatusDiaListInterface;
+import com.gregoryan.api.Interfaces.StatusHoraListInterface;
 
 @Service
 public class DiaCreateService {
@@ -27,14 +24,14 @@ public class DiaCreateService {
     @Autowired
     private StatusHoraListInterface statusHoraList;
 
-    public Dias create(DiaCadastroDTO dto, Empresa empresa){
+    public Dias create(DiaCadastroDTO dto, Usuario usuario){
 
         Dias dia = diaConverter.toDia(dto);
-        dia.setEmpresa(empresa);
-        StatusDia statusDia = statusDiaList.list("Ativo", empresa);
+        dia.setEmpresa(usuario.getEmpresa());
+        StatusDia statusDia = statusDiaList.list("Ativo", usuario);
         dia.setStatusDia(statusDia);
 
-        StatusHora statusHora = statusHoraList.list("Ativo", empresa);
+        StatusHora statusHora = statusHoraList.list("Ativo", usuario);
         dia.createHoras(statusHora, horasService);
 
         return service.save(dia);

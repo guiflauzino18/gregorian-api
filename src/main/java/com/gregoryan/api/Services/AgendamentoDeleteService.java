@@ -1,10 +1,10 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Models.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Services.Crud.AgendamentoService;
-import com.gregoryan.api.Services.Interfaces.AgendamentoListInterface;
+import com.gregoryan.api.Interfaces.AgendamentoListInterface;
 
 @Service
 public class AgendamentoDeleteService {
@@ -13,8 +13,8 @@ public class AgendamentoDeleteService {
     @Autowired
     private AgendamentoListInterface agendamentoList;
     
-    public void delete(long id, Empresa empresa){
-        var agendamento = agendamentoList.list(id, empresa);
+    public void delete(long id, Usuario usuario){
+        var agendamento = agendamentoList.list(id, usuario);
         agendamentoService.delete(agendamento);
 
     }

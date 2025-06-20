@@ -58,8 +58,8 @@ public class AgendamentoController {
     public ResponseEntity<Object> agendamentoCreate(@RequestBody @Valid AgendamentoCreateDTO agendamentoDTO, HttpServletRequest request){
         
         try{
-            var empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            agendamentoCreate.create(agendamentoDTO, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            agendamentoCreate.create(agendamentoDTO, usuarioLogado);
             return new ResponseEntity<>("Agendamento cadastrado", HttpStatus.CREATED);
 
         }catch(AcessoNegadoException e){
@@ -107,8 +107,8 @@ public class AgendamentoController {
     public ResponseEntity<Object> agendamentoEdit(@RequestBody @Valid AgendamentoEditDTO agendamentoDTO, HttpServletRequest request){
         
         try{
-            var empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            agendamentoEdit.edit(agendamentoDTO, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            agendamentoEdit.edit(agendamentoDTO, usuarioLogado);
             return new ResponseEntity<>("Agendamento atualizado", HttpStatus.OK);
 
         }catch(EntityDontExistException e){
@@ -153,8 +153,8 @@ public class AgendamentoController {
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Object> agendamentoDelete(@PathVariable(name = "id") long id, HttpServletRequest request){
         try{
-            var empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            agendamentoDelete.delete(id, empresa);
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            agendamentoDelete.delete(id, usuarioLogado);
             return new ResponseEntity<>("Agendamento Excluído", HttpStatus.OK);
 
         }catch(EntityDontExistException e){

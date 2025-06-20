@@ -1,5 +1,6 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Models.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.gregoryan.api.DTO.DiaCadastroDTO;
@@ -7,10 +8,9 @@ import com.gregoryan.api.DTO.DiaEditDTO;
 import com.gregoryan.api.DTO.DiaResponseDTO;
 import com.gregoryan.api.DTO.StatusDiaResponseDTO;
 import com.gregoryan.api.Models.Dias;
-import com.gregoryan.api.Models.Empresa;
-import com.gregoryan.api.Services.Interfaces.DiaConverterInterface;
-import com.gregoryan.api.Services.Interfaces.DiaListInterface;
-import com.gregoryan.api.Services.Interfaces.StatusDiaConverterInterface;
+import com.gregoryan.api.Interfaces.DiaConverterInterface;
+import com.gregoryan.api.Interfaces.DiaListInterface;
+import com.gregoryan.api.Interfaces.StatusDiaConverterInterface;
 
 @Service
 public class DiaConverterService implements DiaConverterInterface{
@@ -36,9 +36,9 @@ public class DiaConverterService implements DiaConverterInterface{
     }
 
     @Override
-    public Dias toDia(DiaEditDTO dto, Empresa empresa) {
+    public Dias toDia(DiaEditDTO dto, Usuario usuario) {
         
-        Dias dia = diaList.list(dto.idDia(), empresa);
+        Dias dia = diaList.list(dto.idDia(), usuario);
         dia.setIntervaloSessaoInMinutes(dto.intervaloSessaoInMinutes());
         dia.setDuracaoSessaoInMinutes(dto.duracaoSessaoInMinutes());
         dia.setInicio(dataConverter.getHour(dto.inicio()));

@@ -1,15 +1,15 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Models.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.gregoryan.api.DTO.StatusDiaCadastroDTO;
 import com.gregoryan.api.DTO.StatusDiaEditDTO;
 import com.gregoryan.api.DTO.StatusDiaResponseDTO;
-import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.StatusDia;
-import com.gregoryan.api.Services.Interfaces.StatusDiaConverterInterface;
-import com.gregoryan.api.Services.Interfaces.StatusDiaListInterface;
+import com.gregoryan.api.Interfaces.StatusDiaConverterInterface;
+import com.gregoryan.api.Interfaces.StatusDiaListInterface;
 
 @Service
 public class StatusDiaConverterService implements StatusDiaConverterInterface{
@@ -31,8 +31,8 @@ public class StatusDiaConverterService implements StatusDiaConverterInterface{
     }
 
     @Override
-    public StatusDia toStatusDia(StatusDiaEditDTO dto, Empresa empresa) {
-        StatusDia statusDia = statusDiaList.list(dto.id(), empresa);
+    public StatusDia toStatusDia(StatusDiaEditDTO dto, Usuario usuario) {
+        StatusDia statusDia = statusDiaList.list(dto.id(), usuario);
         statusDia.setNome(dto.nome());
 
         return statusDia;

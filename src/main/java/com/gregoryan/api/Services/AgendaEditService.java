@@ -1,11 +1,11 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Models.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.gregoryan.api.DTO.AgendaEditDTO;
-import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Services.Crud.AgendaService;
-import com.gregoryan.api.Services.Interfaces.AgendaConverterInterface;
+import com.gregoryan.api.Interfaces.AgendaConverterInterface;
 
 @Service
 public class AgendaEditService {
@@ -15,9 +15,9 @@ public class AgendaEditService {
     @Autowired
     private AgendaService agendaService;
     
-    public void edit(AgendaEditDTO dto, Empresa empresa){
+    public void edit(AgendaEditDTO dto, Usuario usuario){
 
-        var agenda = agendaConverter.toAgenda(dto, empresa); // EntityDontExistException
+        var agenda = agendaConverter.toAgenda(dto, usuario); // EntityDontExistException
 
         agendaService.save(agenda);
 

@@ -7,13 +7,12 @@ import com.gregoryan.api.DTO.ProfissionalCadastroDTO;
 import com.gregoryan.api.DTO.ProfissionalEditDTO;
 import com.gregoryan.api.DTO.ProfissionalListDTO;
 import com.gregoryan.api.DTO.ProfissionalResponseDTO;
-import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.Profissional;
 import com.gregoryan.api.Models.Usuario;
 import com.gregoryan.api.Services.Crud.AgendaService;
-import com.gregoryan.api.Services.Interfaces.ProfissionalConverterInterface;
-import com.gregoryan.api.Services.Interfaces.ProfissionalListInterface;
-import com.gregoryan.api.Services.Interfaces.UsuarioListInterface;
+import com.gregoryan.api.Interfaces.ProfissionalConverterInterface;
+import com.gregoryan.api.Interfaces.ProfissionalListInterface;
+import com.gregoryan.api.Interfaces.UsuarioListInterface;
 
 @Service
 public class ProfissionalConverterService implements ProfissionalConverterInterface{
@@ -27,26 +26,26 @@ public class ProfissionalConverterService implements ProfissionalConverterInterf
 
 
     @Override
-    public Profissional toProfissional(ProfissionalCadastroDTO dto, Empresa empresa) {
+    public Profissional toProfissional(ProfissionalCadastroDTO dto, Usuario usuario) {
         Profissional profissional = new Profissional();
 
         profissional.setTitulo(dto.titulo());
         profissional.setRegistro(dto.registro());
         profissional.setStatus(Profissional.StatusProfissional.ATIVO);
 
-        Usuario usuario = usuarioList.list(dto.login(), empresa); //UsuarioDontExistException
-        profissional.setUsuario(usuario);
+        Usuario usuarioDoProfissional = usuarioList.list(dto.login(), usuario); //UsuarioDontExistException
+        profissional.setUsuario(usuarioDoProfissional);
 
         return profissional;
     }
 
     @Override
-    public Profissional toProfissional(ProfissionalEditDTO dto, Empresa empresa) {
-        Profissional profissional = profissionalList.list(dto.id(), empresa); //ProfissionalDontExitException
+    public Profissional toProfissional(ProfissionalEditDTO dto, Usuario usuario) {
+        Profissional profissional = profissionalList.list(dto.id(), usuario); //ProfissionalDontExitException
         profissional.setTitulo(dto.titulo());
         profissional.setRegistro(dto.registro());
         profissional.setStatus(dto.status());
-        agendaService.findById(dto.idAgenda()).ifPresent(agenda ->profissional.setAgenda(agenda));
+        agendaService.findById(dto.idAgenda()).ifPresent(agenda -> profissional.setAgenda(agenda));
 
         return profissional;
     }

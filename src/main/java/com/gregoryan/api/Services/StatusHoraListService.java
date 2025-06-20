@@ -3,6 +3,7 @@ package com.gregoryan.api.Services;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gregoryan.api.Models.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -13,8 +14,8 @@ import com.gregoryan.api.Exception.EntityDontExistException;
 import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.StatusHora;
 import com.gregoryan.api.Services.Crud.StatusHoraService;
-import com.gregoryan.api.Services.Interfaces.StatusHoraListInterface;
-import com.gregoryan.api.Services.Interfaces.UsuarioValidateInterface;
+import com.gregoryan.api.Interfaces.StatusHoraListInterface;
+import com.gregoryan.api.Interfaces.UsuarioValidateInterface;
 
 @Service
 public class StatusHoraListService implements StatusHoraListInterface{
@@ -25,9 +26,9 @@ public class StatusHoraListService implements StatusHoraListInterface{
     private UsuarioValidateInterface usuarioValidate;
 
     @Override
-    public StatusHora list(long id, Empresa empresa) {
+    public StatusHora list(long id, Usuario usuario) {
         StatusHora statusHora = statusHoraService.findById(id).orElseThrow(() -> new EntityDontExistException("Status não encontrado"));
-        usuarioValidate.isSameEmpresaFromUserLogged(empresa, statusHora.getEmpresa());
+        usuarioValidate.validate(usuario, statusHora.getEmpresa());
         return statusHora;
     }
 
@@ -52,9 +53,9 @@ public class StatusHoraListService implements StatusHoraListInterface{
     }
 
     @Override
-    public StatusHora list(String nome, Empresa empresa) {
+    public StatusHora list(String nome, Usuario usuario) {
         StatusHora statusHora = statusHoraService.findByNome(nome).orElseThrow(() -> new EntityDontExistException("Status hora não encontrado"));
-        usuarioValidate.isSameEmpresaFromUserLogged(empresa, statusHora.getEmpresa());
+        usuarioValidate.validate(usuario, statusHora.getEmpresa());
 
         return statusHora;
     }

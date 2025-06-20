@@ -10,11 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.gregoryan.api.DTO.UsuarioResponseDTO;
 import com.gregoryan.api.Exception.AcessoNegadoException;
 import com.gregoryan.api.Exception.EntityDontExistException;
-import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.Usuario;
 import com.gregoryan.api.Services.Crud.UsuarioService;
-import com.gregoryan.api.Services.Interfaces.UsuarioConverterInterface;
-import com.gregoryan.api.Services.Interfaces.UsuarioListInterface;
+import com.gregoryan.api.Interfaces.UsuarioConverterInterface;
+import com.gregoryan.api.Interfaces.UsuarioListInterface;
 import com.gregoryan.api.Services.Security.TokenService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,8 +41,7 @@ public class IndexController {
     public ResponseEntity<Object> indexController(HttpServletRequest request){
 
         try{
-            Empresa empresa = tokenService.getEmpresaFromToken(request, usuarioService);
-            Usuario usuario = usuarioList.list(tokenService.validateToken(tokenService.recoverToken(request)), empresa);
+            Usuario usuario = tokenService.getUserLogado(request, usuarioService);
             UsuarioResponseDTO responseDTO = usuarioConverter.toUsuarioResponseDTO(usuario);
             return new ResponseEntity<>(responseDTO, HttpStatus.OK);
 

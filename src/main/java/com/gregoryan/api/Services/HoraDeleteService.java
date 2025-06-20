@@ -3,7 +3,7 @@ package com.gregoryan.api.Services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.gregoryan.api.Services.Crud.HorasService;
-import com.gregoryan.api.Services.Interfaces.HoraListInterface;
+import com.gregoryan.api.Interfaces.HoraListInterface;
 
 @Service
 public class HoraDeleteService {

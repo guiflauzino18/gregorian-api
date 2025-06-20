@@ -1,17 +1,17 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Models.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.gregoryan.api.DTO.AgendaCadastroDTO;
 import com.gregoryan.api.DTO.AgendaEditDTO;
 import com.gregoryan.api.DTO.AgendaResponseDTO;
 import com.gregoryan.api.Models.Agenda;
-import com.gregoryan.api.Models.Empresa;
-import com.gregoryan.api.Services.Interfaces.AgendaConverterInterface;
-import com.gregoryan.api.Services.Interfaces.AgendaListInterface;
-import com.gregoryan.api.Services.Interfaces.ProfissionalListInterface;
-import com.gregoryan.api.Services.Interfaces.StatusAgendaConverterInterface;
-import com.gregoryan.api.Services.Interfaces.StatusAgendaListInterface;
+import com.gregoryan.api.Interfaces.AgendaConverterInterface;
+import com.gregoryan.api.Interfaces.AgendaListInterface;
+import com.gregoryan.api.Interfaces.ProfissionalListInterface;
+import com.gregoryan.api.Interfaces.StatusAgendaConverterInterface;
+import com.gregoryan.api.Interfaces.StatusAgendaListInterface;
 
 @Service
 public class AgendaConverter implements AgendaConverterInterface {
@@ -58,12 +58,12 @@ public class AgendaConverter implements AgendaConverterInterface {
     }
 
     @Override
-    public Agenda toAgenda(AgendaEditDTO dto, Empresa empresa) {
+    public Agenda toAgenda(AgendaEditDTO dto, Usuario usuario) {
 
-        Agenda agenda = agendaList.list(dto.idAgenda(), empresa);
-        var status = statusAgendaList.list(dto.idStatusAgenda(), empresa);
+        Agenda agenda = agendaList.list(dto.idAgenda(), usuario);
+        var status = statusAgendaList.list(dto.idStatusAgenda(), usuario);
         agenda.setStatusAgenda(status);
-        var profissional = profissionalList.list(dto.idProfissional(), empresa);
+        var profissional = profissionalList.list(dto.idProfissional(), usuario);
         agenda.setProfissional(profissional);
         agenda.setId(dto.idAgenda());
         agenda.setNome(dto.nome());

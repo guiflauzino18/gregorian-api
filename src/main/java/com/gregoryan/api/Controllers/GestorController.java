@@ -47,8 +47,8 @@ public class GestorController {
 
 
     /* ======================================= Empresa ============================================= */
-    @PostMapping("/empresa/cadastro")
-    public ResponseEntity<Object> cadastraEmpresa(@RequestBody @Valid EmpresaSaveDTO empresaDTO){
+    @PostMapping("/empresa/create")
+    public ResponseEntity<Object> empresaCreate(@RequestBody @Valid EmpresaSaveDTO empresaDTO){
 
         if(empresaService.existsByCnpj(empresaDTO.cnpj())) return new ResponseEntity<Object>("Conflito: Cnpj já existe!", HttpStatus.CONFLICT);
 
@@ -70,8 +70,8 @@ public class GestorController {
     }
 
 
-    @PostMapping("/empresa/setplano")
-    public ResponseEntity<String> setPlanoEmpresa(@RequestBody EmpresaSetPlanoDTO planoDTO){
+    @PostMapping("/empresa/plano/create")
+    public ResponseEntity<String> planoCreate(@RequestBody EmpresaSetPlanoDTO planoDTO){
         Empresa empresa = empresaService.findById(planoDTO.empresa()).get();
         PlanoEmpresa planoEmpresa = planoEmpresaRepository.findById(planoDTO.plano()).get();
 
@@ -82,7 +82,7 @@ public class GestorController {
     }
 
     @PostMapping("/empresa/setStatus")
-    public ResponseEntity<String> setStatusEmpresa(@RequestBody EmpresaSetStatusDTO statusDTO){
+    public ResponseEntity<String> empresaStatus(@RequestBody EmpresaSetStatusDTO statusDTO){
         Empresa empresa = empresaService.findById(statusDTO.empresa()).get();
         StatusEmpresa statusEmpresa = statusEmpresaRepository.findById(statusDTO.status()).get();
 
@@ -92,8 +92,8 @@ public class GestorController {
         return new ResponseEntity<String>("Status da Empresa "+ empresa.getNome()+" Atualizado!", HttpStatus.OK);
     }
 
-    @PostMapping("/empresa/faturamento")
-    public ResponseEntity<String> faturamentoEmpresa(@RequestBody EmpresaFaturamentoDTO faturamentoDTO){
+    @PostMapping("/empresa/faturamento/create")
+    public ResponseEntity<String> faturamentoCreate(@RequestBody EmpresaFaturamentoDTO faturamentoDTO){
         Empresa empresa = empresaService.findById(faturamentoDTO.empresa()).get();
         PlanoEmpresa planoEmpresa = planoEmpresaRepository.findById(faturamentoDTO.plano()).get();
 
@@ -112,16 +112,16 @@ public class GestorController {
 
     /*============================ Plano Empresa ============================================ */
 
-    @PostMapping("/planoempresa/cadastro")
-    public ResponseEntity<String> cadastraPlanoEmpresa(@RequestBody PlanoEmpresa planoEmpresa){
+    @PostMapping("/planoempresa/create")
+    public ResponseEntity<String> planoEmpresaCreate(@RequestBody PlanoEmpresa planoEmpresa){
 
         planoEmpresaRepository.save(planoEmpresa);
 
         return new ResponseEntity<String>("Plano Cadastrado com Sucesso!", HttpStatus.OK);
     }
 
-    @GetMapping("/planoempresa/list")
-    public ResponseEntity<List<PlanoEmpresa>> allPlanoEmpresa(){
+    @GetMapping("/planoempresa/all")
+    public ResponseEntity<List<PlanoEmpresa>> planoEmpresaFindAll(){
 
         List<PlanoEmpresa> planoEmpresas = planoEmpresaRepository.findAll();
 
@@ -131,16 +131,16 @@ public class GestorController {
 
     /*=============================== Status Empresa ========================================= */
 
-    @PostMapping("/statusempresa/cadastro")
-    public ResponseEntity<String> statusEmpresa(@RequestBody StatusEmpresa statusEmpresa){
+    @PostMapping("/empresa/status/create")
+    public ResponseEntity<String> statusEmpresaCreate(@RequestBody StatusEmpresa statusEmpresa){
 
         statusEmpresaRepository.save(statusEmpresa);
 
         return new ResponseEntity<String>("Status Cadastrado com Sucesso!", HttpStatus.OK);
     }
 
-    @GetMapping("/statusempresa/list")
-    public ResponseEntity<List<StatusEmpresa>> allStatusEmpresa(){
+    @GetMapping("/empresa/status/all")
+    public ResponseEntity<List<StatusEmpresa>> statusEmpresaFindAll(){
 
         return new ResponseEntity<List<StatusEmpresa>>(statusEmpresaRepository.findAll(), HttpStatus.OK);
     }

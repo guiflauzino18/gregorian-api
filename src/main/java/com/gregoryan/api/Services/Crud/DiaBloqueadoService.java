@@ -1,5 +1,6 @@
 package com.gregoryan.api.Services.Crud;
 
+import java.util.Calendar;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,5 +44,9 @@ public class DiaBloqueadoService {
 
     public Page<DiaBloqueado> findByEmpresa(Empresa empresa, Pageable pageable){
         return repository.findByEmpresa(empresa, pageable);
+    }
+
+    public Optional<DiaBloqueado> findByDia(Calendar dia){
+        return repository.findByDia(dia);
     }
 }

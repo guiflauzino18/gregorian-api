@@ -7,8 +7,8 @@ import com.gregoryan.api.DTO.StatusAgendaCadastroDTO;
 import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.StatusAgenda;
 import com.gregoryan.api.Services.Crud.StatusAgendaService;
-import com.gregoryan.api.Services.Interfaces.StatusAgendaConverterInterface;
-import com.gregoryan.api.Services.Interfaces.StatusAgendaValidateInterface;
+import com.gregoryan.api.Interfaces.StatusAgendaConverterInterface;
+import com.gregoryan.api.Interfaces.StatusAgendaValidateInterface;
 
 @Service
 public class StatusAgendaCreateService {
@@ -20,8 +20,8 @@ public class StatusAgendaCreateService {
     private StatusAgendaValidateInterface statusAgendaValidate;
 
     public void create(StatusAgendaCadastroDTO dto, Empresa empresa){
-        statusAgendaValidate.jaExiste(dto.nome());
         StatusAgenda statusAgenda = statusAgendaConverter.toStatusAgenda(dto);
+        statusAgendaValidate.validate(statusAgenda);
         statusAgenda.setEmpresa(empresa);
         statusAgendaService.save(statusAgenda);
     }

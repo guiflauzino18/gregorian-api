@@ -1,14 +1,14 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Models.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.gregoryan.api.DTO.PacienteEditDTO;
-import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Services.Crud.PacienteService;
-import com.gregoryan.api.Services.Interfaces.PacienteConverterInterface;
-import com.gregoryan.api.Services.Interfaces.PacienteListInterface;
-import com.gregoryan.api.Services.Interfaces.PacienteValidateInterface;
+import com.gregoryan.api.Interfaces.PacienteConverterInterface;
+import com.gregoryan.api.Interfaces.PacienteListInterface;
+import com.gregoryan.api.Interfaces.PacienteValidateInterface;
 
 @Service
 public class PacienteEditService {
@@ -24,9 +24,9 @@ public class PacienteEditService {
     @Autowired
     private PacienteListInterface pacienteList;
 
-    public void edit(PacienteEditDTO dto, Empresa empresa){
+    public void edit(PacienteEditDTO dto, Usuario usuario){
 
-        var paciente = pacienteList.list(dto.id(), empresa);
+        var paciente = pacienteList.list(dto.id(), usuario);
         var pacienteNew = pacienteConverter.toPaciente(dto);
 
         paciente.setNome(pacienteNew.getNome());
@@ -37,7 +37,7 @@ public class PacienteEditService {
         paciente.setSexo(pacienteNew.getSexo());
         
         pacienteValidate.validate(paciente);
-        var plano = planoPacienteList.list(dto.idPlanoPaciente(), empresa);
+        var plano = planoPacienteList.list(dto.idPlanoPaciente(), usuario);
         paciente.setPlanoPaciente(plano);
 
         pacienteService.save(paciente);

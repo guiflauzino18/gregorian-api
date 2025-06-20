@@ -1,21 +1,18 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.gregoryan.api.DTO.AgendaConfigDTO;
 import com.gregoryan.api.DTO.DiaCadastroDTO;
 import com.gregoryan.api.DTO.DiaEditDTO;
-import com.gregoryan.api.Models.Agenda;
-import com.gregoryan.api.Models.Dias;
-import com.gregoryan.api.Models.Empresa;
-import com.gregoryan.api.Models.Profissional;
 import com.gregoryan.api.Services.Crud.AgendaService;
 import com.gregoryan.api.Services.Crud.ProfissionalService;
-import com.gregoryan.api.Services.Interfaces.AgendaListInterface;
-import com.gregoryan.api.Services.Interfaces.DiaConverterInterface;
-import com.gregoryan.api.Services.Interfaces.DiaListInterface;
-import com.gregoryan.api.Services.Interfaces.UsuarioValidateInterface;
+import com.gregoryan.api.Interfaces.AgendaListInterface;
+import com.gregoryan.api.Interfaces.DiaConverterInterface;
+import com.gregoryan.api.Interfaces.DiaListInterface;
+import com.gregoryan.api.Interfaces.UsuarioValidateInterface;
 
 @Service
 public class AgendaConfigureService {
@@ -42,10 +39,10 @@ public class AgendaConfigureService {
     private AgendaListInterface agendaList;
     
 
-    public void configure(AgendaConfigDTO agendaDTO, Empresa empresa){
+    public void configure(AgendaConfigDTO agendaDTO, Usuario usuario){
 
-        Agenda agenda = agendaList.list(agendaDTO.idAgenda(), empresa);
-        Profissional profissinal = profissionalList.list(agendaDTO.idProfissional(), empresa);
+        Agenda agenda = agendaList.list(agendaDTO.idAgenda(), usuario);
+        Profissional profissinal = profissionalList.list(agendaDTO.idProfissional(), usuario);
 
         /* Percorrer os dias de agendaDTO.dias
          * Para cada dia verificar se há um ID. se haver edita o dia e salva os dados
@@ -56,14 +53,14 @@ public class AgendaConfigureService {
             
             Dias dia;
             if (diaDTO.id() == 0){
-                dia = diaCreate.create(diaDTO, empresa);
+                dia = diaCreate.create(diaDTO, usuario);
                 DiaEditDTO diaEditDTO = diaConverter.toEditDTO(dia);
-                diaEdit.editar(empresa, diaEditDTO);
+                diaEdit.editar(usuario, diaEditDTO);
 
             }else {
-                dia = diaList.list(diaDTO.id(), empresa);
+                dia = diaList.list(diaDTO.id(), usuario);
                 DiaEditDTO diaEditDTO = diaConverter.toEditDTO(diaDTO, dia);
-                diaEdit.editar(empresa, diaEditDTO);
+                diaEdit.editar(usuario, diaEditDTO);
             }
 
             

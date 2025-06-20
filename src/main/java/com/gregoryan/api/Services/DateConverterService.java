@@ -9,7 +9,7 @@ import java.util.TimeZone;
 
 import org.springframework.stereotype.Service;
 
-import com.gregoryan.api.Services.Interfaces.DateConverterInterface;
+import com.gregoryan.api.Interfaces.DateConverterInterface;
 
 @Service
 public class DateConverterService implements DateConverterInterface{

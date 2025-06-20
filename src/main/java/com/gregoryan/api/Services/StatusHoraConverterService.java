@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import com.gregoryan.api.DTO.StatusHoraCadastroDTO;
 import com.gregoryan.api.DTO.StatusHoraResponseDTO;
 import com.gregoryan.api.Models.StatusHora;
-import com.gregoryan.api.Services.Interfaces.StatusHoraConverterInterface;
+import com.gregoryan.api.Interfaces.StatusHoraConverterInterface;
 
 @Service
 public class StatusHoraConverterService implements StatusHoraConverterInterface{

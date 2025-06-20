@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import com.gregoryan.api.DTO.StatusAgendaCadastroDTO;
 import com.gregoryan.api.DTO.StatusAgendaResponseDTO;
 import com.gregoryan.api.Models.StatusAgenda;
-import com.gregoryan.api.Services.Interfaces.StatusAgendaConverterInterface;
+import com.gregoryan.api.Interfaces.StatusAgendaConverterInterface;
 
 @Service
 public class StatusAgendaConverterService implements StatusAgendaConverterInterface{
