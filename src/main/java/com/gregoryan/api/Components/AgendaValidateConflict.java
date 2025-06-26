@@ -15,7 +15,6 @@ public class AgendaValidateConflict implements AgendaValidateInterface{
 
     @Override
     public void validate(Agenda agenda) {
-        System.out.println("-----------------\n"+"TESTE Conflict");
         if (agendaService.existsByNome(agenda.getNome()))
             throw new ConflictException("Já existe uma agenda com este nome");
     }

@@ -1,5 +1,6 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Components.UsuarioValidateIsNotYourProperties;
 import com.gregoryan.api.Models.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,7 @@ public class ProfissionalCreateService {
     @Autowired
     private ProfissionalService profissionalService;
     @Autowired
-    private UsuarioValidateInterface usuarioValidate;
+    private UsuarioValidateIsNotYourProperties usuarioValidate;
 
     public Profissional create(ProfissionalCadastroDTO dto, Usuario usuario){
 

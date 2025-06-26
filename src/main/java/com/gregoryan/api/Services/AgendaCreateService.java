@@ -36,7 +36,7 @@ public class AgendaCreateService {
         agenda.setEmpresa(usuario.getEmpresa());
         StatusAgenda statusAgenda = statusAgendaList.list("Ativo", usuario);
         agenda.setStatusAgenda(statusAgenda);
-        validate(agenda);
+        //validate(agenda);
         service.save(agenda);
 
     }

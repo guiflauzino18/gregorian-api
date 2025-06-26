@@ -1,5 +1,6 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Components.UsuarioValidateIsNotYourProperties;
 import com.gregoryan.api.Models.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,7 @@ public class AgendaDeleteService {
     @Autowired
     private AgendaService agendaService;
     @Autowired
-    private UsuarioValidateInterface usuarioValidate;
+    private UsuarioValidateIsNotYourProperties usuarioValidate;
 
     public void deletar(Usuario usuario, long idAgenda){
 

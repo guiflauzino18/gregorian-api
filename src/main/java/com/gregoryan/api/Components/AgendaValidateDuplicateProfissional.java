@@ -14,8 +14,8 @@ public class AgendaValidateDuplicateProfissional implements AgendaValidateInterf
 
     @Override
     public void validate(Agenda agenda) {
-        if (agenda.getProfissional().getAgenda() != null){
-            throw new ConflictException("Este profissional já possui agenda");
+        if(agendaService.existsByProfissional(agenda.getProfissional())){
+            throw new ConflictException("Já existe uma agenda para este profissional");
         }
     }
 }

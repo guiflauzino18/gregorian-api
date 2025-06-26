@@ -9,7 +9,7 @@ import com.gregoryan.api.Services.Crud.ProfissionalService;
 import com.gregoryan.api.Interfaces.ProfissionalConverterInterface;
 
 @Service
-public class ProfissionalEditingService {
+public class ProfissionalEditService {
     @Autowired
     private ProfissionalService profissionalService;
     @Autowired

@@ -11,7 +11,7 @@ public record AgendaResponseDTO(
     String empresaNome,
     long idProfissional,
     String nomeProfissional,
-    List<Dias> dias
+    List<DiaResponseDTO> dias
 
 ) {
     

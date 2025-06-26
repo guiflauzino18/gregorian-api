@@ -89,7 +89,7 @@ import com.gregoryan.api.Services.FeriadoEditService;
 import com.gregoryan.api.Services.HoraDeleteService;
 import com.gregoryan.api.Services.ProfissionalCreateService;
 import com.gregoryan.api.Services.ProfissionalDeleteService;
-import com.gregoryan.api.Services.ProfissionalEditingService;
+import com.gregoryan.api.Services.ProfissionalEditService;
 import com.gregoryan.api.Services.StatusAgendaCreateService;
 import com.gregoryan.api.Services.StatusAgendaDeleteService;
 import com.gregoryan.api.Services.StatusDiaCreateService;
@@ -182,7 +182,7 @@ public class AdminController {
     @Autowired
     private ProfissionalCreateService profissionalCreate;
     @Autowired
-    private ProfissionalEditingService profissionalEditing;
+    private ProfissionalEditService profissionalEdit;
     @Autowired
     private ProfissionalDeleteService profissionalDeleting;
     @Autowired
@@ -196,7 +196,7 @@ public class AdminController {
     @Autowired
     private AgendaListInterface agendaList;
     @Autowired
-    private AgendaDeleteService agendaDeleting;
+    private AgendaDeleteService agendaDelete;
     @Autowired
     private AgendaEditService agendaEdit;
     @Autowired
@@ -453,7 +453,7 @@ public class AdminController {
     @ApiResponse(responseCode = "404", description = "Profissional ou Status para a agenda não foram encontrados")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     @ApiResponse(responseCode = "400", description = "Profissional informado já possui agenda")
-    public ResponseEntity<Object> agendaCreate(
+    public ResponseEntity<?> agendaCreate(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Dados da agenda a ser cadastrada",
             required = true,
@@ -479,12 +479,13 @@ public class AdminController {
 
     }
 
+    //OK
     @GetMapping("/agenda/list")
-    @Operation(summary = "Lista agendas da usuario", description = "Lista agendas da usuario pegando a usuario do usuário logado")
-    @ApiResponse(responseCode = "200", description = "Retorna agendas da usuario com sucesso")
+    @Operation(summary = "Lista agendas da Empresa", description = "Lista agendas da empresa pegando a empresa do usuário logado")
+    @ApiResponse(responseCode = "200", description = "Retorna agendas da empresa com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     @ApiResponse(responseCode = "500", description = "Se houver algum erro na operação")
-    public ResponseEntity<Page<AgendaResponseDTO>> agendaByusuario(
+    public ResponseEntity<?> agendaByUser(
         @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
         HttpServletRequest request){
 
@@ -493,19 +494,17 @@ public class AdminController {
             List<Agenda> agendas = agendaList.list(usuarioLogado.getEmpresa(), pageable).getContent();
 
             List<AgendaResponseDTO> listDTO = agendas.stream().map(agenda -> {
-                AgendaResponseDTO dto = agendaConverter.toResponseDTO(agenda);
-                return dto;
+                return agendaConverter.toResponseDTO(agenda);
             }).collect(Collectors.toList());
 
-            return new ResponseEntity<>(new PageImpl<AgendaResponseDTO>(listDTO), HttpStatus.OK);
-
+            return new ResponseEntity<>(new PageImpl<>(listDTO), HttpStatus.OK);
 
         }catch(Exception e){
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
     }
 
+    //OK
     //Busca Agenda por ID
     @GetMapping("/agenda/{id}")
     @Operation(summary = "Lista agenda pelo ID", description = "Busca agenda pelo ID no Banco de Dados")
@@ -541,7 +540,7 @@ public class AdminController {
 
         try{
             var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
-            agendaDeleting.deletar(usuarioLogado, id);
+            agendaDelete.deletar(usuarioLogado, id);
             return new ResponseEntity<>("Agenda deletada", HttpStatus.OK);
 
         }catch(EntityDontExistException e){
@@ -1080,6 +1079,7 @@ public class AdminController {
     }
     //=============================================== PROFISSIONAL =======================================================
 
+    //OK
     //Cadastro de Profissional
     @PostMapping("/profissional/create")
     @Operation(summary = "Cadastro de Profissional", description = "Insere um novo Profissional no Banco de Dados")
@@ -1108,10 +1108,11 @@ public class AdminController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
 
         }catch(DataIntegrityViolationException e){
-            return new ResponseEntity<>("Erro no cadastro. Prossivelmente este usuário já possui um Profissional vinculado", HttpStatus.CONFLICT);
+            return new ResponseEntity<>("Erro no cadastro. Possivelmente este usuário já possui um Profissional vinculado", HttpStatus.CONFLICT);
         }
     }
 
+    //OK
     //Editar Profissional
     @PutMapping("/profissional/edit")
     @Operation(summary = "Edição de Profissional", description = "Altera atributos do Profissional")
@@ -1128,7 +1129,7 @@ public class AdminController {
 
         try{
             var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
-            profissionalEditing.edit(profissionalDTO, usuarioLogado);
+            profissionalEdit.edit(profissionalDTO, usuarioLogado);
             return new ResponseEntity<>("Profissional editado com sucesso", HttpStatus.OK);
 
         }catch(EntityDontExistException e){
@@ -1139,6 +1140,7 @@ public class AdminController {
         }
     }
 
+    //OK
     //Excluir Profissional
     @DeleteMapping("/profissional/delete/{id}")
     @Operation(summary = "Delta Profissional", description = "Exclui um profissional do Banco de Dados")
@@ -1169,17 +1171,18 @@ public class AdminController {
         }
     }
 
+    //Ok
     //Lista Profissoinal por usuario
     @GetMapping("/profissional/list")
-    @Operation(summary = "Lista profissionais da usuario")
+    @Operation(summary = "Lista profissionais da empresa")
     @ApiResponse(responseCode = "200", description = "Lista profissionais com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuario sem permissão para esta operação")
-    public ResponseEntity<Page<ProfissionalResponseDTO>> profissionalByusuario(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
+    public ResponseEntity<Page<ProfissionalResponseDTO>> profissionalByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
 
         var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
         List<ProfissionalResponseDTO> listDTO = profissionalList.list(usuarioLogado.getEmpresa(), pageable).getContent().stream().map(profissional -> {
-            ProfissionalResponseDTO dto = profissionalConverter.toResponseDTO(profissional);
-            return dto;
+            return profissionalConverter.toResponseDTO(profissional);
+
         }).collect(Collectors.toList());
 
         return new ResponseEntity<>(new PageImpl<ProfissionalResponseDTO>(listDTO), HttpStatus.OK);
@@ -1187,6 +1190,7 @@ public class AdminController {
     }
 
 
+    //OK
     //Lista Profissional por Nome e ID
     @GetMapping("/profissionais")
     @Operation(summary = "Lista nome e id de profissionais", description = "Retorna lista com Nome e ID de Profissionais da usuario.")
@@ -1205,6 +1209,7 @@ public class AdminController {
         return new ResponseEntity<List<ProfissionalListDTO>>(listDTO, HttpStatus.OK);
     }
 
+    //OK
     @GetMapping("/profissional/byid")
     @Operation(summary = "Lista profissional pelo ID", description = "Busca profissional pelo ID no Banco de Dados")
     @ApiResponse(responseCode = "200", description = "Profissional encontrado é retornado")

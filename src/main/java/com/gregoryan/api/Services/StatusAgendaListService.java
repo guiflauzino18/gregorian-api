@@ -1,5 +1,6 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Components.UsuarioValidateIsNotYourProperties;
 import com.gregoryan.api.Models.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,7 +20,7 @@ public class StatusAgendaListService implements StatusAgendaListInterface{
     @Autowired
     private StatusAgendaService statusAgendaService;
     @Autowired
-    private UsuarioValidateInterface usuarioValidate;
+    private UsuarioValidateIsNotYourProperties usuarioValidate;
 
     @Override
     public StatusAgenda list(long id, Usuario usuario) {

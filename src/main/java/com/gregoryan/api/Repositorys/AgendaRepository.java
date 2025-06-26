@@ -1,5 +1,7 @@
 package com.gregoryan.api.Repositorys;
 
+import com.gregoryan.api.Models.Profissional;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,4 +15,6 @@ public interface AgendaRepository extends JpaRepository<Agenda, Long>{
     Page<Agenda> findByEmpresa(Empresa empresa, Pageable pageable);
     boolean existsByNome(String nome);
     Optional<Agenda> findByNome(String nome);
+    Optional<Agenda> findByProfissional(Profissional profissional);
+    boolean existsByProfissional(Profissional profissional);
 }

@@ -63,9 +63,7 @@ public class Dias implements Serializable{
     public void createHoras(StatusHora statusHora, HorasService horasService){
 
         if (this.getHoras() != null) {
-            this.getHoras().forEach(hora -> {
-                horasService.delete(hora);
-            });
+            this.getHoras().forEach(horasService::delete);
             this.getHoras().clear();
         }
         

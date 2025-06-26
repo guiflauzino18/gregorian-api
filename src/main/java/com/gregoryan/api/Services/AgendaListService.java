@@ -1,6 +1,7 @@
 package com.gregoryan.api.Services;
 
 
+import com.gregoryan.api.Components.UsuarioValidateIsNotYourProperties;
 import com.gregoryan.api.Models.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,14 +21,14 @@ public class AgendaListService implements AgendaListInterface{
     @Autowired
     private AgendaService agendaService;
     @Autowired
-    private UsuarioValidateInterface usuarioValidade;
+    private UsuarioValidateIsNotYourProperties usuarioValidate;
 
     //Lista agenda por ID
     @Override
     public Agenda list(long id, Usuario usuario) {
         
         Agenda agenda = agendaService.findById(id).orElseThrow(() -> new EntityDontExistException("Agenda não encontrada"));
-        usuarioValidade.validate(usuario, agenda.getEmpresa());
+        usuarioValidate.validate(usuario, agenda.getEmpresa());
 
         return agenda;
 
