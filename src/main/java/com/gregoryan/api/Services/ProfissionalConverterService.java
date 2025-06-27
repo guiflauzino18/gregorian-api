@@ -1,7 +1,11 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Controllers.AdminController;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import com.gregoryan.api.DTO.ProfissionalCadastroDTO;
 import com.gregoryan.api.DTO.ProfissionalEditDTO;
@@ -13,6 +17,8 @@ import com.gregoryan.api.Services.Crud.AgendaService;
 import com.gregoryan.api.Interfaces.ProfissionalConverterInterface;
 import com.gregoryan.api.Interfaces.ProfissionalListInterface;
 import com.gregoryan.api.Interfaces.UsuarioListInterface;
+
+import java.text.ParseException;
 
 @Service
 public class ProfissionalConverterService implements ProfissionalConverterInterface{
@@ -52,7 +58,7 @@ public class ProfissionalConverterService implements ProfissionalConverterInterf
 
     @Override
     public ProfissionalResponseDTO toResponseDTO(Profissional profissional) {
-        return new ProfissionalResponseDTO(
+        var dto = new ProfissionalResponseDTO(
             profissional.getId(), profissional.getTitulo(),
             profissional.getRegistro(),
             profissional.getUsuario().getNome(),
@@ -61,6 +67,21 @@ public class ProfissionalConverterService implements ProfissionalConverterInterf
             profissional.getUsuario().getEmpresa().getNome(),
             profissional.getStatus(),
              null);
+
+        try {
+            dto.add(linkTo(methodOn(AdminController.class).profissionalCreate(null, null)).withRel("create").withType("POST"));
+            dto.add(linkTo(methodOn(AdminController.class).profissionalEdit(null, null)).withRel("update").withType("PUT"));
+            dto.add(linkTo(methodOn(AdminController.class).profissionalDelete(dto.getId(), null)).withRel("delete").withType("DELETE"));
+            dto.add(linkTo(methodOn(AdminController.class).profissionalByEmpresa(Pageable.unpaged(), null)).withRel("findByEmpresa").withType("GET"));
+            dto.add(linkTo(methodOn(AdminController.class).profissionalNameAndId(null, null)).withRel("profissionalNameAndId").withType("GET"));
+            dto.add(linkTo(methodOn(AdminController.class).profissionalById(dto.getId(), null)).withRel("findByID").withType("GET"));
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return dto;
     }
 
     @Override

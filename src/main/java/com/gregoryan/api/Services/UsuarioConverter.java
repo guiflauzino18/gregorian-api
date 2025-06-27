@@ -1,7 +1,10 @@
 package com.gregoryan.api.Services;
 
 import com.gregoryan.api.Components.CriptografarSenha;
+import com.gregoryan.api.Controllers.AdminController;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import com.gregoryan.api.DTO.UsuarioCreateDTO;
 import com.gregoryan.api.DTO.UsuarioEditDTO;
@@ -9,6 +12,9 @@ import com.gregoryan.api.DTO.UsuarioResponseDTO;
 import com.gregoryan.api.Models.Usuario;
 import com.gregoryan.api.Interfaces.UsuarioConverterInterface;
 import com.gregoryan.api.Interfaces.UsuarioListInterface;
+import java.text.ParseException;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Service
 public class UsuarioConverter implements UsuarioConverterInterface{
@@ -41,20 +47,21 @@ public class UsuarioConverter implements UsuarioConverterInterface{
     @Override
     public Usuario toUsuario(UsuarioEditDTO dto, Usuario usuario) {
         
-        Usuario usuarioConsulta = usuarioList.list(dto.id(), usuario);
+        Usuario usuarioConsulta = usuarioList.list(dto.getId(), usuario);
 
-        usuarioConsulta.setNome(dto.nome());
-        usuarioConsulta.setNascimento(dataConverter.toCalendar(dto.nascimento()));
-        usuarioConsulta.setTelefone(dto.telefone());
-        usuarioConsulta.setEmail(dto.email());
-        usuarioConsulta.setEndereco(dto.endereco());
-        usuarioConsulta.setRole(dto.role());
-        usuarioConsulta.setStatus(dto.status());
-        usuarioConsulta.setAlteraNextLogon(dto.alteraNextLogon());
+        usuarioConsulta.setNome(dto.getNome());
+        usuarioConsulta.setNascimento(dataConverter.toCalendar(dto.getNascimento()));
+        usuarioConsulta.setTelefone(dto.getTelefone());
+        usuarioConsulta.setEmail(dto.getEmail());
+        usuarioConsulta.setEndereco(dto.getEndereco());
+        usuarioConsulta.setRole(dto.getRole());
+        usuarioConsulta.setStatus(dto.getStatus());
+        usuarioConsulta.setAlteraNextLogon(dto.isAlteraNextLogon());
 
         return usuarioConsulta;
     }
 
+    @SneakyThrows
     @Override
     public UsuarioResponseDTO toUsuarioResponseDTO(Usuario usuario) {
         UsuarioResponseDTO dto = new UsuarioResponseDTO(
@@ -72,6 +79,15 @@ public class UsuarioConverter implements UsuarioConverterInterface{
             usuario.getDataRegistro(),
             usuario.getEmpresa().getNome()
         );
+
+
+        dto.add(linkTo(methodOn(AdminController.class).userById(usuario.getId(), null)).withRel("findByID").withType("GET"));
+        dto.add(linkTo(methodOn(AdminController.class).userByEmpresa(Pageable.unpaged(), null)).withRel("findAll").withType("GET"));
+        dto.add(linkTo(methodOn(AdminController.class).userByLogin(usuario.getLogin(), null)).withRel("findByLogin").withType("GET"));
+        dto.add(linkTo(methodOn(AdminController.class).userEdit(new UsuarioEditDTO(), null)).withRel("update").withType("PUT"));
+        dto.add(linkTo(methodOn(AdminController.class).userResetPassword(null, null)).withRel("resetPassword").withType("PUT"));
+        dto.add(linkTo(methodOn(AdminController.class).userDelete(dto.getId(), null)).withRel("delete").withType("DELETE"));
+        dto.add(linkTo(methodOn(AdminController.class).userCreate(null, null)).withRel("create").withType("POST"));
 
         return dto;
     }

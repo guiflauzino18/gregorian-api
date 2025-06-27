@@ -51,9 +51,6 @@ public class Usuario implements UserDetails {
 
     private String endereco;
 
-    // @Column(nullable = false, length = 2)
-    // private int status;
-
     private StatusUsuario status;
 
     private boolean alteraNextLogon;
