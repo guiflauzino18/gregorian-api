@@ -676,6 +676,10 @@ public class AdminController {
 
     }
 
+
+
+
+    //============================================= HORA ==============================================
     //Edit Horas do dia da Agenda
     @PutMapping("/agenda/edit/horas")
     public ResponseEntity<Object> agendaEditHoras(@RequestBody @Valid HorasEditDTO horaDTO){
@@ -715,8 +719,15 @@ public class AdminController {
         // return new ResponseEntity<>("Hora deletada da Agenda", HttpStatus.OK);
     }
 
+
+
+
+
+
+
+    //================================================ STATUS AGENDA ========================================
     //Cadastro de Status Agenda
-    @PostMapping("/agenda/status/create")
+    @PostMapping("/statusagenda/create")
     @Operation(summary = "Cadastra um StatusAgenda", description = "Cadastra um novo status para a agenda")
     @ApiResponse(responseCode = "201", description = "Status cadastrado com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
@@ -740,7 +751,7 @@ public class AdminController {
     }
 
     //Deleta um status da Agenda
-    @DeleteMapping("agenda/status/delete/{id}")
+    @DeleteMapping("/statusagenda/delete/{id}")
     @Operation(summary = "Exclui um StatusAgenda", description = "Exclui um status da agenda")
     @ApiResponse(responseCode = "200", description = "Status excluído com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
@@ -762,12 +773,12 @@ public class AdminController {
         }
     }
 
-    //Lista Status da Agenda por usuario;
-    @GetMapping("/agenda/status/usuario")
-    @Operation(summary = "Lista Status da Agenda", description = "Lista Status das Agendas por usuario")
+    //Lista Status da Agenda por Empresa;
+    @GetMapping("/statusagenda/list")
+    @Operation(summary = "Lista Status da Agenda", description = "Lista Status das Agendas por Empresa")
     @ApiResponse(responseCode = "200", description = "Lista status com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Page<StatusAgendaResponseDTO>> statusAgendaByusuario(HttpServletRequest request, @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
+    public ResponseEntity<Page<StatusAgendaResponseDTO>> statusAgendaByEmpresa(HttpServletRequest request, @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
 
         var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
         List<StatusAgendaResponseDTO> listDTO = statusAgendaList.list(usuarioLogado.getEmpresa(), pageable).getContent().stream().map(status -> {
@@ -780,8 +791,8 @@ public class AdminController {
 
 
     //Lista Status da Agenda por ID
-    @GetMapping("/agenda/status/byid")
-        @Operation(summary = "Lista Status da Agenda", description = "Lista Status das Agendas por ID")
+    @GetMapping("/statusagenda/byid")
+        @Operation(summary = "Lista Status da Agenda", description = "Lista Status das Agendas por ID da Agenda")
     @ApiResponse(responseCode = "200", description = "Lista status com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     @ApiResponse(responseCode = "404", description = "Status não encontrado")
@@ -802,7 +813,7 @@ public class AdminController {
 
 
 
-
+    // =========================================================== DIA ==========================================
     @GetMapping("/agenda/horas/byid")
     @Operation(summary = "Lista hora do dia", description = "Retorna lista de horas do dia")
     @ApiResponse(responseCode = "200", description = "Retorna horas do dia")
@@ -810,7 +821,6 @@ public class AdminController {
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     public ResponseEntity<Object> horasByDia(@Parameter(description = "ID do dia", required = true) @RequestParam long id, HttpServletRequest request){
         //Lista horas por ID do dia
-
 
         try{
             var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
@@ -928,7 +938,6 @@ public class AdminController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
     }
-
 
 //    ================================ STATUS DIA ===========================================================
 

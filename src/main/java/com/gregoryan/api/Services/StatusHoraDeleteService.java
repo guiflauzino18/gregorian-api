@@ -26,6 +26,5 @@ public class StatusHoraDeleteService {
         StatusHora statusHora = statusHoraList.list(id, usuario);
         validateDelete.validate(statusHora);
         statusHoraService.delete(statusHora);
-
     }
 }
