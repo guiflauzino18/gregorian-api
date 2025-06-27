@@ -902,29 +902,11 @@ public class AdminController {
         }
     }
 
-    //Lista Status do dia
-    @GetMapping("/agenda/dia/status")
-    @Operation(summary = "Lista Status Dia", description = "Lista Status Dia por usuario")
-    @ApiResponse(responseCode = "200", description = "Retorna lista com status dia por usuario com sucesso")
-    public ResponseEntity<Page<StatusDiaResponseDTO>> statusDiaByusuario(
-        HttpServletRequest request,
-        @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
-    ){
 
-        var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
-        List<StatusDia> statusDias = statusDiaList.list(usuarioLogado.getEmpresa(), pageable).getContent();
-
-        List<StatusDiaResponseDTO> listDTO = statusDias.stream().map(item -> {
-            StatusDiaResponseDTO dto = statusDiaConverter.toResponseDTO(item);
-            return dto;
-        }).collect(Collectors.toList());
-
-        return new ResponseEntity<>(new PageImpl<StatusDiaResponseDTO>(listDTO), HttpStatus.OK);
-
-    }
+//    ================================ STATUS DIA ===========================================================
 
     //Cadastra Status Dia
-    @PostMapping("/agenda/dia/status/create")
+    @PostMapping("/statusdia/create")
     @Operation(summary = "Cadastra um Status Dia", description = "Insere um novo status dia no Banco de Dados")
     @ApiResponse(responseCode = "201", description = "Status cadastrado com sucesso")
     @ApiResponse(responseCode = "403", description = "Já existe um status com este nome")
@@ -943,11 +925,12 @@ public class AdminController {
 
         }catch(ConflictException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+
         }
     }
 
     //Edita Status Dia
-    @PutMapping("/agenda/dia/status/edit")
+    @PutMapping("/statusdia/edit")
     @Operation(summary = "Edita Status Dia", description = "Edita nome de um status dia")
     @ApiResponse(responseCode = "200", description = "Edição do status realizado com sucesso")
     @ApiResponse(responseCode = "409", description = "Já esite um status com esse nome")
@@ -978,7 +961,7 @@ public class AdminController {
 
 
     //Deleta Status Dia
-    @DeleteMapping("/agenda/dia/status/delete/{id}")
+    @DeleteMapping("/statusdia/delete/{id}")
     @Operation(summary = "Deleta Status Dia", description = "Deleta um status dia do Banco de Dados")
     @ApiResponse(responseCode = "200", description = "Exclusão realizada com sucesso")
     @ApiResponse(responseCode = "404", description = "Status não encontrado para exclusão")
@@ -996,6 +979,50 @@ public class AdminController {
         }catch(AcessoNegadoException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
+    }
+
+    //Lista Status do dia
+    @GetMapping("/statusdia/list")
+    @Operation(summary = "Lista Status Dia", description = "Lista Status Dia por usuario")
+    @ApiResponse(responseCode = "200", description = "Retorna lista com status dia por usuario com sucesso")
+    public ResponseEntity<Page<StatusDiaResponseDTO>> statusDiaByEmpresa(
+            HttpServletRequest request,
+            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
+    ){
+
+        var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+        List<StatusDia> statusDias = statusDiaList.list(usuarioLogado.getEmpresa(), pageable).getContent();
+
+        List<StatusDiaResponseDTO> listDTO = statusDias.stream().map(item -> {
+            StatusDiaResponseDTO dto = statusDiaConverter.toResponseDTO(item);
+            return dto;
+        }).collect(Collectors.toList());
+
+        return new ResponseEntity<>(new PageImpl<StatusDiaResponseDTO>(listDTO), HttpStatus.OK);
+
+    }
+
+    //Lista Status do dia por ID
+    @GetMapping("/statusdia/byid")
+    @Operation(summary = "Lista Status Dia pelo ID", description = "Lista Status Dia pelo ID do Status")
+    @ApiResponse(responseCode = "200", description = "Retorna status com sucesso")
+    public ResponseEntity<?> statusDiaByID(
+            @RequestParam long id, HttpServletRequest request
+    ){
+        try{
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            var status = statusDiaList.list(id, usuarioLogado);
+            var dto = statusDiaConverter.toResponseDTO(status);
+            return new ResponseEntity<>(dto, HttpStatus.OK);
+
+        }catch (AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+
+        }catch (EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+        }
+
     }
 
     //Replica dia para outro.
@@ -1369,7 +1396,7 @@ public class AdminController {
     @PostMapping("diabloqueado/create")
     @Operation(summary = "Cadastra um bloqueio para um dia", description = "Cadastra um bloqueio de dia no Banco de Dados")
     @ApiResponse(responseCode = "200", description = "Bloqueio editado com sucesso")
-    public ResponseEntity<Object> diaBloqueadoCreate(
+    public ResponseEntity<?> diaBloqueadoCreate(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Dados a serem editados",
             required = true,
@@ -1388,7 +1415,7 @@ public class AdminController {
     @ApiResponse(responseCode = "200", description = "Bloqueio editado com sucesso")
     @ApiResponse(responseCode = "404", description = "Bloqueio não encontrado para edição")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> diaBloqueadoEdit(
+    public ResponseEntity<?> diaBloqueadoEdit(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Dados a serem editados",
             required = true,
@@ -1416,7 +1443,7 @@ public class AdminController {
     @ApiResponse(responseCode = "200", description = "Bloqueio do dia deletado com sucesso")
     @ApiResponse(responseCode = "404", description = "Bloqueio do dia não encontrado para exclusão")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> diaBloqueadoDelete(
+    public ResponseEntity<?> diaBloqueadoDelete(
         @Parameter(description = "ID do bloqueio a ser excluído", required = true, example = "123")
         @PathVariable(name = "id") long id, HttpServletRequest request){
 
@@ -1437,7 +1464,7 @@ public class AdminController {
     @GetMapping("/diabloqueado/list")
     @Operation(summary = "Lista bloqueios de dia", description = "Lista bloqueios para a usuario")
     @ApiResponse(responseCode = "200", description = "Retorna dados com sucesso")
-    public ResponseEntity<Object> diaBloqueadoByEmpresa(
+    public ResponseEntity<?> diaBloqueadoByEmpresa(
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
             HttpServletRequest request){
 
@@ -1457,7 +1484,7 @@ public class AdminController {
     @GetMapping("/diabloqueado/byid")
     @Operation(summary = "Lista bloqueios de dia pelo ID", description = "Lista bloqueio com ID informado")
     @ApiResponse(responseCode = "200", description = "Retorna dados com sucesso")
-    public ResponseEntity<Object> diaBloqueadoByID(@RequestParam long id, HttpServletRequest request){
+    public ResponseEntity<?> diaBloqueadoByID(@RequestParam long id, HttpServletRequest request){
 
         try{
             var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
@@ -1480,7 +1507,7 @@ public class AdminController {
     @PostMapping("/planopaciente/create")
     @Operation(summary = "Cadastro de plano paciente", description = "Salvar um plano para paciente no Banco")
     @ApiResponse(responseCode = "200", description = "Cadastro realizado com sucesso.")
-    public ResponseEntity<PlanoPaciente> planoPacienteCreate(@RequestBody planoPacienteCadastroDTO planoPacienteDTO, HttpServletRequest request){
+    public ResponseEntity<?> planoPacienteCreate(@RequestBody planoPacienteCadastroDTO planoPacienteDTO, HttpServletRequest request){
         PlanoPaciente planoPaciente = new PlanoPaciente();
 
         BeanUtils.copyProperties(planoPacienteDTO, planoPaciente);

@@ -1,8 +1,11 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Controllers.AdminController;
 import com.gregoryan.api.Models.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import com.gregoryan.api.DTO.StatusDiaCadastroDTO;
 import com.gregoryan.api.DTO.StatusDiaEditDTO;
@@ -20,7 +23,14 @@ public class StatusDiaConverterService implements StatusDiaConverterInterface{
     @Override
     public StatusDiaResponseDTO toResponseDTO(StatusDia statusDia) {
         
-        return new StatusDiaResponseDTO(statusDia.getId(), statusDia.getNome());
+        var dto = new StatusDiaResponseDTO(statusDia.getId(), statusDia.getNome());
+
+        dto.add(linkTo(methodOn(AdminController.class).statusDiaCreate(null, null)).withRel("create").withType("POST"));
+        dto.add(linkTo(methodOn(AdminController.class).statusDiaEdit(null, null)).withRel("update").withType("PUT"));
+        dto.add(linkTo(methodOn(AdminController.class).statusDiaByEmpresa(null, null)).withRel("findByEmpresa").withType("GET"));
+        dto.add(linkTo(methodOn(AdminController.class).statusDiaByID(dto.getId(), null)).withRel("findByID").withType("GET"));
+        dto.add(linkTo(methodOn(AdminController.class).statusDiaDelete(dto.getId(), null)).withRel("delete").withType("DELETE"));
+        return dto;
     }
 
     @Override
