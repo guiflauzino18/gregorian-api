@@ -19,17 +19,13 @@ public class StatusHoraDeleteService {
     private StatusHoraService statusHoraService;
     @Autowired
     private StatusHoraListInterface statusHoraList;
+    @Autowired
+    private StatusHoraValidateDeleteNotPermited validateDelete;
 
     public void delete(long id, Usuario usuario){
         StatusHora statusHora = statusHoraList.list(id, usuario);
-        validate(statusHora);
+        validateDelete.validate(statusHora);
         statusHoraService.delete(statusHora);
 
-    }
-
-    private void validate(StatusHora statusHora){
-        for (StatusHoraValidateInterface validacao : StatusHoraValidateInterface.validacoes){
-            validacao.validate(statusHora);
-        }
     }
 }

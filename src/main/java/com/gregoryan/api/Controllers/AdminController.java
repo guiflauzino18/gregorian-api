@@ -801,13 +801,15 @@ public class AdminController {
     }
 
 
-    //Lista horas por ID do dia
+
+
     @GetMapping("/agenda/horas/byid")
     @Operation(summary = "Lista hora do dia", description = "Retorna lista de horas do dia")
     @ApiResponse(responseCode = "200", description = "Retorna horas do dia")
     @ApiResponse(responseCode = "404", description = "Dia não encontrado")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     public ResponseEntity<Object> horasByDia(@Parameter(description = "ID do dia", required = true) @RequestParam long id, HttpServletRequest request){
+        //Lista horas por ID do dia
 
 
         try{
@@ -834,38 +836,21 @@ public class AdminController {
         // List<Horas> horas = dia.get().getHoras();
 
         // return new ResponseEntity<>(horas, HttpStatus.OK);
-    }
-
-
-    //Lista Status da Hora por usuario
-    @GetMapping("/agenda/horas/status")
-    @Operation(summary = "Lista Status da Hora", description = "Lista status por usuario")
-    @ApiResponse(responseCode = "200", description = "Lista status encontrados ou lista vazia;")
-    public ResponseEntity<Object> statusHoraByusuario(
-        HttpServletRequest request,
-        @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
-
-        var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
-        List<StatusHora> statusHoras = statusHoraList.list(usuarioLogado.getEmpresa(), pageable).getContent();
-
-        List<StatusHoraResponseDTO> listDTO = statusHoras.stream().map(status -> {
-            StatusHoraResponseDTO dto = statusHoraConverter.toResponseDTO(status);
-            return dto;
-        }).collect(Collectors.toList());
-
-        return new ResponseEntity<>(listDTO, HttpStatus.OK);
 
     }
+
+
+    //=========================== STATUS HORA ============================================
 
     //Cadastra Status Hora
-    @PostMapping("/agenda/horas/status/create")
-    @Operation(summary = "Cadastra StatusHora", description = "Cadsatra status para as horas")
+    @PostMapping("/statushora/create")
+    @Operation(summary = "Cadastra StatusHora", description = "Cadastra status para as horas da Agenda")
     @ApiResponse(responseCode = "201", description = "Status cadastrado com sucesso")
     @ApiResponse(responseCode = "409", description = "Já existe status com esse nome")
     public ResponseEntity<Object> statusHoraCreate(
-        @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Dados a serem cadastrados", required = true,
-        content = @Content(schema = @Schema(implementation = StatusHoraCadastroDTO.class)))
-        @RequestBody @Valid StatusHoraCadastroDTO statusHoraDTO, HttpServletRequest request){
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Dados a serem cadastrados", required = true,
+                    content = @Content(schema = @Schema(implementation = StatusHoraCadastroDTO.class)))
+            @RequestBody @Valid StatusHoraCadastroDTO statusHoraDTO, HttpServletRequest request){
 
         try{
 
@@ -880,9 +865,51 @@ public class AdminController {
 
     }
 
+    //Lista Status da Hora por Empresa
+    @GetMapping("/statushora/list")
+    @Operation(summary = "Lista Status da Hora", description = "Lista status por usuario")
+    @ApiResponse(responseCode = "200", description = "Lista status encontrados ou lista vazia;")
+    public ResponseEntity<?> statusHoraByEmpresa(
+        HttpServletRequest request,
+        @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
+
+        var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+        List<StatusHora> statusHoras = statusHoraList.list(usuarioLogado.getEmpresa(), pageable).getContent();
+
+        List<StatusHoraResponseDTO> listDTO = statusHoras.stream().map(status -> {
+            StatusHoraResponseDTO dto = statusHoraConverter.toResponseDTO(status);
+            return dto;
+        }).collect(Collectors.toList());
+
+        return new ResponseEntity<>(new PageImpl<>(listDTO), HttpStatus.OK);
+
+    }
+
+    //Lista Status da Hora por Empresa
+    @GetMapping("/statushora/byid")
+    @Operation(summary = "Lista Status", description = "Lista status da Hora pelo ID")
+    @ApiResponse(responseCode = "200", description = "Lista status encontrados ou lista vazia;")
+    @ApiResponse(responseCode = "404", description = "Status da hora não encontrado")
+    @ApiResponse(responseCode = "403", description = "Usuario sem permissão para esta operação")
+    public ResponseEntity<?> statusHoraByID(@RequestParam long id, HttpServletRequest request){
+
+        try {
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            var status = statusHoraList.list(id, usuarioLogado);
+            var dto = statusHoraConverter.toResponseDTO(status);
+            return new ResponseEntity<>(dto, HttpStatus.OK);
+
+        }catch (AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+
+        }catch (EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+        }
+    }
 
     //Deleta status da hora
-    @DeleteMapping("/agenda/horas/status/delete/{id}")
+    @DeleteMapping("/statushora/delete/{id}")
     @Operation(summary = "Exclui Status Hora", description = "Exclui um status hora do Banco de Dados")
     @ApiResponse(responseCode = "200", description = "Status excluído com sucesso")
     @ApiResponse(responseCode = "404", description = "Status não encontrado")
@@ -1027,83 +1054,83 @@ public class AdminController {
 
     //Replica dia para outro.
     //É recebido um Id do dia origem e uma lista de ids do dia alvo.
-    @PostMapping("/agenda/dia/replica")
-    public ResponseEntity<Object> replicaDia(@RequestBody AgendaReplicaDiaDTO dto, HttpServletRequest request){
-        //Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-
-        Optional<Dias> diaOrigem = diasService.findById(dto.idOrigemDia());
-
-        // Se dia não encontrado retorna not_found
-        if (!diaOrigem.isPresent())
-            return new ResponseEntity<>("Dia Origem não encontrado.", HttpStatus.NOT_FOUND);
-
-        //Busca a agenda do diaOrigem para setar nos alvos
-        Long idAgenda = diasService.getAgenda(diaOrigem.get().getId()).get();
-
-        Optional<Agenda> agenda = agendaService.findById(idAgenda);
-
-        if (!agenda.isPresent()){
-            return new ResponseEntity<>("Erro ao buscar agenda do Dia Origem", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        // Map percore o DTO e busca os dias alvo e preeche o array diasAlvo
-        List<Dias> diasAlvo = dto.alvoDias().stream().map(nome -> {
-
-            Optional<Dias> dia = diasService.findByNome(nome);
-
-            if (dia.isPresent()){
-                return dia.get();
-            }
-
-            System.out.print("-------------------");
-
-            Dias newDia  = new Dias();
-
-            newDia.setNome(nome);
-
-            return newDia;
-
-        }).collect(Collectors.toList()); // converte Stream para List
-
-        // Para cada dia da lista de alvos
-        diasAlvo.forEach(dia -> {
-
-            if (dia.getHoras() != null){ //Evita NullPointerException se getHoras for null em caso de dia não configurado.
-                //Remove horas atuais do dia
-                for (Horas horas : dia.getHoras()) {
-                    horasService.delete(horas);
-                }
-            }
-
-            //Define os mesmo parametros do dia origem
-            dia.setDuracaoSessaoInMinutes(diaOrigem.get().getDuracaoSessaoInMinutes());
-            dia.setIntervaloSessaoInMinutes(diaOrigem.get().getIntervaloSessaoInMinutes());
-            dia.setInicio(diaOrigem.get().getInicio());
-            dia.setFim(diaOrigem.get().getFim());
-            dia.setStatusDia(diaOrigem.get().getStatusDia());
-            agenda.get().getDias().add(dia);
-
-            List<Horas> horasNovas = new ArrayList<>();
-
-            //Percore o dia Origem e para cada hora, cria uma nova hora para o alvo com o mesmo inicio e fim;
-            diaOrigem.get().getHoras().forEach(hora -> {
-                Horas horasAlvo = new Horas();
-                horasAlvo.setInicio(hora.getInicio());
-                horasAlvo.setFim(hora.getFim());
-                horasAlvo.setStatusHora(hora.getStatusHora());
-
-                horasNovas.add(hora);
-
-            }); // Fim Foreach hora do diaOrigem
-
-            dia.setHoras(horasNovas);
-            diasService.save(dia);
-
-
-        }); //Fim Foreach dias alvos
-
-        return new ResponseEntity<>("Replicação do dia com sucesso.", HttpStatus.OK);
-    }
+//    @PostMapping("/agenda/dia/replica")
+//    public ResponseEntity<Object> replicaDia(@RequestBody AgendaReplicaDiaDTO dto, HttpServletRequest request){
+//        //Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
+//
+//        Optional<Dias> diaOrigem = diasService.findById(dto.idOrigemDia());
+//
+//        // Se dia não encontrado retorna not_found
+//        if (!diaOrigem.isPresent())
+//            return new ResponseEntity<>("Dia Origem não encontrado.", HttpStatus.NOT_FOUND);
+//
+//        //Busca a agenda do diaOrigem para setar nos alvos
+//        Long idAgenda = diasService.getAgenda(diaOrigem.get().getId()).get();
+//
+//        Optional<Agenda> agenda = agendaService.findById(idAgenda);
+//
+//        if (!agenda.isPresent()){
+//            return new ResponseEntity<>("Erro ao buscar agenda do Dia Origem", HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//
+//        // Map percore o DTO e busca os dias alvo e preeche o array diasAlvo
+//        List<Dias> diasAlvo = dto.alvoDias().stream().map(nome -> {
+//
+//            Optional<Dias> dia = diasService.findByNome(nome);
+//
+//            if (dia.isPresent()){
+//                return dia.get();
+//            }
+//
+//            System.out.print("-------------------");
+//
+//            Dias newDia  = new Dias();
+//
+//            newDia.setNome(nome);
+//
+//            return newDia;
+//
+//        }).collect(Collectors.toList()); // converte Stream para List
+//
+//        // Para cada dia da lista de alvos
+//        diasAlvo.forEach(dia -> {
+//
+//            if (dia.getHoras() != null){ //Evita NullPointerException se getHoras for null em caso de dia não configurado.
+//                //Remove horas atuais do dia
+//                for (Horas horas : dia.getHoras()) {
+//                    horasService.delete(horas);
+//                }
+//            }
+//
+//            //Define os mesmo parametros do dia origem
+//            dia.setDuracaoSessaoInMinutes(diaOrigem.get().getDuracaoSessaoInMinutes());
+//            dia.setIntervaloSessaoInMinutes(diaOrigem.get().getIntervaloSessaoInMinutes());
+//            dia.setInicio(diaOrigem.get().getInicio());
+//            dia.setFim(diaOrigem.get().getFim());
+//            dia.setStatusDia(diaOrigem.get().getStatusDia());
+//            agenda.get().getDias().add(dia);
+//
+//            List<Horas> horasNovas = new ArrayList<>();
+//
+//            //Percore o dia Origem e para cada hora, cria uma nova hora para o alvo com o mesmo inicio e fim;
+//            diaOrigem.get().getHoras().forEach(hora -> {
+//                Horas horasAlvo = new Horas();
+//                horasAlvo.setInicio(hora.getInicio());
+//                horasAlvo.setFim(hora.getFim());
+//                horasAlvo.setStatusHora(hora.getStatusHora());
+//
+//                horasNovas.add(hora);
+//
+//            }); // Fim Foreach hora do diaOrigem
+//
+//            dia.setHoras(horasNovas);
+//            diasService.save(dia);
+//
+//
+//        }); //Fim Foreach dias alvos
+//
+//        return new ResponseEntity<>("Replicação do dia com sucesso.", HttpStatus.OK);
+//    }
     //=============================================== PROFISSIONAL =======================================================
 
     //OK

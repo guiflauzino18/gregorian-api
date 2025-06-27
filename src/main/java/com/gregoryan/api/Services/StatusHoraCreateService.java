@@ -21,20 +21,14 @@ public class StatusHoraCreateService {
     private StatusHoraService statusHoraService;
     @Autowired
     private StatusHoraConverterInterface statusHoraConverter;
+    @Autowired
+    private StatusHoraValidateConflict validateConflict;
 
     public void create(StatusHoraCadastroDTO dto, Usuario usuario){
 
         StatusHora statusHora = statusHoraConverter.toStatusHora(dto);
-        validate(statusHora);
+        validateConflict.validate(statusHora);
         statusHora.setEmpresa(usuario.getEmpresa());
-
         statusHoraService.save(statusHora);
-        
-    }
-
-    private void validate(StatusHora status){
-        for (StatusHoraValidateInterface validacao : StatusHoraValidateInterface.validacoes){
-            validacao.validate(status);
-        }
     }
 }

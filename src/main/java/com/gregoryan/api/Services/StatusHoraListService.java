@@ -3,6 +3,7 @@ package com.gregoryan.api.Services;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gregoryan.api.Components.UsuarioValidateIsNotYourProperties;
 import com.gregoryan.api.Models.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,7 +24,7 @@ public class StatusHoraListService implements StatusHoraListInterface{
     @Autowired
     private StatusHoraService statusHoraService;
     @Autowired
-    private UsuarioValidateInterface usuarioValidate;
+    private UsuarioValidateIsNotYourProperties usuarioValidate;
 
     @Override
     public StatusHora list(long id, Usuario usuario) {
@@ -38,18 +39,14 @@ public class StatusHoraListService implements StatusHoraListInterface{
         List<StatusHora> listStatus = statusHoraService.findByEmpresa(empresa, pageable).getContent();
 
         //getContent retorna uma lista imutável, para acrescentar mais itens é necessário criar uma nova lista mutavel
-        // que recebe os status da empresa mais os status Ativo e Inativo.
+        // que recebe os status da empresa mais os status Ativo e Bloqueado.
         List<StatusHora> statusHoras = new ArrayList<>();
+        statusHoraService.findByNome("Ativo").ifPresent(statusHoras::add);
+        statusHoraService.findByNome("Bloqueado").ifPresent(statusHoras::add);
 
-        listStatus.stream().map(item -> {
-            statusHoras.add(item);
-            return item;
-        });
+        statusHoras.addAll(listStatus);
 
-        statusHoraService.findByNome("Ativo").ifPresent(item -> statusHoras.add(item));
-        statusHoraService.findByNome("Bloqueado").ifPresent(item -> statusHoras.add(item));
-
-        return new PageImpl<StatusHora>(statusHoras);
+        return new PageImpl<>(statusHoras);
     }
 
     @Override
