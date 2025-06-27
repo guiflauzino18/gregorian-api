@@ -1,8 +1,12 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Controllers.AdminController;
 import com.gregoryan.api.Models.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import com.gregoryan.api.DTO.FeriadoCadastroDTO;
 import com.gregoryan.api.DTO.FeriadoEditDTO;
@@ -44,6 +48,13 @@ public class FeriadoConverterService implements FeriadoConverterInterface{
             feriado.getNome(),
             feriado.getDia()
         );
+
+        dto.add(linkTo(methodOn(AdminController.class).feriadoCreate(null, null)).withRel("create").withType("POST"));
+        dto.add(linkTo(methodOn(AdminController.class).feriadoEdit(null, null)).withRel("update").withType("PUT"));
+        dto.add(linkTo(methodOn(AdminController.class).feriadoDelete(dto.getId(), null)).withRel("delete").withType("DELETE"));
+        dto.add(linkTo(methodOn(AdminController.class).feriadoByEmpresa(Pageable.unpaged(), null)).withRel("findByEmpresa").withType("GET"));
+        dto.add(linkTo(methodOn(AdminController.class).feriadoById(dto.getId(), null)).withRel("findByID").withType("GET"));
+        dto.add(linkTo(methodOn(AdminController.class).feriadoById(dto.getId(), null)).withRel("findByID").withType("GET"));
 
         return dto;
     }

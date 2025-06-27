@@ -1240,6 +1240,7 @@ public class AdminController {
 
 
     // ========================================== FERIADOS =============================================================
+    //OK
     @PostMapping("/feriado/create")
     @Operation(summary = "Cadastra Feriado", description = "Insere um novo feriado no Bando de Dados")
     @ApiResponse(responseCode = "201", description = "Feriado cadastrado com sucesso")
@@ -1262,22 +1263,9 @@ public class AdminController {
 
         }
 
-
-        // Feriado feriado = new Feriado();
-        // BeanUtils.copyProperties(feriadoDTO, feriado);
-
-        // Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT-3:00"), new Locale("pt-BR"));
-        // String ano = feriadoDTO.dia().split("-")[0];
-        // String mes = feriadoDTO.dia().split("-")[1];
-        // String dia = feriadoDTO.dia().split("-")[2];
-        // calendar.set(Integer.parseInt(ano), Integer.parseInt(mes), Integer.parseInt(dia));
-        // feriado.setDia(calendar);
-
-        // Usuario usuario = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-        // feriado.setusuario(usuario.getusuario());
-        // return new ResponseEntity<>(feriadoService.save(feriado), HttpStatus.CREATED);
     }
 
+    //OK
     @PutMapping("/feriado/edit")
     @Operation(summary = "Edita um feriado", description = "Edita um feriado já cadastrado")
     @ApiResponse(responseCode = "200", description = "Feriado editado com sucesso")
@@ -1306,28 +1294,9 @@ public class AdminController {
         }catch(ConflictException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         }
-
-        // Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(null))).get();
-
-        // Optional<Feriado> feriado = feriadoService.findById(feriadoDTO.id());
-
-        // //SOmente edita feriado se usuario do feriado for a memsa do usuario logado.
-        // if (feriado.isPresent() && feriado.get().getusuario().getId() == usuarioLogado.getusuario().getId()){
-        //     Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT-3:00"), new Locale("pt-BR"));
-        //     int ano = Integer.parseInt(feriadoDTO.data().split("-")[0]);
-        //     int mes = Integer.parseInt(feriadoDTO.data().split("-")[1]);
-        //     int dia = Integer.parseInt(feriadoDTO.data().split("-")[2]);
-        //     calendar.set(ano, mes, dia);
-
-        //     feriado.get().setNome(feriadoDTO.nome());
-        //     feriado.get().setDia(calendar);
-
-        //     return new ResponseEntity<>(feriadoService.save(feriado.get()), HttpStatus.OK);
-
-        // } else return new ResponseEntity<>("Feriado não encontrado!", HttpStatus.NOT_FOUND);
-
     }
 
+    //OK
     @DeleteMapping("/feriado/delete/{id}")
     @Operation(summary = "Deleta Feriado", description = "Deleta um feriado do Banco de Dados")
     @ApiResponse(responseCode = "200", description = "Feriado excluído com sucesso")
@@ -1353,12 +1322,12 @@ public class AdminController {
 
     }
 
-
+    //OK
     @GetMapping("/feriado/list")
     @Operation(summary = "Lista feriados", description = "Lista feriados da usuario")
     @ApiResponse(responseCode = "200", description = "Retorna feriados com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Page<FeriadoResponseDTO>> feriadoByusuario(
+    public ResponseEntity<Page<FeriadoResponseDTO>> feriadoByEmpresa(
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC)
             Pageable pageable, HttpServletRequest request){
 
@@ -1373,6 +1342,7 @@ public class AdminController {
                 return new ResponseEntity<>(new PageImpl<FeriadoResponseDTO>(listDTO), HttpStatus.OK);
             }
 
+    //OK
     @GetMapping("/feriado/byid")
     @Operation(summary = "Busca feriado", description = "Busca feriado da usuario pelo ID")
     @ApiResponse(responseCode = "200", description = "Feriado encontrado é retornado")
@@ -1395,6 +1365,7 @@ public class AdminController {
 
 
     // ======================================================= DIAS BLOQUEADOS ==============================================
+    //OK
     @PostMapping("diabloqueado/create")
     @Operation(summary = "Cadastra um bloqueio para um dia", description = "Cadastra um bloqueio de dia no Banco de Dados")
     @ApiResponse(responseCode = "200", description = "Bloqueio editado com sucesso")
@@ -1408,11 +1379,10 @@ public class AdminController {
 
         var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
         diaBloqueadoCreate.create(diaBloqueado, usuarioLogado);
-        return new ResponseEntity<>("Bloquio do dia cadastrado com sucesso", HttpStatus.CREATED);
-
+        return new ResponseEntity<>("Bloqueio do dia cadastrado com sucesso", HttpStatus.CREATED);
     }
 
-
+    //OK
     @PutMapping("/diabloqueado/edit")
     @Operation(summary = "Edita um bloqueio de dia", description = "Edita dados de um bloqueio de dia")
     @ApiResponse(responseCode = "200", description = "Bloqueio editado com sucesso")
@@ -1440,6 +1410,7 @@ public class AdminController {
 
     }
 
+    //OK
     @DeleteMapping("/diabloqueado/delete/{id}")
     @Operation(summary = "Deleta um bloqueio de dia", description = "Deleta um bloqueio de dia do Banco de Dados")
     @ApiResponse(responseCode = "200", description = "Bloqueio do dia deletado com sucesso")
@@ -1462,10 +1433,11 @@ public class AdminController {
         }
     }
 
+    //OK
     @GetMapping("/diabloqueado/list")
     @Operation(summary = "Lista bloqueios de dia", description = "Lista bloqueios para a usuario")
     @ApiResponse(responseCode = "200", description = "Retorna dados com sucesso")
-    public ResponseEntity<Object> diaBloqueadoByusuario(
+    public ResponseEntity<Object> diaBloqueadoByEmpresa(
             @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
             HttpServletRequest request){
 
@@ -1479,8 +1451,28 @@ public class AdminController {
             }).collect(Collectors.toList());
 
             return new ResponseEntity<>(new PageImpl<DiaBloqueadoResponseDTO>(listDTO), HttpStatus.OK);
+    }
 
+    //OK
+    @GetMapping("/diabloqueado/byid")
+    @Operation(summary = "Lista bloqueios de dia pelo ID", description = "Lista bloqueio com ID informado")
+    @ApiResponse(responseCode = "200", description = "Retorna dados com sucesso")
+    public ResponseEntity<Object> diaBloqueadoByID(@RequestParam long id, HttpServletRequest request){
 
+        try{
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            var dia = diaBloqueadoList.list(id, usuarioLogado);
+            var dto = diaBloqueadoConverter.toResponseDTO(dia);
+
+            return new ResponseEntity<>(dto, HttpStatus.OK);
+
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+        }
     }
 
     // ================================= PLANO PACIENTE ==================================

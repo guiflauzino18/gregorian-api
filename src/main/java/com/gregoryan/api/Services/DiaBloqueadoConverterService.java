@@ -1,8 +1,12 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Controllers.AdminController;
 import com.gregoryan.api.Models.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import com.gregoryan.api.DTO.DiaBloqueadoCadastroDTO;
 import com.gregoryan.api.DTO.DiaBloqueadoEditDTO;
@@ -39,10 +43,18 @@ public class DiaBloqueadoConverterService implements DiaBloqueadoConverterInterf
 
     @Override
     public DiaBloqueadoResponseDTO toResponseDTO(DiaBloqueado diaBloqueado) {
-        return new DiaBloqueadoResponseDTO(
+        var dto = new DiaBloqueadoResponseDTO(
             diaBloqueado.getId(),
             diaBloqueado.getNome(),
             diaBloqueado.getDia());
+
+        dto.add(linkTo(methodOn(AdminController.class).diaBloqueadoCreate(null, null)).withRel("create").withType("POST"));
+        dto.add(linkTo(methodOn(AdminController.class).diaBloqueadoEdit(null, null)).withRel("update").withType("PUT"));
+        dto.add(linkTo(methodOn(AdminController.class).diaBloqueadoDelete(dto.getId(), null)).withRel("delete").withType("DELETE"));
+        dto.add(linkTo(methodOn(AdminController.class).diaBloqueadoByEmpresa(Pageable.unpaged(), null)).withRel("findByEmpresa").withType("GET"));
+        dto.add(linkTo(methodOn(AdminController.class).diaBloqueadoByID(dto.getId(), null)).withRel("findByID").withType("GET"));
+
+        return dto;
     }
     
 }
