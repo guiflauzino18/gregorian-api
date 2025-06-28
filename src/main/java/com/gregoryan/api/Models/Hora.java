@@ -1,5 +1,7 @@
 package com.gregoryan.api.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -21,7 +23,7 @@ import java.time.LocalTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Horas {
+public class Hora {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,5 +37,6 @@ public class Horas {
 
     @ManyToOne
     @JoinColumn(name = "status_hora_fk")
+    @JsonIgnoreProperties("empresa")
     private StatusHora statusHora;
 }

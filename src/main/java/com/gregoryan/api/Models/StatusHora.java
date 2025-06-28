@@ -30,7 +30,7 @@ public class StatusHora implements Serializable {
     @Column(nullable = false)
     private String nome;
 
-    @ManyToOne
+    @ManyToOne()
     @JoinColumn(name = "empresa_fk")
     private Empresa empresa;
 }

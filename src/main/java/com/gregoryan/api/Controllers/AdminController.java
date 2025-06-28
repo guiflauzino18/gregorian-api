@@ -1,13 +1,15 @@
 package com.gregoryan.api.Controllers;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.TimeZone;
 import java.text.ParseException;
 import java.util.stream.Collectors;
+
+import com.gregoryan.api.DTO.*;
+import com.gregoryan.api.Interfaces.*;
+import com.gregoryan.api.Services.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,75 +32,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import com.gregoryan.api.DTO.AgendaCadastroDTO;
-import com.gregoryan.api.DTO.AgendaConfigDTO;
-import com.gregoryan.api.DTO.AgendaEditDTO;
-import com.gregoryan.api.DTO.AgendaReplicaDiaDTO;
-import com.gregoryan.api.DTO.AgendaResponseDTO;
-import com.gregoryan.api.DTO.DiaBloqueadoCadastroDTO;
-import com.gregoryan.api.DTO.DiaBloqueadoEditDTO;
-import com.gregoryan.api.DTO.DiaBloqueadoResponseDTO;
-import com.gregoryan.api.DTO.DiaEditDTO;
-import com.gregoryan.api.DTO.FeriadoCadastroDTO;
-import com.gregoryan.api.DTO.FeriadoEditDTO;
-import com.gregoryan.api.DTO.FeriadoResponseDTO;
-import com.gregoryan.api.DTO.HorasEditDTO;
-import com.gregoryan.api.DTO.ProfissionalCadastroDTO;
-import com.gregoryan.api.DTO.ProfissionalEditDTO;
-import com.gregoryan.api.DTO.ProfissionalListDTO;
-import com.gregoryan.api.DTO.ProfissionalResponseDTO;
-import com.gregoryan.api.DTO.StatusAgendaCadastroDTO;
-import com.gregoryan.api.DTO.StatusAgendaResponseDTO;
-import com.gregoryan.api.DTO.StatusDiaCadastroDTO;
-import com.gregoryan.api.DTO.StatusDiaEditDTO;
-import com.gregoryan.api.DTO.StatusDiaResponseDTO;
-import com.gregoryan.api.DTO.StatusHoraCadastroDTO;
-import com.gregoryan.api.DTO.StatusHoraResponseDTO;
-import com.gregoryan.api.DTO.UsuarioCreateDTO;
-import com.gregoryan.api.DTO.UsuarioEditDTO;
-import com.gregoryan.api.DTO.planoPacienteCadastroDTO;
-import com.gregoryan.api.DTO.UsuarioResetSenhaDTO;
-import com.gregoryan.api.DTO.UsuarioResponseDTO;
 import com.gregoryan.api.Exception.AcessoNegadoException;
 import com.gregoryan.api.Exception.EntityDontExistException;
 import com.gregoryan.api.Exception.ConflictException;
 import com.gregoryan.api.Models.Agenda;
 import com.gregoryan.api.Models.DiaBloqueado;
-import com.gregoryan.api.Models.Dias;
 import com.gregoryan.api.Models.Feriado;
-import com.gregoryan.api.Models.Horas;
 import com.gregoryan.api.Models.PlanoPaciente;
 import com.gregoryan.api.Models.Profissional;
 import com.gregoryan.api.Models.StatusAgenda;
 import com.gregoryan.api.Models.StatusDia;
 import com.gregoryan.api.Models.StatusHora;
 import com.gregoryan.api.Models.Usuario;
-import com.gregoryan.api.Services.UsuarioDeleteService;
-import com.gregoryan.api.Services.UsuarioEditService;
-import com.gregoryan.api.Services.AgendaConfigureService;
-import com.gregoryan.api.Services.AgendaCreateService;
-import com.gregoryan.api.Services.AgendaDeleteService;
-import com.gregoryan.api.Services.AgendaEditService;
-import com.gregoryan.api.Services.DiaBloqueadoCreateService;
-import com.gregoryan.api.Services.DiaBloqueadoDeleteService;
-import com.gregoryan.api.Services.DiaBloqueadoEditingService;
-import com.gregoryan.api.Services.DiaEditService;
-import com.gregoryan.api.Services.FeriadoCreateService;
-import com.gregoryan.api.Services.FeriadoDeleteService;
-import com.gregoryan.api.Services.FeriadoEditService;
-import com.gregoryan.api.Services.HoraDeleteService;
-import com.gregoryan.api.Services.ProfissionalCreateService;
-import com.gregoryan.api.Services.ProfissionalDeleteService;
-import com.gregoryan.api.Services.ProfissionalEditService;
-import com.gregoryan.api.Services.StatusAgendaCreateService;
-import com.gregoryan.api.Services.StatusAgendaDeleteService;
-import com.gregoryan.api.Services.StatusDiaCreateService;
-import com.gregoryan.api.Services.StatusDiaDeleteService;
-import com.gregoryan.api.Services.StatusDiaEditService;
-import com.gregoryan.api.Services.StatusHoraCreateService;
-import com.gregoryan.api.Services.StatusHoraDeleteService;
-import com.gregoryan.api.Services.UsuarioCreateService;
-import com.gregoryan.api.Services.UsuarioResetSenha;
 import com.gregoryan.api.Services.Crud.AgendaService;
 import com.gregoryan.api.Services.Crud.DiaBloqueadoService;
 import com.gregoryan.api.Services.Crud.DiasService;
@@ -109,23 +54,6 @@ import com.gregoryan.api.Services.Crud.StatusAgendaService;
 import com.gregoryan.api.Services.Crud.StatusDiaService;
 import com.gregoryan.api.Services.Crud.StatusHoraService;
 import com.gregoryan.api.Services.Crud.UsuarioService;
-import com.gregoryan.api.Interfaces.AgendaConverterInterface;
-import com.gregoryan.api.Interfaces.AgendaListInterface;
-import com.gregoryan.api.Interfaces.DiaBloqueadoConverterInterface;
-import com.gregoryan.api.Interfaces.DiaBloqueadoListInterface;
-import com.gregoryan.api.Interfaces.DiaListInterface;
-import com.gregoryan.api.Interfaces.FeriadoConverterInterface;
-import com.gregoryan.api.Interfaces.FeriadoListInterface;
-import com.gregoryan.api.Interfaces.ProfissionalConverterInterface;
-import com.gregoryan.api.Interfaces.ProfissionalListInterface;
-import com.gregoryan.api.Interfaces.StatusAgendaConverterInterface;
-import com.gregoryan.api.Interfaces.StatusAgendaListInterface;
-import com.gregoryan.api.Interfaces.StatusDiaConverterInterface;
-import com.gregoryan.api.Interfaces.StatusDiaListInterface;
-import com.gregoryan.api.Interfaces.StatusHoraConverterInterface;
-import com.gregoryan.api.Interfaces.StatusHoraListInterface;
-import com.gregoryan.api.Interfaces.UsuarioConverterInterface;
-import com.gregoryan.api.Interfaces.UsuarioListInterface;
 import com.gregoryan.api.Services.Security.TokenService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -245,6 +173,12 @@ public class AdminController {
     private DiaListInterface diaList;
     @Autowired
     private HoraDeleteService horaDelete;
+    @Autowired
+    private HoraEditService horaEdit;
+    @Autowired
+    private HoraListInterface horaList;
+    @Autowired
+    private HoraConverterInterface horaConverter;
 
     //Injetores realacionados a feriado
     @Autowired
@@ -443,7 +377,7 @@ public class AdminController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
     }
-
+// ================================= Fim Usuários dos Sistema =================================
 
     // =============================================== AGENDA ======================================
 
@@ -627,14 +561,18 @@ public class AdminController {
         // return new ResponseEntity<>(agendaService.save(agenda),HttpStatus.OK);
     }
 
+    // ===============================================FIM AGENDA ======================================
+
+    // =============================================== DIA ======================================
+
     //Edita Dias da Agenda
-    @PutMapping("/agenda/edit/dia")
-    public ResponseEntity<Object> agendaEditDia(@RequestBody @Valid DiaEditDTO diaDTO, HttpServletRequest request){
+    @PutMapping("/dia/edit")
+    public ResponseEntity<Object> diaEdit(@RequestBody @Valid DiaEditDTO diaDTO, HttpServletRequest request){
 
         try{
             var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
             diaEditService.editar(usuarioLogado, diaDTO);
-            return new ResponseEntity<>("Dia editado com sucesso", HttpStatus.OK);
+            return new ResponseEntity<>("Dia atualizado com sucesso", HttpStatus.OK);
 
         }catch(EntityDontExistException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
@@ -642,67 +580,46 @@ public class AdminController {
         }catch(AcessoNegadoException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
-
-        // Optional<Dias> dia = diasService.findById(diaDTO.idDia());
-
-        // if (dia.isPresent()) {
-        //     long duracaoSessaoBeforeEdit = dia.get().getDuracaoSessaoInMinutes();
-        //     long intervaloSessaoBeforeEdit = dia.get().getIntervaloSessaoInMinutes();
-        //     LocalTime inicioBeforeEdit = dia.get().getInicio();
-        //     LocalTime fimBeforeEdit = dia.get().getFim();
-
-        //     dia.get().setDuracaoSessaoInMinutes(diaDTO.duracaoSessaoInMinutes());
-        //     dia.get().setIntervaloSessaoInMinutes(diaDTO.intervaloSessaoInMinutes());
-        //     Optional<StatusDia> statusDia = statusDiaService.findById(diaDTO.idStatusDia());
-        //     if (statusDia.isPresent()) dia.get().setStatusDia(statusDia.get());
-        //     LocalTime inicio = LocalTime.of(Integer.parseInt(diaDTO.inicio().split(":")[0]), Integer.parseInt(diaDTO.inicio().split(":")[1]));
-        //     LocalTime fim = LocalTime.of(Integer.parseInt(diaDTO.fim().split(":")[0]), Integer.parseInt(diaDTO.fim().split(":")[1]));
-        //     dia.get().setInicio(inicio);
-        //     dia.get().setFim(fim);
-
-
-        //     if (duracaoSessaoBeforeEdit != dia.get().getDuracaoSessaoInMinutes() ||
-        //         intervaloSessaoBeforeEdit != dia.get().getIntervaloSessaoInMinutes()||
-        //         !inicio.equals(inicioBeforeEdit) || !fim.equals(fimBeforeEdit)) {
-
-        //         StatusHora statusHora = statusHoraService.findByNome("Ativo").get();
-
-        //         dia.get().createHoras(statusHora, horasService);
-        //     }
-
-        //     return new ResponseEntity<>(diasService.save(dia.get()), HttpStatus.OK);
-
-        // } else return new ResponseEntity<>("Dia não encontrado!", HttpStatus.NOT_FOUND);
-
     }
 
 
-
+// =============================================== FIM DIA ======================================
 
     //============================================= HORA ==============================================
-    //Edit Horas do dia da Agenda
-    @PutMapping("/agenda/edit/horas")
-    public ResponseEntity<Object> agendaEditHoras(@RequestBody @Valid HorasEditDTO horaDTO){
+    //Edit Hora do dia da Agenda
+    @PutMapping("/hora/edit")
+    @Operation(summary = "Edita hora de um dia", description = "Atualiza status de uma hora do dia")
+    @ApiResponse(responseCode = "200", description = "Hora atualizada com sucess")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    @ApiResponse(responseCode = "404", description = "Hora ou status não encontrado")
+    public ResponseEntity<Object> horaEdit(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "ID da Hora e ID do status",
+                    content = @Content(schema = @Schema(implementation = HoraEditDTO.class)))
+            @RequestBody @Valid HoraEditDTO horaDTO, HttpServletRequest request){
 
-        Optional<Horas> hora = horasService.findById(horaDTO.idHora());
-        if (hora.isPresent()){
-            Optional<StatusHora> statusHora = statusHoraService.findById(horaDTO.idStatusHora());
+        try{
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            horaEdit.edit(horaDTO, usuarioLogado);
+            return new ResponseEntity<>("Hora atualizada", HttpStatus.OK);
 
-            if (statusHora.isPresent()) hora.get().setStatusHora(statusHora.get());
+        }catch (AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
 
-            return new ResponseEntity<>(horasService.save(hora.get()), HttpStatus.OK);
+        }catch (EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
-        } else return new ResponseEntity<>("Hora não encontrada!", HttpStatus.NOT_FOUND);
-
-
+        }
     }
 
     //Deleta horas da agenda
-    @DeleteMapping("/agenda/horas/delete/{id}")
+    @DeleteMapping("/hora/delete/{id}")
     @Operation(summary = "Deleta hora", description = "Deleta uma hora do Banco de Dados")
     @ApiResponse(responseCode = "200", description = "Hora deletada com sucesso")
     @ApiResponse(responseCode = "404", description = "Hora não encontrada para ser deletada")
-    public ResponseEntity<Object> agendaHorasDelete(@Parameter(description = "ID da hora a ser excluída", required = true) @PathVariable long id){
+    public ResponseEntity<Object> horaDelete(
+            @Parameter(description = "ID da hora a ser excluída", required = true)
+            @PathVariable long id){
 
         try{
             horaDelete.delete(id);
@@ -712,18 +629,69 @@ public class AdminController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
         }
-        // Optional<Horas> hora = horasService.findById(id);
+        // Optional<Hora> hora = horasService.findById(id);
         // if(!hora.isPresent()) return new ResponseEntity<>("Hora não encontrada!", HttpStatus.NOT_FOUND);
 
         // horasService.delete(hora.get());
         // return new ResponseEntity<>("Hora deletada da Agenda", HttpStatus.OK);
     }
 
+    @GetMapping("/hora/bydia")
+    @Operation(summary = "Lista hora do dia", description = "Retorna lista de horas do dia")
+    @ApiResponse(responseCode = "200", description = "Retorna horas do dia")
+    @ApiResponse(responseCode = "404", description = "Dia não encontrado")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<Object> horaByDia(
+            @Parameter(description = "ID do dia", required = true) @RequestParam long id,
+            HttpServletRequest request){
+
+        try{
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            var dia = diaList.list(id, usuarioLogado);
+            var horas = dia.getHoras();
+            List<HoraResposeDTO> listDTO = horas.stream().map(item -> {
+                return horaConverter.toResponseDTO(item);
+            }).toList();
+
+            return new ResponseEntity<>(listDTO, HttpStatus.OK);
+
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/hora/bystatus")
+    @Operation(summary = "Lista horas por status", description = "Retorna lista de horas com status selecionado")
+    @ApiResponse(responseCode = "200", description = "Retorna horas do dia")
+    @ApiResponse(responseCode = "404", description = "Dia não encontrado")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    public ResponseEntity<?> horaByStatus(
+            @Parameter(description = "ID do status", required = true)
+            @RequestParam long id, HttpServletRequest request,
+            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
+    ){
+        try{
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            var status = statusHoraList.list(id, usuarioLogado);
+            var listHoras = horaList.list(status, pageable).getContent();
+            List<HoraResposeDTO> listDTO = listHoras.stream().map(item -> {
+                return horaConverter.toResponseDTO(item);
+            }).collect(Collectors.toList());
+            return new ResponseEntity<>(new PageImpl<>(listDTO), HttpStatus.OK);
+
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
 
 
-
-
-
+//============================================= FIM HORA ==============================================
 
     //================================================ STATUS AGENDA ========================================
     //Cadastro de Status Agenda
@@ -810,44 +778,8 @@ public class AdminController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
     }
+    // =========================================================== FIM STATUS AGENDA ==========================================
 
-
-
-    // =========================================================== DIA ==========================================
-    @GetMapping("/agenda/horas/byid")
-    @Operation(summary = "Lista hora do dia", description = "Retorna lista de horas do dia")
-    @ApiResponse(responseCode = "200", description = "Retorna horas do dia")
-    @ApiResponse(responseCode = "404", description = "Dia não encontrado")
-    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<Object> horasByDia(@Parameter(description = "ID do dia", required = true) @RequestParam long id, HttpServletRequest request){
-        //Lista horas por ID do dia
-
-        try{
-            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
-            var dia = diaList.list(id, usuarioLogado);
-
-            var horas = dia.getHoras();
-
-            return new ResponseEntity<>(horas, HttpStatus.OK);
-
-        }catch(AcessoNegadoException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
-
-        }catch(EntityDontExistException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-        }
-
-        // Optional<Dias> dia = diasService.findById(id);
-
-        // if (!dia.isPresent()){
-        //     return new ResponseEntity<>("Dia não encontrado", HttpStatus.NOT_FOUND);
-        // }
-
-        // List<Horas> horas = dia.get().getHoras();
-
-        // return new ResponseEntity<>(horas, HttpStatus.OK);
-
-    }
 
 
     //=========================== STATUS HORA ============================================
@@ -939,7 +871,9 @@ public class AdminController {
         }
     }
 
-//    ================================ STATUS DIA ===========================================================
+    //=========================== FIM STATUS HORA ============================================
+
+    //================================ STATUS DIA ===========================================================
 
     //Cadastra Status Dia
     @PostMapping("/statusdia/create")
@@ -1061,6 +995,8 @@ public class AdminController {
 
     }
 
+    //================================ FIM STATUS DIA ===========================================================
+
     //Replica dia para outro.
     //É recebido um Id do dia origem e uma lista de ids do dia alvo.
 //    @PostMapping("/agenda/dia/replica")
@@ -1106,7 +1042,7 @@ public class AdminController {
 //
 //            if (dia.getHoras() != null){ //Evita NullPointerException se getHoras for null em caso de dia não configurado.
 //                //Remove horas atuais do dia
-//                for (Horas horas : dia.getHoras()) {
+//                for (Hora horas : dia.getHoras()) {
 //                    horasService.delete(horas);
 //                }
 //            }
@@ -1119,11 +1055,11 @@ public class AdminController {
 //            dia.setStatusDia(diaOrigem.get().getStatusDia());
 //            agenda.get().getDias().add(dia);
 //
-//            List<Horas> horasNovas = new ArrayList<>();
+//            List<Hora> horasNovas = new ArrayList<>();
 //
 //            //Percore o dia Origem e para cada hora, cria uma nova hora para o alvo com o mesmo inicio e fim;
 //            diaOrigem.get().getHoras().forEach(hora -> {
-//                Horas horasAlvo = new Horas();
+//                Hora horasAlvo = new Hora();
 //                horasAlvo.setInicio(hora.getInicio());
 //                horasAlvo.setFim(hora.getFim());
 //                horasAlvo.setStatusHora(hora.getStatusHora());
@@ -1301,6 +1237,7 @@ public class AdminController {
 
     }
 
+    //=============================================== FIM PROFISSIONAL =======================================================
 
     // ========================================== FERIADOS =============================================================
     //OK
@@ -1426,6 +1363,8 @@ public class AdminController {
         }
     }
 
+    // ========================================== FIM FERIADOS =============================================================
+
 
     // ======================================================= DIAS BLOQUEADOS ==============================================
     //OK
@@ -1538,6 +1477,8 @@ public class AdminController {
         }
     }
 
+    // ================================= FIM DIAS BLOQUEADOS ==============================================
+
     // ================================= PLANO PACIENTE ==================================
 
     @PostMapping("/planopaciente/create")
@@ -1561,6 +1502,6 @@ public class AdminController {
         
     }
 
-}
+    // ================================= FIM PLANO PACIENTE ==================================
 
- 
+}

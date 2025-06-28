@@ -47,6 +47,7 @@ public class DiasService {
 
     public Page<Dias> findByEmpresa(Empresa empresa, Pageable pageable){
         return repository.findByEmpresa(empresa, pageable);
+
     }
 
     public Optional<Long> getAgenda(long idDia){

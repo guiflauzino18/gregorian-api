@@ -1,5 +1,6 @@
 package com.gregoryan.api.Services;
 
+import com.gregoryan.api.Components.UsuarioValidateIsNotYourProperties;
 import com.gregoryan.api.Models.Usuario;
 import com.gregoryan.api.Interfaces.UsuarioValidateInterface;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,7 @@ public class DiaListService implements DiaListInterface{
     @Autowired
     private DiasService service;
     @Autowired
-    private UsuarioValidateInterface usuarioValidate;
+    private UsuarioValidateIsNotYourProperties usuarioValidate;
 
 
     @Override

@@ -5,16 +5,7 @@ import java.util.List;
 
 import com.gregoryan.api.Services.Crud.HorasService;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,9 +29,9 @@ public class Dias implements Serializable{
     @Column(nullable = false)
     private String nome;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "dia_fk")
-    private List<Horas> horas;
+    private List<Hora> horas;
 
     private long intervaloSessaoInMinutes;
 
@@ -68,20 +59,20 @@ public class Dias implements Serializable{
         }
         
         LocalTime incremento = inicio;
-        List<Horas> horasP = new ArrayList<>();
+        List<Hora> horaP = new ArrayList<>();
 
         while (incremento.isBefore(fim)) {
-            Horas hora = new Horas();
+            Hora hora = new Hora();
             
             hora.setInicio(incremento);
             hora.setFim(incremento.plusMinutes(duracaoSessaoInMinutes));
             hora.setStatusHora(statusHora);
-            horasP.add(hora);
+            horaP.add(hora);
 
             incremento = incremento.plusMinutes(duracaoSessaoInMinutes).plusMinutes(intervaloSessaoInMinutes);
         }
 
-        this.setHoras(horasP);
+        this.setHoras(horaP);
     }
 
     public boolean recriarHora(Dias diaAtual, Dias diaNovo){
