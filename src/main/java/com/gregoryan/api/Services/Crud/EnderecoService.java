@@ -5,8 +5,6 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.gregoryan.api.Models.Endereco;
 import com.gregoryan.api.Repositorys.EnderecoRepository;
@@ -20,8 +18,8 @@ public class EnderecoService {
     private EnderecoRepository enderecoRepository;
 
     @Transactional
-    public ResponseEntity<Endereco> save(Endereco endereco){
-        return new ResponseEntity<Endereco>(enderecoRepository.save(endereco), HttpStatus.CREATED);
+    public Endereco save(Endereco endereco){
+        return enderecoRepository.save(endereco);
     }
 
     @Transactional

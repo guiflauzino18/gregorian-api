@@ -1,5 +1,6 @@
 package com.gregoryan.api.Services.Crud;
 
+import com.gregoryan.api.Models.Profissional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -51,5 +52,7 @@ public class AgendaService {
         return repository.findAll(pageable);
     }
 
-    
+    public Optional<Agenda> fingByProfissional(Profissional profissional){ return repository.findByProfissional(profissional);}
+
+    public boolean existsByProfissional(Profissional profissional){return repository.existsByProfissional(profissional);}
 }

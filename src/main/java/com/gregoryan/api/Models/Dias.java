@@ -5,16 +5,7 @@ import java.util.List;
 
 import com.gregoryan.api.Services.Crud.HorasService;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,9 +21,6 @@ import java.time.LocalTime;
 @Getter
 @Setter
 public class Dias implements Serializable{
-
-    // @Autowired
-    // private StatusHoraService statusHoraService;
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,9 +29,9 @@ public class Dias implements Serializable{
     @Column(nullable = false)
     private String nome;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "dia_fk")
-    private List<Horas> horas;
+    private List<Hora> horas;
 
     private long intervaloSessaoInMinutes;
 
@@ -59,30 +47,52 @@ public class Dias implements Serializable{
     @Column(nullable = false)
     private LocalTime fim;
 
+    @ManyToOne
+    @JoinColumn(name = "empresa_fk")
+    private Empresa empresa;
+
     public void createHoras(StatusHora statusHora, HorasService horasService){
 
         if (this.getHoras() != null) {
-            this.getHoras().forEach(hora -> {
-                horasService.delete(hora);
-            });
+            this.getHoras().forEach(horasService::delete);
             this.getHoras().clear();
         }
         
         LocalTime incremento = inicio;
-        List<Horas> horasP = new ArrayList<>();
+        List<Hora> horaP = new ArrayList<>();
 
         while (incremento.isBefore(fim)) {
-            Horas hora = new Horas();
+            Hora hora = new Hora();
             
             hora.setInicio(incremento);
             hora.setFim(incremento.plusMinutes(duracaoSessaoInMinutes));
             hora.setStatusHora(statusHora);
-            horasP.add(hora);
+            horaP.add(hora);
 
             incremento = incremento.plusMinutes(duracaoSessaoInMinutes).plusMinutes(intervaloSessaoInMinutes);
         }
 
-        this.setHoras(horasP);
+        this.setHoras(horaP);
     }
 
+    public boolean recriarHora(Dias diaAtual, Dias diaNovo){
+        
+        boolean recriarHora = false;
+        if (diaAtual.getFim().equals(diaNovo.getFim())|| 
+            diaAtual.getInicio().equals(diaNovo.getInicio())|| 
+            diaAtual.getDuracaoSessaoInMinutes() != diaNovo.getDuracaoSessaoInMinutes() ||
+            diaAtual.getIntervaloSessaoInMinutes() != diaNovo.getIntervaloSessaoInMinutes()){
+            return  recriarHora = true;
+        }
+        // if (diaAtual.getDuracaoSessaoInMinutes() != diaNovo.getDuracaoSessaoInMinutes() ||
+        //     diaAtual.getIntervaloSessaoInMinutes() != diaNovo.getIntervaloSessaoInMinutes() ||
+        //     diaAtual.getInicio() != diaNovo.getInicio() ||
+        //     diaAtual.getFim() != diaNovo.getFim() ||
+        //     diaAtual.getFim().
+        //     ){
+        //        return  recriarHora = true;
+        //     }
+
+        return recriarHora;
+    }
 }

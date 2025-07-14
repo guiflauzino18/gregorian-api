@@ -1,11 +1,12 @@
 package com.gregoryan.api.Services.Crud;
 
+import com.gregoryan.api.Models.Hora;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
-import com.gregoryan.api.Models.Horas;
+
 import com.gregoryan.api.Models.StatusHora;
 import com.gregoryan.api.Repositorys.HorasRepository;
 
@@ -17,24 +18,24 @@ public class HorasService {
     private HorasRepository repository;
 
     @Transactional
-    public Horas save(Horas horas){
-        return repository.save(horas);
+    public Hora save(Hora hora){
+        return repository.save(hora);
     }
 
     @Transactional
-    public void delete (Horas horas){
-        repository.delete(horas);
+    public void delete (Hora hora){
+        repository.delete(hora);
     }
 
-    public Optional<Horas> findById(long id){
+    public Optional<Hora> findById(long id){
         return repository.findById(id);
     }
 
-    public Page<Horas> findByStatusHora(StatusHora statusHora, Pageable pageable){
+    public Page<Hora> findByStatusHora(StatusHora statusHora, Pageable pageable){
         return repository.findByStatusHora(statusHora, pageable);
     }
 
-    public Page<Horas> findAll(Pageable pageable){
+    public Page<Hora> findAll(Pageable pageable){
         return repository.findAll(pageable);
     }
 

@@ -11,4 +11,5 @@ public interface FeriadoRepository extends JpaRepository<Feriado, Long>{
 
     Page<Feriado> findByNome(String nome, Pageable pageable);
     Page<Feriado> findByEmpresa(Empresa empresa, Pageable pageable);
+    boolean existsByNome(String nome);
 }

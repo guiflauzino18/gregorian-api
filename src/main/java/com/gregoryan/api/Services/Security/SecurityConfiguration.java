@@ -35,6 +35,8 @@ public class SecurityConfiguration{
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(HttpMethod.POST, "/api/login/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/check/**").permitAll()
+                //.requestMatchers(HttpMethod.GET, "/api/**").permitAll()
+                .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/api-docs/**").permitAll()
                 .requestMatchers( "/api/register").hasRole("ADMIN")
                 .requestMatchers("/api/gestor/**").hasRole("GESTOR")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -63,7 +65,7 @@ public class SecurityConfiguration{
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://cliente.gregorian.com", "localhost"));
+        configuration.setAllowedOrigins(List.of("http://cliente.gregorian.com", "localhost", "http://localhost:4200"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Content-Type","Authorization"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

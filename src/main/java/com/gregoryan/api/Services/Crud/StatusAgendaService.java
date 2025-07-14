@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
+
+import com.gregoryan.api.Models.Empresa;
 import com.gregoryan.api.Models.StatusAgenda;
 import com.gregoryan.api.Repositorys.StatusAgendaRepository;
 
@@ -39,5 +41,9 @@ public class StatusAgendaService {
 
     public Page<StatusAgenda> findAll(Pageable pageable){
         return repository.findAll(pageable);
+    }
+
+    public Page<StatusAgenda> findByEmpresa(Empresa empresa, Pageable pageable){
+        return repository.findByEmpresa(empresa, pageable);
     }
 }

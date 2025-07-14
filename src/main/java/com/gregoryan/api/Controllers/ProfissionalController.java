@@ -56,6 +56,7 @@ public class ProfissionalController {
     public ResponseEntity<Object> profissionalAgenda(
         @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
         HttpServletRequest request){
+
         Usuario Usuario = usuarioService.findByLogin(TokenService.validateToken(TokenService.recoverToken(request))).get();
         Optional<Profissional> profissional = profissionalService.findByUsuario(Usuario);
         if (!profissional.isPresent()) return new ResponseEntity<>("Profissional não encontrado!", HttpStatus.NOT_FOUND);

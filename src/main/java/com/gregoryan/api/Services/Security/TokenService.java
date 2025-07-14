@@ -61,4 +61,8 @@ public class TokenService {
         
         return service.findByLogin(validateToken(recoverToken(request))).get().getEmpresa();
     }
+
+    public Usuario getUserLogado(HttpServletRequest request, UsuarioService service){
+        return service.findByLogin(validateToken(recoverToken(request))).get();
+    }
 }
