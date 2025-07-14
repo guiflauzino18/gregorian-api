@@ -1,5 +1,6 @@
 package com.gregoryan.api.Controllers;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -243,6 +244,9 @@ public class AdminController {
 
         } catch (AcessoNegadoException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+
+        }catch(Exception e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
         }
     }
 
