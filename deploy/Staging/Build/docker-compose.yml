@@ -50,7 +50,6 @@ services:
       - API_URL=http://api.gregorian.com
       - APP_PORT=8080
       - HASH_KEY=b36a57c81dbb4f12d3d156d10a87c9b9
-      - BLOCK_KEY=acbb071e530470176e1fdaef787d76f8
 
     labels:
       - "traefik.http.routers.gregorian-app.rule=Host(`cliente.gregorian.com`)"
