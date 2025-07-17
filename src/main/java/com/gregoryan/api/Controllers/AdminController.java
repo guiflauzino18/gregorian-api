@@ -258,15 +258,16 @@ public class AdminController {
     public ResponseEntity<?> userByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
 
         try {
-
             var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
 
             List<UsuarioResponseDTO> listDTO = usuarioList.list(usuarioLogado.getEmpresa(), pageable).getContent().stream().map(usuario -> {
                 UsuarioResponseDTO dto = usuarioConverter.toUsuarioResponseDTO(usuario);
                 return dto;
-            }).collect(Collectors.toList());
+            }).toList();
 
-            return new ResponseEntity<>(new PageImpl<UsuarioResponseDTO>(listDTO), HttpStatus.OK);
+            var newPageable = new PageImpl<>(listDTO);
+
+            return new ResponseEntity<>(newPageable, HttpStatus.OK);
 
         }catch(BeansException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
