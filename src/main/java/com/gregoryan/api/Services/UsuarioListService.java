@@ -36,9 +36,8 @@ public class UsuarioListService implements UsuarioListInterface{
     @Override
     public Page<Usuario> list(Empresa empresa, Pageable pageable) {
 
-        List<Usuario> usuarios = service.findByEmpresa(empresa, pageable).getContent();
-        return new PageImpl<>(usuarios);
-                
+        return service.findByEmpresa(empresa, pageable);
+
     }
 
     @Override

@@ -3,6 +3,8 @@ package com.gregoryan.api.Models;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -63,6 +65,7 @@ public class Usuario implements UserDetails {
 
     @ManyToOne
     @JoinColumn(name = "empresa_fk")
+    @JsonIgnoreProperties("usuarios")
     private Empresa empresa;
 
     public enum StatusUsuario {
