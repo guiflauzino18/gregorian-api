@@ -221,7 +221,6 @@ public class AdminController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
 
         }
-
     }
 
     //OK
@@ -260,14 +259,11 @@ public class AdminController {
         try {
             var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
 
-            List<UsuarioResponseDTO> listDTO = usuarioList.list(usuarioLogado.getEmpresa(), pageable).getContent().stream().map(usuario -> {
-                UsuarioResponseDTO dto = usuarioConverter.toUsuarioResponseDTO(usuario);
-                return dto;
-            }).toList();
+            var listDTO = usuarioList.list(usuarioLogado.getEmpresa(), pageable)
+                    .map(usuario -> usuarioConverter.toUsuarioResponseDTO(usuario));
 
-            var newPageable = new PageImpl<>(listDTO);
 
-            return new ResponseEntity<>(newPageable, HttpStatus.OK);
+            return new ResponseEntity<>(listDTO, HttpStatus.OK);
 
         }catch(BeansException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
