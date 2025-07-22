@@ -1,3 +1,6 @@
+# Gregorian API
+API para agendamentos e gestão de atendimentos de consulta.
+
 <h3>Sobre</h3>
 Gregorian é um projeto pessoal para prática e aprefeiçoamento de desenvolvimento utilizando o framework Spring e infraestrutura Cloud utilizazndo ferramentas e princípios Devops. A aplicação será uma API que posteriormente será consumida por uma aplicação web e futuramente uma aplicação mobile e se trata de uma agenda para consultas com recursos como cadastro de pacientes, definição de agendas, configurações, permissões e elaborações de "laudos".
 
