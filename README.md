@@ -2,7 +2,7 @@
 Gregorian é um projeto pessoal para prática e aprefeiçoamento de desenvolvimento utilizando o framework Spring e infraestrutura Cloud utilizazndo ferramentas e princípios Devops. A aplicação será uma API que posteriormente será consumida por uma aplicação web e futuramente uma aplicação mobile e se trata de uma agenda para consultas com recursos como cadastro de pacientes, definição de agendas, configurações, permissões e elaborações de "laudos".
 
 <h3>Deploy & Environment</h3>
-Aplicação será executada em Docker e será implantada na AWS utilizandos os serviços como EC2 com Load Balancer e Autoscaling, EJs e ECS.
+Aplicação será executada em Docker e será implantada na AWS utilizandos os serviços como EKS ou ECS.
 
 Para banco de dados será utilizado o MySQL na versão 8.0 utilizando o serviço de RDS.
 

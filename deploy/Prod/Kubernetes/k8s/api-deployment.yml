@@ -29,4 +29,4 @@ spec:
             memory: "1Gi" #1 GB de memória ram. Se o container tentar usar mais memória ele será emcerrado com status de OOMKilled - Out Of Memory Killed
             cpu: "500m" #500 milicore de cpu. 1000 milicore equivale a 1 núcleo. 500m equivale a 0.5 núcleos. Se o container tentar usar mais cpus dará um erro de throttled (limitado), mas não será termiando.
         ports:
-        - containerPort: 8080
+        - containerPort: 9090
