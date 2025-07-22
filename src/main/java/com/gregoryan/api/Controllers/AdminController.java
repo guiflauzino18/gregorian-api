@@ -426,13 +426,11 @@ public class AdminController {
 
         try{
             var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
-            List<Agenda> agendas = agendaList.list(usuarioLogado.getEmpresa(), pageable).getContent();
 
-            List<AgendaResponseDTO> listDTO = agendas.stream().map(agenda -> {
-                return agendaConverter.toResponseDTO(agenda);
-            }).collect(Collectors.toList());
+            Page<AgendaResponseDTO> listDTO = agendaList.list(usuarioLogado.getEmpresa(), pageable)
+                    .map(agenda -> agendaConverter.toResponseDTO(agenda));
 
-            return new ResponseEntity<>(new PageImpl<>(listDTO), HttpStatus.OK);
+            return new ResponseEntity<>(listDTO, HttpStatus.OK);
 
         }catch(Exception e){
             return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
@@ -544,22 +542,6 @@ public class AdminController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
 
-        // Usuario usuarioLogado = usuarioService.findByLogin(tokenService.validateToken(tokenService.recoverToken(request))).get();
-
-        // //Se Agenda Não existe e usuario da Agenda é diferente da usuario do usuário logado retorna 404
-        // if(!agendaService.findById(agendaDTO.idAgenda()).isPresent() || agendaService.findById(agendaDTO.idAgenda()).get().getusuario().getId() != usuarioLogado.getusuario().getId())
-        //     return new ResponseEntity<>("Agenda não encontrada!", HttpStatus.NOT_FOUND);
-
-        // Agenda agenda = agendaService.findById(agendaDTO.idAgenda()).get();
-        // agenda.setNome(agendaDTO.nome());
-        // if (statusAgendaService.findById(agendaDTO.idStatusAgenda()).isPresent())
-        //     agenda.setStatusAgenda(statusAgendaService.findById(agendaDTO.idStatusAgenda()).get());
-
-        // Optional<Profissional> profissional = profissionalService.findById(agendaDTO.idProfissional());
-        // if (profissional.isPresent())
-        //     agenda.setProfissional(profissional.get());
-
-        // return new ResponseEntity<>(agendaService.save(agenda),HttpStatus.OK);
     }
 
     // ===============================================FIM AGENDA ======================================
@@ -750,12 +732,11 @@ public class AdminController {
     public ResponseEntity<Page<StatusAgendaResponseDTO>> statusAgendaByEmpresa(HttpServletRequest request, @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
 
         var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
-        List<StatusAgendaResponseDTO> listDTO = statusAgendaList.list(usuarioLogado.getEmpresa(), pageable).getContent().stream().map(status -> {
-            StatusAgendaResponseDTO dto = statusAgendaConverter.toResponseDTO(status);
-            return dto;
-        }).collect(Collectors.toList());
 
-        return new ResponseEntity<>(new PageImpl<StatusAgendaResponseDTO>(listDTO), HttpStatus.OK);
+        Page<StatusAgendaResponseDTO> listDTO = statusAgendaList.list(usuarioLogado.getEmpresa(), pageable)
+                .map(statusAgenda -> statusAgendaConverter.toResponseDTO(statusAgenda));
+
+        return new ResponseEntity<>(listDTO, HttpStatus.OK);
     }
 
 
@@ -817,14 +798,17 @@ public class AdminController {
         @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable){
 
         var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
-        List<StatusHora> statusHoras = statusHoraList.list(usuarioLogado.getEmpresa(), pageable).getContent();
+//        List<StatusHora> statusHoras = statusHoraList.list(usuarioLogado.getEmpresa(), pageable).getContent();
+//
+//        List<StatusHoraResponseDTO> listDTO = statusHoras.stream().map(status -> {
+//            StatusHoraResponseDTO dto = statusHoraConverter.toResponseDTO(status);
+//            return dto;
+//        }).collect(Collectors.toList());
 
-        List<StatusHoraResponseDTO> listDTO = statusHoras.stream().map(status -> {
-            StatusHoraResponseDTO dto = statusHoraConverter.toResponseDTO(status);
-            return dto;
-        }).collect(Collectors.toList());
+        Page<StatusHoraResponseDTO> listDTO = statusHoraList.list(usuarioLogado.getEmpresa(), pageable)
+                .map(statusHora -> statusHoraConverter.toResponseDTO(statusHora));
 
-        return new ResponseEntity<>(new PageImpl<>(listDTO), HttpStatus.OK);
+        return new ResponseEntity<>(listDTO, HttpStatus.OK);
 
     }
 
@@ -962,14 +946,11 @@ public class AdminController {
     ){
 
         var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
-        List<StatusDia> statusDias = statusDiaList.list(usuarioLogado.getEmpresa(), pageable).getContent();
 
-        List<StatusDiaResponseDTO> listDTO = statusDias.stream().map(item -> {
-            StatusDiaResponseDTO dto = statusDiaConverter.toResponseDTO(item);
-            return dto;
-        }).collect(Collectors.toList());
+        Page<StatusDiaResponseDTO> listDTO = statusDiaList.list(usuarioLogado.getEmpresa(), pageable)
+                .map(statusDia -> statusDiaConverter.toResponseDTO(statusDia));
 
-        return new ResponseEntity<>(new PageImpl<StatusDiaResponseDTO>(listDTO), HttpStatus.OK);
+        return new ResponseEntity<>(listDTO, HttpStatus.OK);
 
     }
 
@@ -1180,12 +1161,11 @@ public class AdminController {
     public ResponseEntity<Page<ProfissionalResponseDTO>> profissionalByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
 
         var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
-        List<ProfissionalResponseDTO> listDTO = profissionalList.list(usuarioLogado.getEmpresa(), pageable).getContent().stream().map(profissional -> {
-            return profissionalConverter.toResponseDTO(profissional);
 
-        }).collect(Collectors.toList());
+        Page<ProfissionalResponseDTO> listDTO = profissionalList.list(usuarioLogado.getEmpresa(), pageable)
+                .map(profissional -> profissionalConverter.toResponseDTO(profissional));
 
-        return new ResponseEntity<>(new PageImpl<ProfissionalResponseDTO>(listDTO), HttpStatus.OK);
+        return new ResponseEntity<>(listDTO, HttpStatus.OK);
 
     }
 
@@ -1333,14 +1313,18 @@ public class AdminController {
             Pageable pageable, HttpServletRequest request){
 
                 var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
-                List<Feriado> feriados = feriadoList.list(usuarioLogado.getEmpresa(), pageable).getContent();
-                List<FeriadoResponseDTO> listDTO = feriados.stream().map(feriado -> {
-                    FeriadoResponseDTO dto = feriadoConverter.toResponseDTO(feriado);
-                    return dto;
 
-                }).collect(Collectors.toList());
+//                List<Feriado> feriados = feriadoList.list(usuarioLogado.getEmpresa(), pageable).getContent();
+//                List<FeriadoResponseDTO> listDTO = feriados.stream().map(feriado -> {
+//                    FeriadoResponseDTO dto = feriadoConverter.toResponseDTO(feriado);
+//                    return dto;
+//
+//                }).collect(Collectors.toList());
 
-                return new ResponseEntity<>(new PageImpl<FeriadoResponseDTO>(listDTO), HttpStatus.OK);
+        Page<FeriadoResponseDTO> listDTO = feriadoList.list(usuarioLogado.getEmpresa(), pageable)
+                .map(feriado -> feriadoConverter.toResponseDTO(feriado));
+
+                return new ResponseEntity<>(listDTO, HttpStatus.OK);
             }
 
     //OK
@@ -1445,15 +1429,19 @@ public class AdminController {
             HttpServletRequest request){
 
             var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
-            List<DiaBloqueado> diaBloqueados = diaBloqueadoList.list(usuarioLogado.getEmpresa(), pageable).getContent();
 
-            List<DiaBloqueadoResponseDTO> listDTO = diaBloqueados.stream().map(item -> {
-                DiaBloqueadoResponseDTO dto = diaBloqueadoConverter.toResponseDTO(item);
-                return dto;
+//            List<DiaBloqueado> diaBloqueados = diaBloqueadoList.list(usuarioLogado.getEmpresa(), pageable).getContent();
+//
+//            List<DiaBloqueadoResponseDTO> listDTO = diaBloqueados.stream().map(item -> {
+//                DiaBloqueadoResponseDTO dto = diaBloqueadoConverter.toResponseDTO(item);
+//                return dto;
+//
+//            }).collect(Collectors.toList());
 
-            }).collect(Collectors.toList());
+        Page<DiaBloqueadoResponseDTO> listDTO = diaBloqueadoList.list(usuarioLogado.getEmpresa(), pageable)
+                .map(diaBloqueado -> diaBloqueadoConverter.toResponseDTO(diaBloqueado));
 
-            return new ResponseEntity<>(new PageImpl<DiaBloqueadoResponseDTO>(listDTO), HttpStatus.OK);
+            return new ResponseEntity<>(listDTO, HttpStatus.OK);
     }
 
     //OK
