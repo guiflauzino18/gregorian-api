@@ -51,6 +51,7 @@ public class UsuarioConverter implements UsuarioConverterInterface{
         Usuario usuarioConsulta = usuarioList.list(dto.getId(), usuario);
 
         usuarioConsulta.setNome(dto.getNome());
+        usuarioConsulta.setSobrenome(dto.getSobrenome());
         usuarioConsulta.setNascimento(dataConverter.toCalendar(dto.getNascimento()));
         usuarioConsulta.setTelefone(dto.getTelefone());
         usuarioConsulta.setEmail(dto.getEmail());

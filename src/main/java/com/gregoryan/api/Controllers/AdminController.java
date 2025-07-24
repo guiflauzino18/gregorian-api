@@ -340,13 +340,13 @@ public class AdminController {
         try {
             var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
             userEdit.edit(usuarioDTO, usuarioLogado);
-            return new ResponseEntity<>("Usuario Editado", HttpStatus.OK);
+            return new ResponseEntity<>(new HttpResponseDTO("Sucesso", "Usuário atualizado"), HttpStatus.OK);
 
         }catch (EntityDontExistException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new HttpResponseDTO("Erro", e.getMessage()), HttpStatus.NOT_FOUND);
 
         }catch (AcessoNegadoException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>(new HttpResponseDTO("Erro", e.getMessage()), HttpStatus.FORBIDDEN);
 
         }
 
