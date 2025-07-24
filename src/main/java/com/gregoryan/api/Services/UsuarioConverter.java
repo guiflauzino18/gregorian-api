@@ -28,6 +28,7 @@ public class UsuarioConverter implements UsuarioConverterInterface{
 
     @Override
     public Usuario toUsuario(UsuarioCreateDTO dto) {
+        System.out.println("----------------------"+dto.nascimento());
         Usuario usuario = new Usuario();
         usuario.setNome(dto.nome());
         usuario.setSobrenome(dto.sobrenome());

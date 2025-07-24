@@ -1,10 +1,7 @@
 package com.gregoryan.api.Controllers;
 
 import java.sql.SQLIntegrityConstraintViolationException;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.*;
 import java.text.ParseException;
 import java.util.stream.Collectors;
 
@@ -213,12 +210,16 @@ public class AdminController {
 
         try {
             var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            System.out.print(usuarioDTO.toString());
             usuarioCreate.create(usuarioDTO, usuarioLogado);
 
-            return new ResponseEntity<>("Usuário cadastrado com sucesso", HttpStatus.CREATED);
+            return new ResponseEntity<>(new HttpResponseDTO("Sucesso :", "Usuário cadastrado com sucesso"),
+                                            HttpStatus.CREATED);
 
         }catch (ConflictException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+
+            return new ResponseEntity<>(new HttpResponseDTO("Erro:", e.getMessage()),
+                                            HttpStatus.CONFLICT);
 
         }
     }
