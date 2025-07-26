@@ -19,15 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import com.gregoryan.api.Exception.AcessoNegadoException;
@@ -103,6 +95,8 @@ public class AdminController {
     private UsuarioResetSenha resetSenha;
     @Autowired
     private UsuarioConverterInterface usuarioConverter;
+    @Autowired
+    private UsuarioBlockService usuarioBlock;
 
     //Injetores relacionados ao Profissional
     @Autowired
@@ -378,6 +372,24 @@ public class AdminController {
         }catch(AcessoNegadoException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
+    }
+
+
+    //Bloqueia usuario
+    @PatchMapping("/user/block/{id}")
+    public ResponseEntity<?> userBlock(@PathVariable long id, HttpServletRequest request){
+         try {
+             var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+             usuarioBlock.block(id, usuarioLogado);
+             return new ResponseEntity<>(new HttpResponseDTO("Sucesso", "Usuário bloqueado"), HttpStatus.OK);
+
+         }catch(AcessoNegadoException e){
+             return new ResponseEntity<>(new HttpResponseDTO("Erro", e), HttpStatus.FORBIDDEN);
+
+         }catch (EntityDontExistException e){
+             return new ResponseEntity<>(new HttpResponseDTO("Erro", e), HttpStatus.NOT_FOUND);
+
+         }
     }
 // ================================= Fim Usuários dos Sistema =================================
 
