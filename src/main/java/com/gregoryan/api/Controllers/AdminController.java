@@ -384,10 +384,10 @@ public class AdminController {
              return new ResponseEntity<>(new HttpResponseDTO("Sucesso", "Usuário bloqueado"), HttpStatus.OK);
 
          }catch(AcessoNegadoException e){
-             return new ResponseEntity<>(new HttpResponseDTO("Erro", e), HttpStatus.FORBIDDEN);
+             return new ResponseEntity<>(new HttpResponseDTO("Erro", e.getMessage()), HttpStatus.FORBIDDEN);
 
          }catch (EntityDontExistException e){
-             return new ResponseEntity<>(new HttpResponseDTO("Erro", e), HttpStatus.NOT_FOUND);
+             return new ResponseEntity<>(new HttpResponseDTO("Erro", e.getMessage()), HttpStatus.NOT_FOUND);
 
          }
     }

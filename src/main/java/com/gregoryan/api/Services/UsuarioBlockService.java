@@ -21,7 +21,11 @@ public class UsuarioBlockService {
         Usuario usuario = list.list(id, usuarioLogado );
         validate.validate(usuarioLogado, usuario.getEmpresa());
 
-        usuario.setStatus(Usuario.StatusUsuario.BLOQUEADO);;
+        var currentStatus = usuario.getStatus();
+        usuario.setStatus(
+                currentStatus != Usuario.StatusUsuario.BLOQUEADO ? Usuario.StatusUsuario.BLOQUEADO
+                        : Usuario.StatusUsuario.ATIVO
+        );
 
         service.save(usuario);
     }
