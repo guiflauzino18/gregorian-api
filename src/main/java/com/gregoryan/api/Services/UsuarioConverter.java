@@ -84,7 +84,7 @@ public class UsuarioConverter implements UsuarioConverterInterface{
 
 
         dto.add(linkTo(methodOn(AdminController.class).userById(usuario.getId(), null)).withRel("findByID").withType("GET"));
-        dto.add(linkTo(methodOn(AdminController.class).userByEmpresa(Pageable.unpaged(), null)).withRel("findAll").withType("GET"));
+        dto.add(linkTo(methodOn(AdminController.class).userByEmpresa(Pageable.unpaged(), "pesquisa" ,null)).withRel("findAll").withType("GET"));
         dto.add(linkTo(methodOn(AdminController.class).userByLogin(usuario.getLogin(), null)).withRel("findByLogin").withType("GET"));
         dto.add(linkTo(methodOn(AdminController.class).userEdit(new UsuarioEditDTO(), null)).withRel("update").withType("PUT"));
         dto.add(linkTo(methodOn(AdminController.class).userResetPassword(null, null)).withRel("resetPassword").withType("PUT"));

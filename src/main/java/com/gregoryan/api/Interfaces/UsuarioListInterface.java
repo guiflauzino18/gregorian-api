@@ -16,4 +16,6 @@ public interface UsuarioListInterface {
     Usuario list(String login, Usuario usuario);
     //FindAll
     Page<Usuario> list(Pageable pageable);
+    //Search
+    Page<Usuario> list (Pageable pageable, Usuario usuario, String input);
 }

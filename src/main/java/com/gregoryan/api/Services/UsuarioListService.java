@@ -52,5 +52,11 @@ public class UsuarioListService implements UsuarioListInterface{
         return service.findAll(pageable);
 
     }
-    
+
+    @Override
+    public Page<Usuario> list(Pageable pageable, Usuario usuario, String input) {
+        return service.search(usuario.getEmpresa().getId(), input, pageable);
+
+    }
+
 }

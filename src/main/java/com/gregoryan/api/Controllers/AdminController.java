@@ -249,16 +249,31 @@ public class AdminController {
     @Operation(summary = "Lista usuário da usuario", description = "Lista usuários da usuario da qual o usuário faz parte.")
     @ApiResponse(responseCode = "200", description = "Usuário listado com sucesso")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
-    public ResponseEntity<?> userByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
+    public ResponseEntity<?> userByEmpresa(
+            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam String input, HttpServletRequest request
+    ){
 
         try {
             var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
 
-            var listDTO = usuarioList.list(usuarioLogado.getEmpresa(), pageable)
-                    .map(usuario -> usuarioConverter.toUsuarioResponseDTO(usuario));
+            //If input is brank show all users
+            if (input.isBlank()){
+
+                var listDTO = usuarioList.list(usuarioLogado.getEmpresa(), pageable)
+                        .map(usuario -> usuarioConverter.toUsuarioResponseDTO(usuario));
 
 
-            return new ResponseEntity<>(listDTO, HttpStatus.OK);
+                return new ResponseEntity<>(listDTO, HttpStatus.OK);
+
+            }else {
+
+                var listDTO = usuarioList.list(pageable, usuarioLogado, input);
+                Page<UsuarioResponseDTO> dto = listDTO.map(usuarioConverter::toUsuarioResponseDTO);
+
+                return new ResponseEntity<>(dto, HttpStatus.OK);
+            }
+
 
         }catch(BeansException e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -390,6 +405,24 @@ public class AdminController {
              return new ResponseEntity<>(new HttpResponseDTO("Erro", e.getMessage()), HttpStatus.NOT_FOUND);
 
          }
+    }
+
+    //Busca de usuários
+    @GetMapping("/user/search")
+    public ResponseEntity<?> userSearch(@RequestParam String input, HttpServletRequest request,
+                                        @PageableDefault(page = 0, size = 10, direction = Sort.Direction.DESC) Pageable pageable
+    ){
+        try{
+            var usuariologado = tokenService.getUserLogado(request, usuarioService);
+            var listDTO = usuarioList.list(pageable, usuariologado, input);
+            Page<UsuarioResponseDTO> dto = listDTO.map(usuarioConverter::toUsuarioResponseDTO);
+
+            return new ResponseEntity<>(dto, HttpStatus.OK);
+
+        }catch (Exception e){
+            return new ResponseEntity<>(new HttpResponseDTO("Erro", e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+
+        }
     }
 // ================================= Fim Usuários dos Sistema =================================
 

@@ -49,5 +49,9 @@ public class UsuarioService {
     public Page<Usuario> findByEmpresa(Empresa empresa, Pageable pageable){
         return usuarioRepository.findByEmpresa(empresa, pageable);
     }
+
+    public Page<Usuario> search(long empresa, String input, Pageable pageable){
+        return usuarioRepository.search(empresa, input, pageable);
+    }
     
 }
