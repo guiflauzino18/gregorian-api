@@ -1115,7 +1115,7 @@ public class AdminController {
     @PutMapping("/profissional/edit")
     @Operation(summary = "Edição de Profissional", description = "Altera atributos do Profissional")
     @ApiResponse(responseCode = "200", description = "Edição do profissional ocoreu com sucesso")
-    @ApiResponse(responseCode = "400", description = "Profissional não encontrado para edição")
+    @ApiResponse(responseCode = "404", description = "Profissional não encontrado para edição")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
     public ResponseEntity<Object> profissionalEdit(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -1128,13 +1128,13 @@ public class AdminController {
         try{
             var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
             profissionalEdit.edit(profissionalDTO, usuarioLogado);
-            return new ResponseEntity<>("Profissional editado com sucesso", HttpStatus.OK);
+            return new ResponseEntity<>(new HttpResponseDTO("Erro","Profissional editado com sucesso"), HttpStatus.OK);
 
         }catch(EntityDontExistException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new HttpResponseDTO("Erro", e.getMessage()), HttpStatus.NOT_FOUND);
 
         }catch(AcessoNegadoException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>(new HttpResponseDTO("Erro", e.getMessage()), HttpStatus.FORBIDDEN);
         }
     }
 
@@ -1145,6 +1145,7 @@ public class AdminController {
     @ApiResponse(responseCode = "200", description = "Profissional excluído com sucesso")
     @ApiResponse(responseCode = "404", description = "Profissional não encontrado para exclusão")
     @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    @ApiResponse(responseCode = "406", description = "Possivelmente profissional vinculado a uma agenda")
     public ResponseEntity<Object> profissionalDelete(
         @Parameter(
             description = "ID do profissional a ser excluído",
@@ -1155,17 +1156,18 @@ public class AdminController {
         try{
             var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
             profissionalDeleting.delete(id, usuarioLogado);
-            return new ResponseEntity<>("Profissional deletado", HttpStatus.OK);
+            return new ResponseEntity<>(new HttpResponseDTO("Sucesso","Profissional deletado"), HttpStatus.OK);
 
         }catch(EntityDontExistException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new HttpResponseDTO("Erro", e.getMessage()), HttpStatus.NOT_FOUND);
 
         }catch(AcessoNegadoException e){
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>(new HttpResponseDTO("Erro", e.getMessage()), HttpStatus.FORBIDDEN);
 
         }catch(DataIntegrityViolationException e){
-            return new ResponseEntity<>("Profissional não pode ser excludído. Possivelmente está vinculado a uma agenda.", HttpStatus.NOT_FOUND);
-
+            return new ResponseEntity<>(
+                    new HttpResponseDTO("Erro","Profissional não pode ser excludído. Possivelmente está vinculado a uma agenda."),
+                    HttpStatus.NOT_ACCEPTABLE);
         }
     }
 
