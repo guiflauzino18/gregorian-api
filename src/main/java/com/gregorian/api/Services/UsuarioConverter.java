@@ -90,6 +90,7 @@ public class UsuarioConverter implements UsuarioConverterInterface{
         dto.add(linkTo(methodOn(AdminController.class).userResetPassword(null, null)).withRel("resetPassword").withType("PUT"));
         dto.add(linkTo(methodOn(AdminController.class).userDelete(dto.getId(), null)).withRel("delete").withType("DELETE"));
         dto.add(linkTo(methodOn(AdminController.class).userCreate(null, null)).withRel("create").withType("POST"));
+        dto.add(linkTo(methodOn(AdminController.class).userBlock(usuario.getId(), null)).withRel("block").withType("PATCH"));
 
         return dto;
     }

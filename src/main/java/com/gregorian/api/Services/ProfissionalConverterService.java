@@ -72,11 +72,10 @@ public class ProfissionalConverterService implements ProfissionalConverterInterf
             dto.add(linkTo(methodOn(AdminController.class).profissionalCreate(null, null)).withRel("create").withType("POST"));
             dto.add(linkTo(methodOn(AdminController.class).profissionalEdit(null, null)).withRel("update").withType("PUT"));
             dto.add(linkTo(methodOn(AdminController.class).profissionalDelete(dto.getId(), null)).withRel("delete").withType("DELETE"));
+            dto.add(linkTo(methodOn(AdminController.class).profissionalBlock(dto.getId(), null)).withRel("block").withType("PATCH"));
             dto.add(linkTo(methodOn(AdminController.class).profissionalByEmpresa(Pageable.unpaged(), null)).withRel("findByEmpresa").withType("GET"));
             dto.add(linkTo(methodOn(AdminController.class).profissionalNameAndId(null, null)).withRel("profissionalNameAndId").withType("GET"));
             dto.add(linkTo(methodOn(AdminController.class).profissionalById(dto.getId(), null)).withRel("findByID").withType("GET"));
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

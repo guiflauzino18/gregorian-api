@@ -3,12 +3,9 @@ package com.gregorian.api.Controllers;
 import java.util.*;
 import java.text.ParseException;
 import java.util.stream.Collectors;
-
 import com.gregorian.api.DTO.*;
 import com.gregorian.api.Interfaces.*;
 import com.gregorian.api.Services.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,6 +79,8 @@ public class AdminController {
     private ProfissionalListInterface profissionalList;
     @Autowired
     private ProfissionalConverterInterface profissionalConverter;
+    @Autowired
+    private ProfissionalBlockService profissionalBlock;
 
     //Injetor relacionado a Agenda
     @Autowired
@@ -1171,8 +1170,28 @@ public class AdminController {
         }
     }
 
+    @PatchMapping("/profissional/block/{id}")
+    @Operation(summary = "Bloqueia profissionais da empresa")
+    @ApiResponse(responseCode = "200", description = "Profissional bloqueado com sucesso")
+    @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação")
+    @ApiResponse(responseCode = "404", description = "Profissional não encontrado")
+    public ResponseEntity<HttpResponseDTO> profissionalBlock(@PathVariable long id, HttpServletRequest request){
+
+        try{
+            var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
+            profissionalBlock.block(id, usuarioLogado);
+            return new ResponseEntity<>(new HttpResponseDTO("Sucesso", "Profissional bloqueado com sucesso"), HttpStatus.OK);
+
+        }catch(AcessoNegadoException e){
+            return new ResponseEntity<>(new HttpResponseDTO("Erro", e.getMessage()), HttpStatus.FORBIDDEN);
+
+        }catch(EntityDontExistException e){
+            return new ResponseEntity<>(new HttpResponseDTO("Erro", e.getMessage()), HttpStatus.NOT_FOUND);
+
+        }
+    }
+
     //Ok
-    //Lista Profissoinal por usuario
     @GetMapping("/profissional/list")
     @Operation(summary = "Lista profissionais da empresa")
     @ApiResponse(responseCode = "200", description = "Lista profissionais com sucesso")
@@ -1180,12 +1199,10 @@ public class AdminController {
     public ResponseEntity<Page<ProfissionalResponseDTO>> profissionalByEmpresa(@PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request){
 
         var usuarioLogado = tokenService.getUserLogado(request, usuarioService);
-
         Page<ProfissionalResponseDTO> listDTO = profissionalList.list(usuarioLogado.getEmpresa(), pageable)
                 .map(profissional -> profissionalConverter.toResponseDTO(profissional));
 
         return new ResponseEntity<>(listDTO, HttpStatus.OK);
-
     }
 
 
